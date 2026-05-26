@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { saveGame, loadGame, defaultSave, deleteSave, exportSave, debounce } from "./utils/storage.js";
 
 /* ============================================================================
    ARISE — Solo Leveling System Interface  ·  Hardcore Rework
@@ -6814,148 +6815,157 @@ function App() {
   const sfx = useAudio();
 
   /* Phase */
-  const [phase, setPhase] = useState("onboard");
+    const sv = (function() {
+    try { return loadGame(); } catch (_) { return null; }
+  })();
 
-  /* Player — pre-onboard defaults are all valid numbers so XP bar never shows NaN */
-  const [player, setPlayer] = useState({
+  const [phase, setPhase] = useState(sv ? sv.phase : "onboard");
+
+  const [player, setPlayer] = useState(sv ? sv.player : {
     name: "Hunter", level: 1, xp: 0, streak: 0,
     job: "fighter", physique: "hybrid", goals: [],
     activeTitle: "awakened",
     stats: { Strength:10, Agility:10, Endurance:10, Discipline:10, Intelligence:10, Recovery:10, Aura:5 },
   });
 
-  /* UI */
   const [activeView, setActiveView] = useState("Dashboard");
   const [menuOpen, setMenuOpen]     = useState(false);
-  const [soundOn, setSoundOn]       = useState(true);
+  const [soundOn, setSoundOn]       = useState(sv ? sv.soundOn : true);
 
-  /* Quest progress — keyed by goal ID */
-  const [dailyProgress, setDailyProgress] = useState({});
-  const [isDailyDone, setIsDailyDone]           = useState(false);
-  /* System 2: Streak protection */
+  const [dailyProgress, setDailyProgress]             = useState(sv ? (sv.dailyProgress || {}) : {});
+  const [isDailyDone, setIsDailyDone]                 = useState(sv ? !!sv.isDailyDone : false);
   const [streakProtectActive, setStreakProtectActive] = useState(false);
   const [streakProtectDone, setStreakProtectDone]     = useState(false);
-  const [sideProgress, setSideProgress]   = useState(SIDE_QUESTS.map(function(){return {};}));
-  const [sideDone, setSideDone]           = useState(SIDE_QUESTS.map(function(){return false;}));
-  /* Extended side quests — keyed by quest ID so adding new quests never breaks existing state */
-  const [extSideProgress, setExtSideProgress] = useState({}); /* { questId: { goalId: completedVal } } */
-  const [extSideDone, setExtSideDone]         = useState({}); /* { questId: true } */
-  /* Anomaly quests — keyed by quest ID, recentIds for anti-repetition */
-  const [anomalyProgress, setAnomalyProgress] = useState({}); /* { questId: completed boolean } */
-  const [anomalyDone, setAnomalyDone]         = useState({}); /* { questId: true } */
-  const [recentAnomalyIds, setRecentAnomalyIds] = useState([]); /* last ~15 completed IDs */
-
-  /* Dungeon gates */
-  const [clearedGates, setClearedGates] = useState({});
-  const [dungeonChainGate, setDungeonChainGate] = useState(null);
-  const [activeModifier, setActiveModifier]     = useState(null); /* rolled on gate entry */
-
-  /* Boss raids */
-  const [bosses, setBosses] = useState(function(){
-    return BOSS_DATA.map(function(b){return Object.assign({},b,{maxHp:b.hp,currentHp:b.hp});});
+  const [sideProgress, setSideProgress] = useState(function() {
+    if (sv && Array.isArray(sv.sideProgress) && sv.sideProgress.length === SIDE_QUESTS.length) return sv.sideProgress;
+    return SIDE_QUESTS.map(function(){return {};});
   });
-  /* Secret bosses — keyed by boss.id → { currentHp, maxHp } */
+  const [sideDone, setSideDone] = useState(function() {
+    if (sv && Array.isArray(sv.sideDone) && sv.sideDone.length === SIDE_QUESTS.length) return sv.sideDone;
+    return SIDE_QUESTS.map(function(){return false;});
+  });
+  const [extSideProgress, setExtSideProgress] = useState(sv ? (sv.extSideProgress || {}) : {});
+  const [extSideDone, setExtSideDone]         = useState(sv ? (sv.extSideDone    || {}) : {});
+  const [anomalyProgress, setAnomalyProgress] = useState(sv ? (sv.anomalyProgress || {}) : {});
+  const [anomalyDone, setAnomalyDone]         = useState(sv ? (sv.anomalyDone    || {}) : {});
+  const [recentAnomalyIds, setRecentAnomalyIds] = useState(sv ? (sv.recentAnomalyIds || []) : []);
+
+  const [clearedGates, setClearedGates]         = useState(sv ? (sv.clearedGates || {}) : {});
+  const [dungeonChainGate, setDungeonChainGate] = useState(null);
+  const [activeModifier, setActiveModifier]     = useState(null);
+
+  const [bosses, setBosses] = useState(function() {
+    const fresh = BOSS_DATA.map(function(b){return Object.assign({},b,{maxHp:b.hp,currentHp:b.hp});});
+    if (!sv || !Array.isArray(sv.bossHpSnapshot)) return fresh;
+    return fresh.map(function(boss, i) {
+      const snap = sv.bossHpSnapshot[i];
+      if (snap && typeof snap.currentHp === "number" && Number.isFinite(snap.currentHp)) {
+        return Object.assign({}, boss, { currentHp: Math.max(0, Math.min(boss.maxHp, Math.floor(snap.currentHp))) });
+      }
+      return boss;
+    });
+  });
   const [secretBossStates, setSecretBossStates] = useState(function() {
     const init = {};
     SECRET_BOSS_DATA.forEach(function(b) { init[b.id] = { currentHp: b.hp, maxHp: b.hp }; });
     return init;
   });
-  const [accessDeniedBoss, setAccessDeniedBoss] = useState(null); /* boss that triggered rank denial */
+  const [accessDeniedBoss, setAccessDeniedBoss] = useState(null);
 
-  /* Shadow extraction ARISE system */
-  const [ariseTarget, setAriseTarget]     = useState(null);  /* { bossIndex, bossData } */
-  const [ariseAttempt, setAriseAttempt]   = useState(1);     /* 1-3 */
+  const [ariseTarget, setAriseTarget]   = useState(null);
+  const [ariseAttempt, setAriseAttempt] = useState(1);
 
-  /* Hidden quests */
-  const [seenHiddenIds, setSeenHiddenIds]               = useState([]);
-  const [activeHiddenQuest, setActiveHiddenQuest]       = useState(null);
-  const [hiddenQuestPending, setHiddenQuestPending]     = useState(null);
-  const [hiddenQuestProgress, setHiddenQuestProgress]   = useState({});
-  const [completedHiddenIds, setCompletedHiddenIds]     = useState([]);
+  const [seenHiddenIds, setSeenHiddenIds]             = useState([]);
+  const [activeHiddenQuest, setActiveHiddenQuest]     = useState(null);
+  const [hiddenQuestPending, setHiddenQuestPending]   = useState(null);
+  const [hiddenQuestProgress, setHiddenQuestProgress] = useState({});
+  const [completedHiddenIds, setCompletedHiddenIds]   = useState([]);
 
-  /* System 6 — takeover events */
-  const [takeoverEvent, setTakeoverEvent] = useState(null);
-
-  /* Phase 2 — Random events */
+  const [takeoverEvent, setTakeoverEvent]           = useState(null);
   const [randomEventPending, setRandomEventPending] = useState(null);
 
-  /* Wave 4 — Guild, Identity, Ascension */
-  const [guildId, setGuildId]                         = useState(null);
-  const [guildRecruitOffer, setGuildRecruitOffer]     = useState(null); /* guild obj being offered */
-  const [guildQuestProgress, setGuildQuestProgress]   = useState({});
-  const [guildQuestDone, setGuildQuestDone]           = useState(false);
-  const [ascensionCount, setAscensionCount]           = useState(0);
-  const [monarchCorruption, setMonarchCorruption]     = useState(0); /* 0-100, increases at high rank */
+  const [guildId, setGuildId]                       = useState(sv ? sv.guildId : null);
+  const [guildRecruitOffer, setGuildRecruitOffer]   = useState(null);
+  const [guildQuestProgress, setGuildQuestProgress] = useState(sv ? (sv.guildQuestProgress || {}) : {});
+  const [guildQuestDone, setGuildQuestDone]         = useState(sv ? !!sv.guildQuestDone : false);
+  const [ascensionCount, setAscensionCount]         = useState(sv ? (sv.ascensionCount || 0) : 0);
+  const [monarchCorruption, setMonarchCorruption]   = useState(0);
 
-  /* Wave 3 — Breakthrough / Achievements / World Events / Awakening */
   const [breakthroughPending, setBreakthroughPending] = useState(null);
-  const [completedBTs, setCompletedBTs]               = useState([]);
+  const [completedBTs, setCompletedBTs]               = useState(sv ? (sv.completedBTs || []) : []);
   const [cinematicAch, setCinematicAch]               = useState(null);
   const [worldEvent, setWorldEvent]                   = useState(null);
   const [awakeningDay, setAwakeningDay]               = useState(false);
-  const [earnedAchievements, setEarnedAchievements]   = useState([]); /* System 8 */
+  const [earnedAchievements, setEarnedAchievements]   = useState(sv ? (sv.earnedAchievements || []) : []);
 
-  /* Phase 4 — Economy, Energy, Shadow Army */
-  const [coins, setCoins]               = useState(0);
-  const [fame, setFame]                 = useState(0); /* System 4: Hunter Fame */
-  const [inventory, setInventory]       = useState([]);      /* item IDs owned */
-  const [dungeonKeys, setDungeonKeys]   = useState([]);      /* array of key objects */
-  const [loreFragments, setLoreFragments]       = useState(0);
-  const [collectedLoreIds, setCollectedLoreIds] = useState([]);
-  const [shadowArmy, setShadowArmy]         = useState([]);
-  const [shadowMissions, setShadowMissions] = useState([]);
-  /* System 6: squads — array of { id, name, shadowIds, icon } */
-  const [shadowSquads, setShadowSquads]     = useState([
-    { id:"assault",  name:"Assault Squad",  shadowIds:[], icon:"⚔" },
-    { id:"recon",    name:"Recon Squad",    shadowIds:[], icon:"➤" },
-    { id:"raid",     name:"Raid Squad",     shadowIds:[], icon:"❖" },
-  ]);
-  const [unlockedSpecs, setUnlockedSpecs]   = useState([]);  /* System 3: unlocked spec IDs */
-  const [energyState, setEnergyState]   = useState({ sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 });
-  const [energyScore, setEnergyScore]   = useState(68);
-  /* Reward chest flow: null → [reward, reward, reward] */
-  const [rewardChest, setRewardChest]   = useState(null);
-  /* Stat points flow */
+  const [coins, setCoins]               = useState(sv ? (sv.coins || 0) : 0);
+  const [fame, setFame]                 = useState(sv ? (sv.fame  || 0) : 0);
+  const [inventory, setInventory]       = useState(sv ? (sv.inventory || []) : []);
+  const [dungeonKeys, setDungeonKeys]   = useState(sv ? (sv.dungeonKeys || []) : []);
+  const [loreFragments, setLoreFragments]       = useState(sv ? (sv.loreFragments || 0) : 0);
+  const [collectedLoreIds, setCollectedLoreIds] = useState(sv ? (sv.collectedLoreIds || []) : []);
+
+  const [shadowArmy, setShadowArmy]         = useState(sv ? (sv.shadowArmy || []) : []);
+  const [shadowMissions, setShadowMissions] = useState(sv ? (sv.shadowMissions || []) : []);
+  const [shadowSquads, setShadowSquads]     = useState(
+    sv && Array.isArray(sv.shadowSquads) ? sv.shadowSquads : [
+      { id:"assault", name:"Assault Squad", shadowIds:[], icon:"⚔" },
+      { id:"recon",   name:"Recon Squad",   shadowIds:[], icon:"➤" },
+      { id:"raid",    name:"Raid Squad",    shadowIds:[], icon:"❖" },
+    ]
+  );
+  const [unlockedSpecs, setUnlockedSpecs] = useState(sv ? (sv.unlockedSpecs || []) : []);
+  const [energyState, setEnergyState]     = useState(
+    sv ? (sv.energyState || { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 })
+       : { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 }
+  );
+  const [energyScore, setEnergyScore] = useState(68);
+
+  const [rewardChest, setRewardChest]             = useState(null);
   const [pendingStatPoints, setPendingStatPoints] = useState(0);
-  /* Dungeon cutscene gate */
-  const [cutsceneGate, setCutsceneGate] = useState(null);
-  /* Shadow rename overrides */
-  const [shadowNames, setShadowNames]   = useState({});
-  /* XP boost active */
+  const [cutsceneGate, setCutsceneGate]           = useState(null);
+  const [shadowNames, setShadowNames]             = useState(sv ? (sv.shadowNames || {}) : {});
   const xpBoostRef = useRef(false);
-  /* Cinematic popup state — was missing, caused "Can't find variable: cinematic" crash */
-  const [cinematic, setCinematic] = useState(null);
-  const [levelUpFx, setLevelUpFx] = useState(null);
-  const [rankUpFx, setRankUpFx]   = useState(null);
+  const [cinematic, setCinematic]   = useState(null);
+  const [levelUpFx, setLevelUpFx]   = useState(null);
+  const [rankUpFx, setRankUpFx]     = useState(null);
   const lvlTimerRef = useRef(null);
   const rnkTimerRef = useRef(null);
 
-  /* Toast */
   const [toast, setToast]               = useState(null);
-  const [notifHistory, setNotifHistory] = useState([]); /* System 7: last 5 notifications */
+  const [notifHistory, setNotifHistory] = useState([]);
   const toastTimerRef = useRef(null);
 
-  /* System log */
-  const [systemLog, setSystemLog] = useState([{ time:"00:00:00",kind:"system",message:"System initialized. Awaiting hunter registration." }]);
+  const [systemLog, setSystemLog] = useState([{
+    time:"00:00:00", kind:"system",
+    message:"System initialized. Awaiting hunter registration."
+  }]);
 
-  /* Secret achievements */
-  const [secretAchievements, setSecretAchievements] = useState(
-    SECRET_ACHIEVEMENTS.map(function(a){return Object.assign({},a,{unlocked:false});})
-  );
+  const [secretAchievements, setSecretAchievements] = useState(function() {
+    const base = SECRET_ACHIEVEMENTS.map(function(a){return Object.assign({},a,{unlocked:false});});
+    if (!sv || !Array.isArray(sv.secretUnlockedIds)) return base;
+    return base.map(function(a) {
+      return sv.secretUnlockedIds.includes(a.condition)
+        ? Object.assign({},a,{unlocked:true}) : a;
+    });
+  });
 
-  /* Monarch system — invisible to player */
-  const [monarchInterest, setMonarchInterest]     = useState(0);
-  const [monarchStage, setMonarchStage]           = useState(0);
+  const [monarchInterest, setMonarchInterest]     = useState(sv ? (sv.monarchInterest || 0) : 0);
+  const [monarchStage, setMonarchStage]           = useState(sv ? (sv.monarchStage    || 0) : 0);
   const [crypticVisible, setCrypticVisible]       = useState(false);
   const [crypticMessage, setCrypticMessage]       = useState("");
   const [trialOpen, setTrialOpen]                 = useState(false);
   const [trialProgress, setTrialProgress]         = useState({});
   const [reawakeningActive, setReawakeningActive] = useState(false);
-  const [isMonarch, setIsMonarch]                 = useState(false);
+  const [isMonarch, setIsMonarch]                 = useState(sv ? !!sv.isMonarch : false);
   const [trialFailed, setTrialFailed]             = useState(false);
   const [glitchIntensity, setGlitchIntensity]     = useState(0);
-  const glitchTimerRef  = useRef(null);
-  const lastCrypticRef  = useRef(0);
+  const glitchTimerRef = useRef(null);
+  const lastCrypticRef = useRef(0);
+
+  const saveTimerRef = useRef(null);
+  const isSavingRef  = useRef(false);
+  const [lastSavedAt, setLastSavedAt] = useState(sv ? (sv.savedAt || null) : null);
 
   /* Derived */
   const rank        = getRankForLevel(player.level);
@@ -6969,6 +6979,48 @@ function App() {
   /* Sound toggle — safe, no implicit return */
   useEffect(function() { sfx.setEnabled(soundOn); }, [soundOn]);
 
+  useEffect(function() {
+    if (phase !== "app") return;
+    if (isSavingRef.current) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(function() {
+      isSavingRef.current = true;
+      try {
+        saveGame({
+          phase, player, isDailyDone, dailyProgress,
+          sideProgress, sideDone, extSideProgress, extSideDone,
+          anomalyProgress, anomalyDone, recentAnomalyIds,
+          clearedGates, dungeonKeys, coins, fame, inventory,
+          shadowArmy, shadowMissions, shadowSquads, shadowNames,
+          loreFragments, collectedLoreIds, earnedAchievements, unlockedSpecs,
+          completedBTs, guildId, guildQuestProgress, guildQuestDone,
+          monarchInterest, monarchStage, isMonarch, ascensionCount,
+          soundOn, energyState,
+          bossHpSnapshot: bosses.map(function(b){ return { currentHp: b.currentHp }; }),
+          secretUnlockedIds: secretAchievements
+            .filter(function(a){ return a.unlocked; })
+            .map(function(a){ return a.condition; }),
+        });
+        setLastSavedAt(Date.now());
+      } catch (_) {
+      } finally {
+        isSavingRef.current = false;
+      }
+    }, 500);
+    return function() {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [
+    phase, player, isDailyDone, dailyProgress,
+    sideProgress, sideDone, extSideProgress, extSideDone,
+    anomalyProgress, anomalyDone, recentAnomalyIds,
+    clearedGates, dungeonKeys, coins, fame, inventory,
+    shadowArmy, shadowMissions, shadowSquads, shadowNames,
+    loreFragments, collectedLoreIds, earnedAchievements, unlockedSpecs,
+    completedBTs, guildId, guildQuestProgress, guildQuestDone,
+    monarchInterest, monarchStage, isMonarch, ascensionCount,
+    soundOn, energyState, bosses, secretAchievements,
+  ]);
   /* System 8: Achievement check — runs when key player values change */
   useEffect(function() {
     if (phase !== "app") return;
