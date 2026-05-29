@@ -2682,35 +2682,60 @@ const GLOBAL_CSS = `
     position: fixed;
     top: 0; right: 0; bottom: 0;
     width: min(300px, 85vw);
-    background: linear-gradient(180deg, rgba(2,6,18,0.99), rgba(4,10,24,0.99));
-    border-left: 1px solid rgba(77,184,255,0.25);
-    box-shadow: -8px 0 40px rgba(0,0,0,0.8), -2px 0 0 rgba(77,184,255,0.1);
-    z-index: 200;
+    background: #020810;
+    background: linear-gradient(180deg, #020c1e 0%, #010810 100%);
+    border-left: 1px solid rgba(77,184,255,0.3);
+    box-shadow: -12px 0 60px rgba(0,0,0,0.95), -1px 0 0 rgba(77,184,255,0.15),
+                inset 1px 0 0 rgba(77,184,255,0.05);
+    z-index: 201;
     overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
   }
+  .sl-menu::before {
+    content: '';
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(300px, 85vw);
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(77,184,255,0.012) 3px, rgba(77,184,255,0.012) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+  .sl-menu > * { position: relative; z-index: 1; }
   .sl-menu-item {
     display: flex;
     align-items: center;
-    padding: 13px 20px;
+    width: 100%;
+    padding: 12px 20px;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.12em;
-    color: #7a9ab8;
+    color: #4a6a88;
     cursor: pointer;
-    border-bottom: 1px solid rgba(77,184,255,0.06);
-    transition: color 0.15s, background 0.15s, border-left-color 0.15s;
+    border: none;
+    border-bottom: 1px solid rgba(77,184,255,0.07);
     border-left: 2px solid transparent;
+    background: transparent;
     text-transform: uppercase;
+    text-align: left;
+    transition: color 0.15s, background 0.15s, border-left-color 0.15s;
     -webkit-tap-highlight-color: transparent;
+    outline: none;
+    -webkit-appearance: none;
   }
+  .sl-menu-item:hover { color: #7a9ab8; background: rgba(77,184,255,0.04); }
   .sl-menu-item.active {
     color: #c8eeff;
-    background: rgba(77,184,255,0.07);
-    border-left-color: rgba(77,184,255,0.8);
-    text-shadow: 0 0 10px rgba(77,184,255,0.5);
+    background: linear-gradient(90deg, rgba(77,184,255,0.10), rgba(77,184,255,0.03));
+    border-left-color: rgba(77,184,255,0.9);
+    text-shadow: 0 0 12px rgba(77,184,255,0.6);
   }
-  .sl-menu-item:active { background: rgba(77,184,255,0.1); }
+  .sl-menu-item:active { background: rgba(77,184,255,0.12); }
+
 
   /* ═══════════════════════════════════════════════════
      LEVEL BADGE — .sl-level-badge
@@ -4409,7 +4434,27 @@ function ShadowArchiveView({ bosses, bossData, ac }) {
    DAILY RESET COUNTDOWN — lightweight, no leaks
    Counts down to midnight local time. Safe interval cleanup.
    =========================================================================== */
-function useResetTimer() {
+const DAILY_RESET_KEY = "arise_last_daily_reset";
+
+function getTodayStamp() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+}
+
+function getLastResetStamp() {
+  try { return localStorage.getItem(DAILY_RESET_KEY) || ""; }
+  catch(_) { return ""; }
+}
+
+function saveResetStamp() {
+  try { localStorage.setItem(DAILY_RESET_KEY, getTodayStamp()); } catch(_) {}
+}
+
+function isDailyResetNeeded() {
+  return getLastResetStamp() !== getTodayStamp();
+}
+
+function useResetTimer(onReset) {
   const getMidnightSeconds = function() {
     const now = new Date();
     const midnight = new Date(now);
@@ -4419,15 +4464,29 @@ function useResetTimer() {
   };
 
   const [secondsLeft, setSecondsLeft] = useState(getMidnightSeconds);
+  const firedRef = useRef(false);
+
+  useEffect(function() {
+    if (isDailyResetNeeded()) {
+      saveResetStamp();
+      if (typeof onReset === "function") onReset();
+    }
+  }, []);
 
   useEffect(function() {
     const id = setInterval(function() {
-      setSecondsLeft(getMidnightSeconds());
+      const secs = getMidnightSeconds();
+      setSecondsLeft(secs);
+      if (secs === 0 && !firedRef.current) {
+        firedRef.current = true;
+        saveResetStamp();
+        if (typeof onReset === "function") onReset();
+        setTimeout(function(){ firedRef.current = false; }, 2000);
+      }
     }, 1000);
     return function() { clearInterval(id); };
   }, []);
 
-  /* Safe formatting — never NaN */
   const safe = Number.isFinite(secondsLeft) ? secondsLeft : 0;
   const h = Math.floor(safe / 3600);
   const m = Math.floor((safe % 3600) / 60);
@@ -4437,23 +4496,17 @@ function useResetTimer() {
   return {
     secondsLeft: safe,
     fmt,
-    critical: safe < 600,   /* < 10 min */
-    urgent:   safe < 3600,  /* < 1 hour */
-    warning:  safe < 7200,  /* < 2 hours */
+    critical: safe < 600,
+    urgent:   safe < 3600,
+    warning:  safe < 7200,
   };
 }
 
-function ResetCountdownBanner({ accentColor, isMonarch, onReset }) {
-  const { fmt, critical, urgent, warning, secondsLeft } = useResetTimer();
-  const prevRef = useRef(secondsLeft);
 
-  /* Fire onReset once when timer reaches 0 */
-  useEffect(function() {
-    if (prevRef.current > 0 && secondsLeft === 0) {
-      if (typeof onReset === "function") onReset();
-    }
-    prevRef.current = secondsLeft;
-  }, [secondsLeft]);
+
+function ResetCountdownBanner({ accentColor, isMonarch, onReset }) {
+  const { fmt, critical, urgent, warning, secondsLeft } = useResetTimer(onReset);
+
 
   /* Color escalates: normal → warning → urgent → critical */
   const color = critical
