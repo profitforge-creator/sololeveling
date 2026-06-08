@@ -122,14 +122,91 @@ const PHYSIQUES = [
    GOALS (multi-select during onboarding)
 --------------------------------------------------------------------------- */
 const GOAL_OPTIONS = [
-  { id: "strength",    name: "Strength",     icon: "⚔", statKey: "Strength"     },
-  { id: "discipline",  name: "Discipline",   icon: "◈", statKey: "Discipline"   },
-  { id: "endurance",   name: "Endurance",    icon: "❖", statKey: "Endurance"    },
-  { id: "speed",       name: "Speed",        icon: "➤", statKey: "Agility"      },
-  { id: "aesthetics",  name: "Aesthetics",   icon: "✸", statKey: "Aura"         },
-  { id: "confidence",  name: "Confidence",   icon: "✦", statKey: "Intelligence" },
-  { id: "athleticism", name: "Athleticism",  icon: "❖", statKey: "Endurance"    },
+  { id: "strength",      name: "Strength",        icon: "⚔", statKey: "Strength"     },
+  { id: "discipline",    name: "Discipline",       icon: "◈", statKey: "Discipline"   },
+  { id: "endurance",     name: "Endurance",        icon: "❖", statKey: "Endurance"    },
+  { id: "speed",         name: "Sprint Speed",     icon: "➤", statKey: "Agility"      },
+  { id: "aesthetics",    name: "Muscle Growth",    icon: "✸", statKey: "Aura"         },
+  { id: "confidence",    name: "Confidence",       icon: "✦", statKey: "Intelligence" },
+  { id: "athleticism",   name: "Athleticism",      icon: "❖", statKey: "Endurance"    },
+  { id: "calisthenics",  name: "Calisthenics",     icon: "⚔", statKey: "Strength"     },
+  { id: "core",          name: "Core Development", icon: "◈", statKey: "Discipline"   },
+  { id: "weight_loss",   name: "Weight Loss",      icon: "➤", statKey: "Endurance"    },
+  { id: "general",       name: "General Fitness",  icon: "◈", statKey: "Recovery"     },
 ];
+
+/* ---------------------------------------------------------------------------
+   GOAL → EXERCISE MAPPING
+   Each goal produces a primary exercise set. Combined goals merge their sets.
+--------------------------------------------------------------------------- */
+const GOAL_TRAINING_MAP = {
+  strength: {
+    training:  ["pushups","pullups","dips"],
+    running:   "jog",
+    core:      "plank",
+    label:     "Strength Protocol",
+  },
+  aesthetics: {
+    training:  ["pushups","pullups","dips","situps"],
+    running:   "jog",
+    core:      "hollow_hold",
+    label:     "Hypertrophy Protocol",
+  },
+  calisthenics: {
+    training:  ["pushups","pullups","dips","situps","squats"],
+    running:   "jog",
+    core:      "hollow_hold",
+    label:     "Calisthenics Protocol",
+  },
+  speed: {
+    training:  ["sprint_acc","sprint_interval","lunges"],
+    running:   "sprint_acc",
+    core:      "plank",
+    label:     "Speed Protocol",
+  },
+  athleticism: {
+    training:  ["sprint_acc","squats","lunges","burpees"],
+    running:   "sprint_interval",
+    core:      "hollow_hold",
+    label:     "Athleticism Protocol",
+  },
+  endurance: {
+    training:  ["run","situps","squats"],
+    running:   "run",
+    core:      "plank",
+    label:     "Endurance Protocol",
+  },
+  core: {
+    training:  ["plank","hollow_hold","situps","pushups"],
+    running:   "jog",
+    core:      "hollow_hold",
+    label:     "Core Protocol",
+  },
+  weight_loss: {
+    training:  ["burpees","squats","lunges","run"],
+    running:   "jog",
+    core:      "plank",
+    label:     "Fat Loss Protocol",
+  },
+  discipline: {
+    training:  ["cold_shower","meditation","pushups","plank"],
+    running:   "walk",
+    core:      "plank",
+    label:     "Discipline Protocol",
+  },
+  confidence: {
+    training:  ["pushups","meditation","cold_shower","situps"],
+    running:   "jog",
+    core:      "plank",
+    label:     "Confidence Protocol",
+  },
+  general: {
+    training:  ["pushups","situps","squats","jog"],
+    running:   "jog",
+    core:      "plank",
+    label:     "General Fitness Protocol",
+  },
+};
 
 /* ---------------------------------------------------------------------------
    CALISTHENICS EVALUATION TESTS (no squats per spec)
@@ -143,105 +220,197 @@ const EVAL_TESTS = [
   { id: "endurance", name: "1km Run (best time)",   unit: "sec",  icon: "❖", stat: "Endurance", max: 600, invert: true },
 ];
 
-/* ---------------------------------------------------------------------------
-   QUEST TEMPLATES — driven by class questFocus and goals
---------------------------------------------------------------------------- */
+const REEVAL_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; /* 30 days */
+const REEVAL_KEY         = "arise_last_reeval";
 const QUEST_TEMPLATES = {
-  pushups:      (n) => ({ id: "pushups",       name: "Push-ups",             target: n,   unit: "",    stat: "Strength"     }),
-  pullups:      (n) => ({ id: "pullups",        name: "Pull-ups",             target: n,   unit: "",    stat: "Strength"     }),
-  situps:       (n) => ({ id: "situps",         name: "Sit-ups",              target: n,   unit: "",    stat: "Endurance"    }),
-  burpees:      (n) => ({ id: "burpees",        name: "Burpees",              target: n,   unit: "",    stat: "Endurance"    }),
-  sprint:       (n) => ({ id: "sprint",         name: "Sprint Sets (100m)",   target: n,   unit: "×",   stat: "Agility"      }),
-  endurance_run:(n) => ({ id: "endurance_run",  name: "Endurance Run",        target: n,   unit: "km",  stat: "Endurance"    }),
-  plank:        (n) => ({ id: "plank",          name: "Plank Hold",           target: n,   unit: "min", stat: "Discipline"   }),
-  cold_shower:  ()  => ({ id: "cold_shower",    name: "Cold Shower",          target: 1,   unit: "",    stat: "Discipline"   }),
-  meditation:   (n) => ({ id: "meditation",     name: "Meditation",           target: n,   unit: "min", stat: "Discipline"   }),
-  reading:      (n) => ({ id: "reading",        name: "Reading",              target: n,   unit: "min", stat: "Intelligence" }),
-  focus_session:(n) => ({ id: "focus_session",  name: "Deep Focus Session",   target: n,   unit: "min", stat: "Intelligence" }),
-  hydration:    ()  => ({ id: "hydration",      name: "Water Intake",         target: 3,   unit: "L",   stat: "Recovery"     }),
-  sleep:        ()  => ({ id: "sleep",          name: "Sleep (8h)",           target: 8,   unit: "h",   stat: "Recovery"     }),
-  clean_meals:  ()  => ({ id: "clean_meals",    name: "Clean Meals",          target: 3,   unit: "",    stat: "Recovery"     }),
+  pushups:        (n) => ({ id:"pushups",        name:"Push-ups",               target:n, unit:"",    stat:"Strength"     }),
+  pullups:        (n) => ({ id:"pullups",         name:"Pull-ups",               target:n, unit:"",    stat:"Strength"     }),
+  situps:         (n) => ({ id:"situps",          name:"Sit-ups",                target:n, unit:"",    stat:"Endurance"    }),
+  burpees:        (n) => ({ id:"burpees",         name:"Burpees",                target:n, unit:"",    stat:"Endurance"    }),
+  /* Running — realistic, varied by type */
+  jog:            (n) => ({ id:"jog",             name:"Easy Jog",               target:n, unit:"min", stat:"Endurance"    }),
+  run:            (n) => ({ id:"run",             name:"Endurance Run",          target:n, unit:"km",  stat:"Endurance"    }),
+  sprint_acc:     (n) => ({ id:"sprint_acc",      name:"60m Accelerations",      target:n, unit:"×",   stat:"Agility"      }),
+  sprint_interval:(n) => ({ id:"sprint_interval", name:"100m Intervals",         target:n, unit:"×",   stat:"Agility"      }),
+  /* Strength accessories */
+  dips:           (n) => ({ id:"dips",            name:"Dips",                   target:n, unit:"",    stat:"Strength"     }),
+  squats:         (n) => ({ id:"squats",          name:"Bodyweight Squats",      target:n, unit:"",    stat:"Endurance"    }),
+  lunges:         (n) => ({ id:"lunges",          name:"Lunges",                 target:n, unit:"",    stat:"Endurance"    }),
+  /* Core */
+  plank:          (n) => ({ id:"plank",           name:"Plank Hold",             target:n, unit:"min", stat:"Discipline"   }),
+  hollow_hold:    (n) => ({ id:"hollow_hold",     name:"Hollow Body Hold",       target:n, unit:"min", stat:"Discipline"   }),
+  /* Recovery */
+  mobility:       (n) => ({ id:"mobility",        name:"Mobility Session",       target:n, unit:"min", stat:"Recovery"     }),
+  stretching:     (n) => ({ id:"stretching",      name:"Stretching Routine",     target:n, unit:"min", stat:"Recovery"     }),
+  walk:           (n) => ({ id:"walk",            name:"Recovery Walk",          target:n, unit:"min", stat:"Recovery"     }),
+  breathing:      (n) => ({ id:"breathing",       name:"Breathing Work",         target:n, unit:"min", stat:"Recovery"     }),
+  light_cardio:   (n) => ({ id:"light_cardio",    name:"Light Cardio",           target:n, unit:"min", stat:"Endurance"    }),
+  /* Mind/habits */
+  cold_shower:    ()  => ({ id:"cold_shower",     name:"Cold Shower",            target:1, unit:"",    stat:"Discipline"   }),
+  meditation:     (n) => ({ id:"meditation",      name:"Meditation",             target:n, unit:"min", stat:"Discipline"   }),
+  reading:        (n) => ({ id:"reading",         name:"Reading",                target:n, unit:"min", stat:"Intelligence" }),
+  focus_session:  (n) => ({ id:"focus_session",   name:"Deep Focus Session",     target:n, unit:"min", stat:"Intelligence" }),
+  hydration:      ()  => ({ id:"hydration",       name:"Water Intake (3L)",      target:3, unit:"L",   stat:"Recovery"     }),
+  sleep:          ()  => ({ id:"sleep",           name:"Sleep (8h)",             target:8, unit:"h",   stat:"Recovery"     }),
+  clean_meals:    ()  => ({ id:"clean_meals",     name:"Clean Meals",            target:3, unit:"",    stat:"Recovery"     }),
 };
 
-/* Generate a daily quest from class + goals + level */
-function generateDailyQuest(hunterClass, goals, level) {
-  /* Safe inputs */
-  const safeLevel = (typeof level === "number" && isFinite(level) && level >= 0) ? level : 1;
-  const safeGoals = Array.isArray(goals) ? goals : [];
-  const classData = HUNTER_CLASSES.find(function(c) { return c.id === hunterClass; }) || HUNTER_CLASSES[1];
+/* ---------------------------------------------------------------------------
+   SMART DAILY QUEST GENERATOR — Goal-Primary System
+   Uses player's chosen goals as the primary workout driver.
+   Class questFocus is a fallback only if no goals are set.
+   Inner Demon mode boosts volume ~20% — never unsafe.
+--------------------------------------------------------------------------- */
+function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon) {
+  const safeLevel   = (typeof level === "number" && isFinite(level) && level >= 0) ? level : 1;
+  const safeGoals   = Array.isArray(goals) && goals.length > 0 ? goals : [];
+  const safeEnergy  = (typeof energyScore === "number" && isFinite(energyScore)) ? energyScore : 70;
+  const demonActive = !!innerDemon;
+  const classData   = HUNTER_CLASSES.find(function(c){ return c.id === hunterClass; }) || HUNTER_CLASSES[1];
 
-  const tier  = Math.floor(safeLevel / 5);          /* 0 at LV0–4, 1 at LV5–9, etc. */
-  const scale = Math.max(1, 1 + tier * 0.2);        /* always ≥ 1 */
+  /* Rank tier 0=E … 6=Monarch */
+  const tier = Math.min(6, Math.floor(safeLevel / 5));
 
-  /* Base targets by rank tier — E Rank is beginner-friendly, scales up from there */
+  /* Day of week rotation */
+  const dow = new Date().getDay();
+  const isFullRest       = dow === 0;
+  const isActiveRecovery = dow === 3 || dow === 6;
+  const isTrainingDay    = !isFullRest && !isActiveRecovery;
+  const lowEnergy        = safeEnergy < 35;
+  const highEnergy       = safeEnergy >= 80;
+
+  /* Inner Demon volume multiplier: 1.0 base, 1.2 with demon active */
+  const demonMult  = demonActive ? 1.2 : 1.0;
+  const energyMult = Math.max(0.6, Math.min(1.3, safeEnergy / 70));
+  const totalMult  = Math.min(1.4, demonMult * energyMult); /* cap at 1.4× */
+
+  /* Base volumes per tier — conservative, only Monarch is brutal */
   const BASE = {
-    pushups:       20 + tier * 12,   /* E:20  D:32  C:44  B:56  A:68  S:80 */
-    pullups:       8  + tier * 5,    /* E:8   D:13  C:18  B:23  A:28  S:33 */
-    situps:        25 + tier * 12,   /* E:25  D:37  C:49  B:61  A:73  S:85 */
-    burpees:       10 + tier * 5,    /* E:10  D:15  C:20  B:25  A:30  S:35 */
-    sprint:        4  + tier * 2,    /* sets */
-    endurance_run: 1  + tier,        /* km:  E:1  D:2  C:3  B:4  A:5  S:6+ */
-    plank:         Math.max(1, Math.round((1 + tier * 0.5) * 10) / 10), /* min */
-    meditation:    10 + tier * 5,
-    reading:       20 + tier * 10,
-    focus_session: 30 + tier * 15,
-    cold_shower:   1,
-    hydration:     3,
-    sleep:         8,
-    clean_meals:   3,
+    pushups:         [15, 25, 35, 50, 65, 80, 120][tier],
+    pullups:         [5,  8,  12, 18, 24, 30, 45 ][tier],
+    situps:          [20, 30, 40, 55, 70, 85, 120][tier],
+    burpees:         [8,  12, 18, 25, 32, 40, 60 ][tier],
+    dips:            [8,  12, 16, 22, 28, 35, 50 ][tier],
+    squats:          [20, 30, 40, 55, 70, 85, 120][tier],
+    lunges:          [10, 16, 22, 30, 38, 46, 70 ][tier],
+    jog:             [10, 12, 15, 15, 20, 20, 20 ][tier],
+    run:             [1,  2,  3,  4,  5,  6,  8  ][tier],
+    sprint_acc:      [3,  4,  5,  6,  7,  8,  10 ][tier],
+    sprint_interval: [3,  4,  5,  6,  7,  8,  10 ][tier],
+    plank:           [1,  1,  2,  3,  4,  5,  7  ][tier],
+    hollow_hold:     [1,  1,  2,  2,  3,  3,  5  ][tier],
+    mobility:        [10, 10, 15, 15, 20, 20, 20 ][tier],
+    stretching:      [10, 10, 15, 15, 20, 20, 20 ][tier],
+    walk:            [15, 20, 20, 25, 25, 30, 30 ][tier],
+    breathing:       [5,  5,  5,  10, 10, 10, 10 ][tier],
+    light_cardio:    [10, 15, 15, 20, 20, 25, 25 ][tier],
+    meditation:      [5,  10, 10, 15, 15, 20, 20 ][tier],
+    reading:         [15, 20, 20, 30, 30, 30, 30 ][tier],
+    focus_session:   [20, 25, 30, 40, 45, 45, 45 ][tier],
   };
 
-  const goalIds    = classData.questFocus.slice();
-  const goals_built = [];
+  const physicalKeys = ["pushups","pullups","situps","burpees","dips","squats","lunges","sprint_acc","sprint_interval","run","jog"];
+  const staticGoals  = ["cold_shower","hydration","sleep","clean_meals"];
 
-  goalIds.forEach(function(gid) {
-    const fn  = QUEST_TEMPLATES[gid];
-    if (!fn) return;
-    const baseVal = BASE[gid];
-    /* Some templates take no argument (cold_shower, hydration, sleep, clean_meals) */
-    const goal = (baseVal !== undefined) ? fn(Math.round(baseVal)) : fn();
-    /* Safety: ensure target is always a positive finite integer */
-    if (goal && typeof goal.target === "number" && isFinite(goal.target) && goal.target > 0) {
-      goals_built.push(goal);
-    }
-  });
-
-  /* Append one goal from player-selected goals if not already in list */
-  const goalStatMap = {
-    strength: "pushups", discipline: "plank", endurance: "endurance_run",
-    speed: "sprint", aesthetics: "pushups", confidence: "meditation", athleticism: "burpees",
-  };
-  safeGoals.forEach(function(gid) {
-    const templateKey = goalStatMap[gid];
-    if (!templateKey) return;
-    if (goalIds.includes(templateKey)) return;
-    if (goals_built.length >= 5) return;
-    const fn = QUEST_TEMPLATES[templateKey];
-    if (!fn) return;
-    const baseVal = BASE[templateKey];
-    const goal = (baseVal !== undefined) ? fn(Math.round(baseVal)) : fn();
-    if (goal && typeof goal.target === "number" && isFinite(goal.target) && goal.target > 0) {
-      goals_built.push(goal);
-    }
-  });
-
-  /* Fallback: if somehow no goals built, give a safe default */
-  if (goals_built.length === 0) {
-    goals_built.push({ id: "pushups", name: "Push-ups", target: 20, unit: "", stat: "Strength" });
+  function scaled(key) {
+    const v = BASE[key];
+    if (!v) return 1;
+    if (physicalKeys.includes(key)) return Math.max(1, Math.round(v * totalMult));
+    return v;
   }
 
-  /* XP: never 0, never NaN */
-  const baseXp  = 80 + tier * 40;                                 /* 80 → 120 → 160 … */
-  const totalXp = Math.max(20, Math.round(baseXp * goals_built.length / 4));
+  function makeGoal(key) {
+    const fn = QUEST_TEMPLATES[key];
+    if (!fn) return null;
+    const goal = staticGoals.includes(key) ? fn() : fn(scaled(key));
+    if (goal && typeof goal.target === "number" && isFinite(goal.target) && goal.target > 0) return goal;
+    return null;
+  }
 
-  const tierLabel = tier > 0 ? " [+" + tier + "]" : "";
+  /* ---- FULL REST DAY ---- */
+  if (isFullRest || (lowEnergy && !isActiveRecovery && !isTrainingDay)) {
+    return {
+      id: "daily_rest_" + hunterClass,
+      label: "Rest & Recover Protocol",
+      goals: [makeGoal("stretching"), makeGoal("hydration"), makeGoal("sleep")].filter(Boolean),
+      xp: Math.max(20, 30 + tier * 10),
+      tier, dayType: "rest",
+    };
+  }
+
+  /* ---- ACTIVE RECOVERY DAY ---- */
+  if (isActiveRecovery || (lowEnergy && isTrainingDay)) {
+    return {
+      id: "daily_recovery_" + hunterClass,
+      label: demonActive ? "Active Recovery Protocol [DEMON]" : "Active Recovery Protocol",
+      goals: [makeGoal("walk"), makeGoal("mobility"), makeGoal("breathing"), makeGoal("hydration")].filter(Boolean),
+      xp: Math.max(30, 50 + tier * 15),
+      tier, dayType: "recovery",
+    };
+  }
+
+  /* ---- TRAINING DAY ---- */
+  /* Build exercise list from goals — goals are PRIMARY */
+  const seenIds   = {};
+  const goalsList = [];
+
+  /* Collect exercises from all selected goals, deduplicated */
+  const activeGoals = safeGoals.length > 0 ? safeGoals : [classData.questFocus[0] || "strength"];
+
+  activeGoals.forEach(function(gid) {
+    const map = GOAL_TRAINING_MAP[gid];
+    if (!map) return;
+    map.training.forEach(function(key) {
+      if (seenIds[key]) return;
+      seenIds[key] = true;
+      const g = makeGoal(key);
+      if (g) goalsList.push(g);
+    });
+  });
+
+  /* Pick the right running type based on goals present */
+  const wantsSpeed   = activeGoals.includes("speed") || activeGoals.includes("athleticism");
+  const wantsEndur   = activeGoals.includes("endurance") || activeGoals.includes("weight_loss");
+  const runKey       = wantsSpeed ? (dow % 2 === 0 ? "sprint_acc" : "sprint_interval")
+                     : wantsEndur ? "run" : "jog";
+
+  /* Add running if not already included */
+  if (!seenIds[runKey] && !seenIds["run"] && !seenIds["jog"] && !seenIds["sprint_acc"] && !seenIds["sprint_interval"]) {
+    const rg = makeGoal(runKey);
+    if (rg) { goalsList.push(rg); seenIds[runKey] = true; }
+  }
+
+  /* Add core if goals include core or not yet covered */
+  const wantsCore = activeGoals.includes("core");
+  const hasCoreAlready = seenIds["plank"] || seenIds["hollow_hold"] || seenIds["situps"];
+  if (wantsCore && !hasCoreAlready) {
+    const cg = makeGoal("hollow_hold");
+    if (cg) goalsList.push(cg);
+  }
+
+  /* Cap at 5 goals to avoid overwhelming */
+  const finalGoals = goalsList.slice(0, 5);
+
+  /* Fallback */
+  if (finalGoals.length === 0) finalGoals.push(makeGoal("pushups") || { id:"pushups", name:"Push-ups", target:20, unit:"", stat:"Strength" });
+
+  /* Build label from goals */
+  const firstGoalMap = GOAL_TRAINING_MAP[activeGoals[0]];
+  const baseLabel    = firstGoalMap ? firstGoalMap.label : (classData.name + " Protocol");
+  const tierLabel    = tier > 0 ? " [+" + tier + "]" : "";
+  const demonLabel   = demonActive ? " ◈DEMON" : "";
+  const energyLabel  = highEnergy ? " ◈PEAK" : "";
+
+  const baseXp = 80 + tier * 40;
+  const xp     = Math.max(20, Math.round(baseXp * (finalGoals.length / 4) * totalMult));
 
   return {
-    id:     "daily_" + hunterClass,
-    label:  classData.name + " Protocol" + tierLabel,
-    goals:  goals_built,
-    xp:     totalXp,
-    tier:   tier,
+    id:      "daily_" + hunterClass,
+    label:   baseLabel + tierLabel + demonLabel + energyLabel,
+    goals:   finalGoals,
+    xp,
+    tier,
+    dayType: "training",
   };
 }
 
@@ -1583,6 +1752,29 @@ const MONARCH_TRIAL_GOALS = [
    Purely cosmetic + motivational. No state mutations. No crashes.
    Each just shows a styled full-screen message then auto-dismisses.
 --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   INNER DEMON SYSTEM
+   Dialogue pool — rare, impactful, never intrusive.
+   Only fires when innerDemonActive is true.
+--------------------------------------------------------------------------- */
+const INNER_DEMON_DIALOGUES = [
+  "The version of you that accepted defeat is gone.",
+  "You asked for growth. Growth requires sacrifice.",
+  "Your limits have been challenged. They are not what you thought.",
+  "Average was never your destination. You just forgot.",
+  "The gap between who you are and who you will become is called today.",
+  "Other people stopped here. That is why you are alone at this level.",
+  "Every rep you complete is a promise to the future version of yourself.",
+  "The System does not motivate. It measures. The rest is yours.",
+  "Discomfort is the price of adaptation. You have paid it before.",
+  "You are building something. Do not stop before it is finished.",
+  "The ones who quit always had reasons. So did you. You are still here.",
+  "Something in you refuses to remain ordinary. Listen to it.",
+];
+
+const INNER_DEMON_BONUS_XP   = 0.25; /* 25% XP bonus */
+const INNER_DEMON_BONUS_COINS = 0.20; /* 20% coin bonus */
+
 const SYSTEM_TAKEOVER_EVENTS = [
   {
     id: "anomalous_growth",
@@ -2692,6 +2884,7 @@ const GLOBAL_CSS = `
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
+  /* Scanline overlay on sidebar */
   .sl-menu::before {
     content: '';
     position: fixed;
@@ -2735,7 +2928,6 @@ const GLOBAL_CSS = `
     text-shadow: 0 0 12px rgba(77,184,255,0.6);
   }
   .sl-menu-item:active { background: rgba(77,184,255,0.12); }
-
 
   /* ═══════════════════════════════════════════════════
      LEVEL BADGE — .sl-level-badge
@@ -3457,6 +3649,7 @@ function QuestCard({ quest, progress, isDone, onGoalTap, ac }) {
         <p style={{ textAlign:"center",fontSize:13,color:"#9ab8d4",marginBottom:4,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
           [Daily Quest: <strong style={{ color:"#d0eeff",textShadow:"0 0 8px "+color+"88" }}>{quest.label}</strong> has arrived.]
           {quest.tier>0&&<span style={{ fontSize:10,color:color,marginLeft:6 }}>[TIER {quest.tier}]</span>}
+          {quest.dayType&&<span style={{ fontSize:9,color:quest.dayType==="rest"?"#f5b65d":quest.dayType==="recovery"?"#2ee88a":color,marginLeft:8,letterSpacing:"0.1em",fontFamily:"'Orbitron',sans-serif" }}>[{quest.dayType.toUpperCase()}]</span>}
         </p>
 
         {/* Cyan divider */}
@@ -4196,42 +4389,139 @@ function getAdaptiveDungeonRec(player, energyScore) {
 }
 
 function DungeonGatesView({ rank, isMonarch, clearedGates, onEnterGate, ac, player, energyScore }) {
+  const rankIndex   = rank ? (rank.minRankIndex || 0) : 0;
+  const playerLevel = player ? (player.level || 1) : 1;
+
+  /* Only show gates the player's rank and level can access */
+  const availableGates = DUNGEON_GATES.filter(function(gate) {
+    return playerLevel >= gate.minLevel || isMonarch;
+  });
+
+  /* Split into open (not cleared) and cleared */
+  const openGates    = availableGates.filter(function(g){ return !clearedGates[g.id]; });
+  const clearedList  = availableGates.filter(function(g){ return clearedGates[g.id]; });
+
+  /* Adaptive recommendation */
+  const rec = player ? getAdaptiveDungeonRec(player, energyScore) : null;
+
   return (
     <div className="fade-in">
       <SL text="Dungeon Gates" ac={ac} />
-      {/* System 4: Adaptive recommendation */}
-      {player && (function(){
-        const rec = getAdaptiveDungeonRec(player, energyScore);
-        return (
-          <div style={{ padding:"9px 14px",border:"1px solid "+rec.color+"44",background:rec.color+"08",marginBottom:16,display:"flex",alignItems:"center",gap:10 }}>
-            <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:rec.color,flexShrink:0 }}>{rec.label}</span>
-            <span style={{ fontSize:11,color:"#9fb8d8" }}>{rec.note}</span>
-          </div>
-        );
-      })()}
-      <p style={{ fontSize:12,color:"#5b7aa0",marginBottom:20 }}>Each gate has rank requirements. Enter without sufficient rank and the system will block you.</p>
-      <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
-        {DUNGEON_GATES.map(function(gate){
-          const cleared=clearedGates[gate.id]===true; const gc=gate.color;
-          return (
-            <div key={gate.id} style={{ border:"1px solid "+gc+(cleared?"44":"88"),background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))",padding:"24px",opacity:cleared?0.55:1,position:"relative",overflow:"hidden" }}>
-              {!cleared&&<div style={{ position:"absolute",inset:0,pointerEvents:"none",boxShadow:"0 0 20px "+gc+"44",animation:"pulse-glow 2.5s ease-in-out infinite" }} />}
-              <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,flexWrap:"wrap" }}>
-                <div style={{ flex:1,minWidth:200 }}>
-                  <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:8 }}>
-                    <div style={{ padding:"2px 10px",border:"1px solid "+gc,fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:gc,letterSpacing:"0.15em" }}>{gate.rank}-RANK</div>
-                    <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,fontWeight:700,color:"#eaf2ff" }}>{gate.name}</span>
+
+      {/* Adaptive recommendation */}
+      {rec && (
+        <div style={{ padding:"9px 14px",border:"1px solid "+rec.color+"44",background:rec.color+"08",marginBottom:16,display:"flex",alignItems:"center",gap:10 }}>
+          <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:rec.color,flexShrink:0 }}>{rec.label}</span>
+          <span style={{ fontSize:11,color:"#9pb8d8" }}>{rec.note}</span>
+        </div>
+      )}
+
+      {/* No open gates */}
+      {openGates.length === 0 && (
+        <div style={{ padding:"40px 24px",textAlign:"center",border:"1px solid rgba(77,184,255,0.15)",background:"rgba(2,6,18,0.8)",marginBottom:16 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,color:"#4db8ff55",letterSpacing:"0.3em",marginBottom:8 }}>NO OPEN GATES</div>
+          <div style={{ fontSize:12,color:"#2a3a55" }}>All available gates have been cleared. New gates open as you advance in rank.</div>
+        </div>
+      )}
+
+      {/* Open gates — portal style */}
+      {openGates.length > 0 && (
+        <div style={{ display:"flex",flexDirection:"column",gap:16,marginBottom:24 }}>
+          {openGates.map(function(gate) {
+            const gc = gate.color;
+            const isCorrupted = gate.type === "corrupted";
+            return (
+              <div key={gate.id} style={{ position:"relative",overflow:"hidden",border:"1px solid "+gc+"88",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))" }}>
+                {/* Animated portal glow — lightweight CSS only */}
+                <div style={{
+                  position:"absolute",inset:0,pointerEvents:"none",
+                  background:"radial-gradient(ellipse at 50% 40%,"+gc+"18 0%,transparent 70%)",
+                  animation:"pulse-glow 2.5s ease-in-out infinite",
+                }} />
+                {/* Scanline texture */}
+                <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 3px,"+gc+"08 3px,"+gc+"08 4px)" }} />
+                {/* Corner brackets */}
+                <div style={{ position:"absolute",top:0,left:0,width:14,height:14,borderTop:"2px solid "+gc,borderLeft:"2px solid "+gc,opacity:0.7 }} />
+                <div style={{ position:"absolute",top:0,right:0,width:14,height:14,borderTop:"2px solid "+gc,borderRight:"2px solid "+gc,opacity:0.7 }} />
+                <div style={{ position:"absolute",bottom:0,left:0,width:14,height:14,borderBottom:"2px solid "+gc,borderLeft:"2px solid "+gc,opacity:0.7 }} />
+                <div style={{ position:"absolute",bottom:0,right:0,width:14,height:14,borderBottom:"2px solid "+gc,borderRight:"2px solid "+gc,opacity:0.7 }} />
+
+                <div style={{ position:"relative",zIndex:1,padding:"22px 20px" }}>
+                  {/* Portal icon + rank badge */}
+                  <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:14 }}>
+                    {/* Pulsing portal orb */}
+                    <div style={{
+                      width:52,height:52,flexShrink:0,
+                      borderRadius:"50%",
+                      background:"radial-gradient(circle at 35% 35%,"+gc+"55,"+gc+"11)",
+                      border:"2px solid "+gc+"88",
+                      boxShadow:"0 0 20px "+gc+"44,0 0 6px "+gc+"33,inset 0 0 14px "+gc+"22",
+                      animation:"pulse-glow 2s ease-in-out infinite",
+                      display:"flex",alignItems:"center",justifyContent:"center",
+                      fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:900,color:gc,
+                    }}>
+                      {gate.rank}
+                    </div>
+                    <div>
+                      <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:4 }}>
+                        <span style={{ padding:"2px 8px",border:"1px solid "+gc+"88",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,color:gc,letterSpacing:"0.2em" }}>{gate.rank}-RANK</span>
+                        {isCorrupted && <span className="blink" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8,color:GLITCH_RED,letterSpacing:"0.2em" }}>CORRUPTED</span>}
+                      </div>
+                      <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:15,fontWeight:700,color:"#d0eeff",textShadow:"0 0 12px "+gc+"66" }}>{gate.name}</div>
+                    </div>
                   </div>
-                  <p style={{ fontSize:13,color:"#7e98ba",lineHeight:1.6,marginBottom:8 }}>{gate.desc}</p>
-                  <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:4 }}>Minimum: <span style={{ color:gc }}>LV {gate.minLevel} · {gate.rank}-Rank</span></div>
-                  <div style={{ fontSize:12,color:gc,fontWeight:600 }}>{cleared?"✓ CLEARED":"REWARD: "+gate.reward}</div>
+
+                  <p style={{ fontSize:12,color:"#6a8aaa",lineHeight:1.6,marginBottom:10 }}>{gate.desc}</p>
+
+                  <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10 }}>
+                    <div>
+                      <div style={{ fontSize:10,color:"#3a5a78",marginBottom:3 }}>
+                        MIN LEVEL: <span style={{ color:gc }}>{gate.minLevel}</span>
+                        {"  ·  "}SURVIVAL: <span style={{ color: gate.survivalChance < 35 ? "#f53d3d" : gate.survivalChance < 60 ? "#f5b65d" : "#2ee88a" }}>{gate.survivalChance}%</span>
+                      </div>
+                      <div style={{ fontSize:11,color:gc,fontWeight:600 }}>REWARD: {gate.reward}</div>
+                    </div>
+                    <button onClick={function(){ if(typeof onEnterGate==="function") onEnterGate(gate); }}
+                      style={{
+                        padding:"11px 24px",
+                        background:"linear-gradient(135deg,"+gc+"22,"+gc+"0d)",
+                        border:"1px solid "+gc+"cc",
+                        color:"#d0eeff",
+                        cursor:"pointer",
+                        fontFamily:"'Orbitron',sans-serif",
+                        fontSize:11,fontWeight:700,letterSpacing:"0.15em",
+                        boxShadow:"0 0 14px "+gc+"33",
+                        whiteSpace:"nowrap",
+                      }}>
+                      ENTER GATE
+                    </button>
+                  </div>
                 </div>
-                <button disabled={cleared} onClick={function(){if(typeof onEnterGate==="function")onEnterGate(gate);}} style={{ padding:"12px 24px",background:cleared?"transparent":gc,color:cleared?gc+"88":"#03050c",border:cleared?"1px solid "+gc+"44":"none",cursor:cleared?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em",whiteSpace:"nowrap",alignSelf:"center" }}>{cleared?"CLEARED":"ENTER GATE"}</button>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Cleared gates — compact, faded */}
+      {clearedList.length > 0 && (
+        <div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.35em",color:"#2a3a55",marginBottom:10 }}>CLEARED GATES</div>
+          <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
+            {clearedList.map(function(gate){
+              return (
+                <div key={gate.id} style={{ padding:"10px 16px",border:"1px solid rgba(46,232,138,0.15)",background:"rgba(46,232,138,0.03)",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:0.6 }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                    <span style={{ color:"#2ee88a",fontSize:11 }}>✓</span>
+                    <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,color:"#2ee88a66",letterSpacing:"0.1em" }}>{gate.name}</span>
+                  </div>
+                  <span style={{ fontSize:9,color:"#2a3a55",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em" }}>CLEARED</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -4434,6 +4724,7 @@ function ShadowArchiveView({ bosses, bossData, ac }) {
    DAILY RESET COUNTDOWN — lightweight, no leaks
    Counts down to midnight local time. Safe interval cleanup.
    =========================================================================== */
+/* Daily reset timestamp key */
 const DAILY_RESET_KEY = "arise_last_daily_reset";
 
 function getTodayStamp() {
@@ -4466,6 +4757,7 @@ function useResetTimer(onReset) {
   const [secondsLeft, setSecondsLeft] = useState(getMidnightSeconds);
   const firedRef = useRef(false);
 
+  /* Check on mount — if the day changed while app was closed, fire reset immediately */
   useEffect(function() {
     if (isDailyResetNeeded()) {
       saveResetStamp();
@@ -4473,14 +4765,17 @@ function useResetTimer(onReset) {
     }
   }, []);
 
+  /* Tick every second */
   useEffect(function() {
     const id = setInterval(function() {
       const secs = getMidnightSeconds();
       setSecondsLeft(secs);
+      /* Fire reset when timer hits 0 — guard with firedRef so it only fires once */
       if (secs === 0 && !firedRef.current) {
         firedRef.current = true;
         saveResetStamp();
         if (typeof onReset === "function") onReset();
+        /* Reset guard after 2s so it can fire again next midnight */
         setTimeout(function(){ firedRef.current = false; }, 2000);
       }
     }, 1000);
@@ -4502,11 +4797,8 @@ function useResetTimer(onReset) {
   };
 }
 
-
-
 function ResetCountdownBanner({ accentColor, isMonarch, onReset }) {
   const { fmt, critical, urgent, warning, secondsLeft } = useResetTimer(onReset);
-
 
   /* Color escalates: normal → warning → urgent → critical */
   const color = critical
@@ -4749,7 +5041,97 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
   );
 }
 
-function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, ascensionCount, onAscend }) {
+/* ===========================================================================
+   RE-EVALUATION MODAL — 30-day progress check
+   =========================================================================== */
+function ReevaluationModal({ onScoreChange, scores, onSubmit, onDismiss, result, accentColor }) {
+  const c = accentColor || SYS_BLUE;
+
+  if (result) {
+    /* Results screen */
+    const improvements = result.improvements || {};
+    const gainKeys = Object.keys(improvements).filter(function(k){ return improvements[k] > 0; });
+    const neutralKeys = Object.keys(improvements).filter(function(k){ return improvements[k] <= 0; });
+    return (
+      <div style={{ position:"fixed",inset:0,zIndex:9100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(2,6,18,0.95)",backdropFilter:"blur(8px)",padding:"24px 16px" }}>
+        <div className="fade-in-up sl-panel" style={{ maxWidth:480,width:"100%",border:"1px solid "+c+"88" }}>
+          <div className="sl-corners" />
+          <div className="sl-header-bar" style={{ borderBottom:"1px solid "+c+"44",background:"linear-gradient(90deg,"+c+"18,"+c+"06)" }}>
+            <Bang size={28} color={c} />
+            <span className="sl-header-title" style={{ color:"#c8eeff",textShadow:"0 0 12px "+c+"aa" }}>30-DAY PROGRESS REPORT</span>
+          </div>
+          <div style={{ padding:"24px" }}>
+            <p style={{ fontSize:12,color:"#5b7aa0",marginBottom:16,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>The System has evaluated your growth over the past 30 days.</p>
+            {gainKeys.length > 0 && (
+              <div style={{ marginBottom:14 }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.3em",color:"#2ee88a",marginBottom:8 }}>IMPROVEMENTS DETECTED</div>
+                {gainKeys.map(function(k){
+                  return (
+                    <div key={k} style={{ display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(46,232,138,0.08)",fontSize:13,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
+                      <span style={{ color:"#c8eeff" }}>{k}</span>
+                      <span style={{ color:"#2ee88a",fontWeight:700 }}>+{improvements[k]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {neutralKeys.length > 0 && (
+              <div style={{ marginBottom:16,opacity:0.5 }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.3em",color:"#5b7aa0",marginBottom:6 }}>AREAS TO IMPROVE</div>
+                {neutralKeys.map(function(k){
+                  return (<div key={k} style={{ fontSize:12,color:"#5b7aa0",padding:"4px 0",fontFamily:"'Rajdhani',sans-serif" }}>{k} — no change detected</div>);
+                })}
+              </div>
+            )}
+            <div style={{ padding:"10px 14px",border:"1px solid "+c+"33",background:c+"08",fontSize:11,color:c,marginBottom:16 }}>
+              Next evaluation available in 30 days. Keep training.
+            </div>
+            <button onClick={onDismiss} style={{ width:"100%",padding:"12px",background:c,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
+              CONFIRM
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* Input screen */
+  return (
+    <div style={{ position:"fixed",inset:0,zIndex:9100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(2,6,18,0.95)",backdropFilter:"blur(8px)",padding:"24px 16px",overflowY:"auto" }}>
+      <div className="fade-in-up sl-panel" style={{ maxWidth:480,width:"100%",border:"1px solid "+c+"88",margin:"auto" }}>
+        <div className="sl-corners" />
+        <div className="sl-header-bar" style={{ borderBottom:"1px solid "+c+"44",background:"linear-gradient(90deg,"+c+"18,"+c+"06)" }}>
+          <Bang size={28} color={c} />
+          <span className="sl-header-title" style={{ color:"#c8eeff",textShadow:"0 0 12px "+c+"aa" }}>30-DAY RE-EVALUATION</span>
+        </div>
+        <div style={{ padding:"24px" }}>
+          <p style={{ fontSize:12,color:"#9ab8d4",lineHeight:1.7,marginBottom:16,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
+            The System requires updated performance data. Complete each test to your maximum. Enter your results below.
+          </p>
+          {EVAL_TESTS.map(function(test) {
+            return (
+              <div key={test.id} style={{ marginBottom:12 }}>
+                <div style={{ fontSize:12,color:"#c8eeff",fontFamily:"'Rajdhani',sans-serif",fontWeight:600,marginBottom:4 }}>{test.name} <span style={{ color:"#5b7aa0",fontSize:10 }}>({test.unit})</span></div>
+                <input type="number" min="0" max={test.max||9999}
+                  value={scores[test.id]||""}
+                  onChange={function(e){ onScoreChange(test.id, e.target.value); }}
+                  style={{ width:"100%",padding:"8px 12px",background:"rgba(2,6,18,0.9)",border:"1px solid "+c+"44",color:"#c8eeff",fontSize:14,fontFamily:"'Rajdhani',sans-serif",outline:"none" }}
+                  placeholder={"Enter "+test.unit}
+                />
+              </div>
+            );
+          })}
+          <div style={{ display:"flex",gap:10,marginTop:16 }}>
+            <button onClick={onSubmit} style={{ flex:1,padding:"12px",background:c,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>SUBMIT RESULTS</button>
+            <button onClick={onDismiss} style={{ padding:"12px 16px",background:"transparent",border:"1px solid "+c+"44",color:c+"88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10 }}>LATER</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, ascensionCount, onAscend, lastSavedAt, onDeleteSave, innerDemonActive, onToggleInnerDemon, reevalAvailable, onOpenReeval }) {
   const c = isMonarch?MONARCH_PURP:rank.color;
   return (
     <div className="fade-in">
@@ -4773,6 +5155,59 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
               onClick={function(){if(typeof onAscend==="function")onAscend();}}
               style={{ padding:"10px 24px",background:(playerLevel||0)>=48?GLITCH_RED:"#0a1020",color:(playerLevel||0)>=48?"#fff":"#2a3a55",border:"none",cursor:(playerLevel||0)>=48?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
               {(playerLevel||0)>=48?"ASCEND":"LV 48 REQUIRED"}
+            </button>
+          </div>
+        </div>
+
+        {/* INNER DEMON MODE */}
+        <div style={{ marginTop:8 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:innerDemonActive?"#2ee88a":SYS_BLUE,marginBottom:8 }}>INNER DEMON MODE</div>
+          <div style={{ border:"1px solid "+(innerDemonActive?"#2ee88a66":SYS_BLUE+"33"),background:innerDemonActive?"rgba(46,232,138,0.05)":SYS_BLUE+"08",padding:"14px 16px",marginBottom:8 }}>
+            <p style={{ fontSize:12,color:"#9ab8d4",lineHeight:1.6,marginBottom:10,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
+              Activate a higher-intensity training mode. Workout difficulty increases moderately. XP, coins, and rare reward chances increase.
+            </p>
+            <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>
+              Status: <span style={{ color:innerDemonActive?"#2ee88a":"#f53d3d",fontWeight:700 }}>{innerDemonActive?"◈ ACTIVE":"◈ INACTIVE"}</span>
+            </div>
+            <button onClick={onToggleInnerDemon} style={{ padding:"10px 20px",background:innerDemonActive?"#2ee88a":"transparent",color:innerDemonActive?"#03050c":"#2ee88a",border:"1px solid "+(innerDemonActive?"#2ee88a":"#2ee88a66"),cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,letterSpacing:"0.15em" }}>
+              {innerDemonActive?"DEACTIVATE":"ACTIVATE"}
+            </button>
+          </div>
+        </div>
+
+        {/* 30-DAY RE-EVALUATION */}
+        <div style={{ marginTop:8 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:reevalAvailable?"#f5b65d":SYS_BLUE,marginBottom:8 }}>
+            RE-EVALUATION {reevalAvailable&&<span className="blink" style={{ fontSize:9,marginLeft:6,color:"#f5b65d" }}>◈ AVAILABLE</span>}
+          </div>
+          <div style={{ border:"1px solid "+(reevalAvailable?"#f5b65d66":SYS_BLUE+"33"),background:reevalAvailable?"rgba(245,182,93,0.05)":SYS_BLUE+"08",padding:"14px 16px" }}>
+            <p style={{ fontSize:12,color:"#9ab8d4",lineHeight:1.6,marginBottom:10,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
+              {reevalAvailable?"A 30-day re-evaluation is ready. Test your current performance and receive a progress report.":"Re-evaluation becomes available every 30 days. Track your real-world progress over time."}
+            </p>
+            <button disabled={!reevalAvailable} onClick={onOpenReeval} style={{ padding:"10px 20px",background:reevalAvailable?"#f5b65d":"transparent",color:reevalAvailable?"#03050c":"#5b7aa0",border:"1px solid "+(reevalAvailable?"#f5b65d":"#5b7aa044"),cursor:reevalAvailable?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,letterSpacing:"0.15em" }}>
+              {reevalAvailable?"BEGIN RE-EVALUATION":"NOT YET AVAILABLE"}
+            </button>
+          </div>
+        </div>
+
+        {/* SAVE DATA */}
+        <div style={{ marginTop:8 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:SYS_BLUE,marginBottom:8 }}>SAVE DATA</div>
+          <div style={{ border:"1px solid "+SYS_BLUE+"33",background:SYS_BLUE+"08",padding:"14px 16px" }}>
+            <div style={{ fontSize:12,color:"#9ab8d4",marginBottom:8,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
+              Status: <span style={{ color:"#2ee88a",fontWeight:700 }}>◈ AUTO-SAVE ACTIVE</span>
+            </div>
+            {lastSavedAt ? (
+              <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>
+                Last saved: {new Date(lastSavedAt).toLocaleTimeString()}
+              </div>
+            ) : (
+              <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>Progress saves automatically after every action.</div>
+            )}
+            <button onClick={function(){
+              if (typeof onDeleteSave === "function") onDeleteSave();
+            }} style={{ padding:"8px 16px",background:"transparent",border:"1px solid #f53d3d44",color:"#f53d3d88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.15em" }}>
+              DELETE SAVE DATA
             </button>
           </div>
         </div>
@@ -6868,12 +7303,18 @@ function App() {
   const sfx = useAudio();
 
   /* Phase */
-    const sv = (function() {
-    try { return loadGame(); } catch (_) { return null; }
+  /* =========================================================================
+     SAVE / LOAD INITIALISATION
+     Load once on mount. sv = saved game or null (no save / corrupted save).
+     Every useState below uses sv values when available, safe defaults otherwise.
+     ========================================================================= */
+  const sv = (function() {
+    try { return loadGame(BOSS_DATA); } catch (_) { return null; }
   })();
 
   const [phase, setPhase] = useState(sv ? sv.phase : "onboard");
 
+  /* Player */
   const [player, setPlayer] = useState(sv ? sv.player : {
     name: "Hunter", level: 1, xp: 0, streak: 0,
     job: "fighter", physique: "hybrid", goals: [],
@@ -6881,19 +7322,22 @@ function App() {
     stats: { Strength:10, Agility:10, Endurance:10, Discipline:10, Intelligence:10, Recovery:10, Aura:5 },
   });
 
+  /* UI */
   const [activeView, setActiveView] = useState("Dashboard");
   const [menuOpen, setMenuOpen]     = useState(false);
   const [soundOn, setSoundOn]       = useState(sv ? sv.soundOn : true);
 
+  /* Quest progress */
   const [dailyProgress, setDailyProgress]             = useState(sv ? (sv.dailyProgress || {}) : {});
   const [isDailyDone, setIsDailyDone]                 = useState(sv ? !!sv.isDailyDone : false);
+  /* System 2: Streak protection */
   const [streakProtectActive, setStreakProtectActive] = useState(false);
   const [streakProtectDone, setStreakProtectDone]     = useState(false);
-  const [sideProgress, setSideProgress] = useState(function() {
+  const [sideProgress, setSideProgress]   = useState(function() {
     if (sv && Array.isArray(sv.sideProgress) && sv.sideProgress.length === SIDE_QUESTS.length) return sv.sideProgress;
     return SIDE_QUESTS.map(function(){return {};});
   });
-  const [sideDone, setSideDone] = useState(function() {
+  const [sideDone, setSideDone]           = useState(function() {
     if (sv && Array.isArray(sv.sideDone) && sv.sideDone.length === SIDE_QUESTS.length) return sv.sideDone;
     return SIDE_QUESTS.map(function(){return false;});
   });
@@ -6903,13 +7347,16 @@ function App() {
   const [anomalyDone, setAnomalyDone]         = useState(sv ? (sv.anomalyDone    || {}) : {});
   const [recentAnomalyIds, setRecentAnomalyIds] = useState(sv ? (sv.recentAnomalyIds || []) : []);
 
+  /* Dungeon gates */
   const [clearedGates, setClearedGates]         = useState(sv ? (sv.clearedGates || {}) : {});
   const [dungeonChainGate, setDungeonChainGate] = useState(null);
   const [activeModifier, setActiveModifier]     = useState(null);
 
-  const [bosses, setBosses] = useState(function() {
+  /* Boss raids */
+  const [bosses, setBosses] = useState(function(){
     const fresh = BOSS_DATA.map(function(b){return Object.assign({},b,{maxHp:b.hp,currentHp:b.hp});});
     if (!sv || !Array.isArray(sv.bossHpSnapshot)) return fresh;
+    /* Restore HP from snapshot, guard against shape mismatch */
     return fresh.map(function(boss, i) {
       const snap = sv.bossHpSnapshot[i];
       if (snap && typeof snap.currentHp === "number" && Number.isFinite(snap.currentHp)) {
@@ -6918,6 +7365,7 @@ function App() {
       return boss;
     });
   });
+  /* Secret bosses */
   const [secretBossStates, setSecretBossStates] = useState(function() {
     const init = {};
     SECRET_BOSS_DATA.forEach(function(b) { init[b.id] = { currentHp: b.hp, maxHp: b.hp }; });
@@ -6925,25 +7373,30 @@ function App() {
   });
   const [accessDeniedBoss, setAccessDeniedBoss] = useState(null);
 
+  /* Shadow extraction ARISE system */
   const [ariseTarget, setAriseTarget]   = useState(null);
   const [ariseAttempt, setAriseAttempt] = useState(1);
 
+  /* Hidden quests */
   const [seenHiddenIds, setSeenHiddenIds]             = useState([]);
   const [activeHiddenQuest, setActiveHiddenQuest]     = useState(null);
   const [hiddenQuestPending, setHiddenQuestPending]   = useState(null);
   const [hiddenQuestProgress, setHiddenQuestProgress] = useState({});
   const [completedHiddenIds, setCompletedHiddenIds]   = useState([]);
 
-  const [takeoverEvent, setTakeoverEvent]           = useState(null);
+  /* Takeover / random events */
+  const [takeoverEvent, setTakeoverEvent]       = useState(null);
   const [randomEventPending, setRandomEventPending] = useState(null);
 
-  const [guildId, setGuildId]                       = useState(sv ? sv.guildId : null);
-  const [guildRecruitOffer, setGuildRecruitOffer]   = useState(null);
-  const [guildQuestProgress, setGuildQuestProgress] = useState(sv ? (sv.guildQuestProgress || {}) : {});
-  const [guildQuestDone, setGuildQuestDone]         = useState(sv ? !!sv.guildQuestDone : false);
-  const [ascensionCount, setAscensionCount]         = useState(sv ? (sv.ascensionCount || 0) : 0);
-  const [monarchCorruption, setMonarchCorruption]   = useState(0);
+  /* Wave 4 — Guild, Identity, Ascension */
+  const [guildId, setGuildId]                         = useState(sv ? sv.guildId : null);
+  const [guildRecruitOffer, setGuildRecruitOffer]     = useState(null);
+  const [guildQuestProgress, setGuildQuestProgress]   = useState(sv ? (sv.guildQuestProgress || {}) : {});
+  const [guildQuestDone, setGuildQuestDone]           = useState(sv ? !!sv.guildQuestDone : false);
+  const [ascensionCount, setAscensionCount]           = useState(sv ? (sv.ascensionCount || 0) : 0);
+  const [monarchCorruption, setMonarchCorruption]     = useState(0);
 
+  /* Wave 3 — Breakthrough / Achievements / World Events / Awakening */
   const [breakthroughPending, setBreakthroughPending] = useState(null);
   const [completedBTs, setCompletedBTs]               = useState(sv ? (sv.completedBTs || []) : []);
   const [cinematicAch, setCinematicAch]               = useState(null);
@@ -6951,6 +7404,7 @@ function App() {
   const [awakeningDay, setAwakeningDay]               = useState(false);
   const [earnedAchievements, setEarnedAchievements]   = useState(sv ? (sv.earnedAchievements || []) : []);
 
+  /* Economy */
   const [coins, setCoins]               = useState(sv ? (sv.coins || 0) : 0);
   const [fame, setFame]                 = useState(sv ? (sv.fame  || 0) : 0);
   const [inventory, setInventory]       = useState(sv ? (sv.inventory || []) : []);
@@ -6958,22 +7412,21 @@ function App() {
   const [loreFragments, setLoreFragments]       = useState(sv ? (sv.loreFragments || 0) : 0);
   const [collectedLoreIds, setCollectedLoreIds] = useState(sv ? (sv.collectedLoreIds || []) : []);
 
-  const [shadowArmy, setShadowArmy]         = useState(sv ? (sv.shadowArmy || []) : []);
+  /* Shadow army */
+  const [shadowArmy, setShadowArmy]     = useState(sv ? (sv.shadowArmy || []) : []);
   const [shadowMissions, setShadowMissions] = useState(sv ? (sv.shadowMissions || []) : []);
-  const [shadowSquads, setShadowSquads]     = useState(
-    sv && Array.isArray(sv.shadowSquads) ? sv.shadowSquads : [
-      { id:"assault", name:"Assault Squad", shadowIds:[], icon:"⚔" },
-      { id:"recon",   name:"Recon Squad",   shadowIds:[], icon:"➤" },
-      { id:"raid",    name:"Raid Squad",    shadowIds:[], icon:"❖" },
-    ]
-  );
+  const [shadowSquads, setShadowSquads] = useState(sv && Array.isArray(sv.shadowSquads) ? sv.shadowSquads : [
+    { id:"assault", name:"Assault Squad", shadowIds:[], icon:"⚔" },
+    { id:"recon",   name:"Recon Squad",   shadowIds:[], icon:"➤" },
+    { id:"raid",    name:"Raid Squad",    shadowIds:[], icon:"❖" },
+  ]);
   const [unlockedSpecs, setUnlockedSpecs] = useState(sv ? (sv.unlockedSpecs || []) : []);
-  const [energyState, setEnergyState]     = useState(
-    sv ? (sv.energyState || { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 })
-       : { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 }
-  );
+
+  /* Energy */
+  const [energyState, setEnergyState] = useState(sv ? (sv.energyState || { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 }) : { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 });
   const [energyScore, setEnergyScore] = useState(68);
 
+  /* UI-only transient state — never persisted */
   const [rewardChest, setRewardChest]             = useState(null);
   const [pendingStatPoints, setPendingStatPoints] = useState(0);
   const [cutsceneGate, setCutsceneGate]           = useState(null);
@@ -6985,45 +7438,58 @@ function App() {
   const lvlTimerRef = useRef(null);
   const rnkTimerRef = useRef(null);
 
-  const [toast, setToast]               = useState(null);
+  /* Toast */
+  const [toast, setToast]             = useState(null);
   const [notifHistory, setNotifHistory] = useState([]);
   const toastTimerRef = useRef(null);
 
-  const [systemLog, setSystemLog] = useState([{
-    time:"00:00:00", kind:"system",
-    message:"System initialized. Awaiting hunter registration."
-  }]);
+  /* System log */
+  const [systemLog, setSystemLog] = useState([{ time:"00:00:00",kind:"system",message:"System initialized. Awaiting hunter registration." }]);
 
+  /* Secret achievements — restore unlocked state from save */
   const [secretAchievements, setSecretAchievements] = useState(function() {
     const base = SECRET_ACHIEVEMENTS.map(function(a){return Object.assign({},a,{unlocked:false});});
     if (!sv || !Array.isArray(sv.secretUnlockedIds)) return base;
     return base.map(function(a) {
-      return sv.secretUnlockedIds.includes(a.condition)
-        ? Object.assign({},a,{unlocked:true}) : a;
+      return sv.secretUnlockedIds.includes(a.condition) ? Object.assign({},a,{unlocked:true}) : a;
     });
   });
 
-  const [monarchInterest, setMonarchInterest]     = useState(sv ? (sv.monarchInterest || 0) : 0);
-  const [monarchStage, setMonarchStage]           = useState(sv ? (sv.monarchStage    || 0) : 0);
-  const [crypticVisible, setCrypticVisible]       = useState(false);
-  const [crypticMessage, setCrypticMessage]       = useState("");
-  const [trialOpen, setTrialOpen]                 = useState(false);
-  const [trialProgress, setTrialProgress]         = useState({});
+  /* Monarch system — invisible to player */
+  const [monarchInterest, setMonarchInterest]   = useState(sv ? (sv.monarchInterest || 0) : 0);
+  const [monarchStage, setMonarchStage]         = useState(sv ? (sv.monarchStage    || 0) : 0);
+  const [crypticVisible, setCrypticVisible]     = useState(false);
+  const [crypticMessage, setCrypticMessage]     = useState("");
+  const [trialOpen, setTrialOpen]               = useState(false);
+  const [trialProgress, setTrialProgress]       = useState({});
   const [reawakeningActive, setReawakeningActive] = useState(false);
-  const [isMonarch, setIsMonarch]                 = useState(sv ? !!sv.isMonarch : false);
-  const [trialFailed, setTrialFailed]             = useState(false);
-  const [glitchIntensity, setGlitchIntensity]     = useState(0);
+  const [isMonarch, setIsMonarch]               = useState(sv ? !!sv.isMonarch : false);
+  const [trialFailed, setTrialFailed]           = useState(false);
+  const [glitchIntensity, setGlitchIntensity]   = useState(0);
   const glitchTimerRef = useRef(null);
   const lastCrypticRef = useRef(0);
 
-  const saveTimerRef = useRef(null);
-  const isSavingRef  = useRef(false);
+  /* =========================================================================
+     SAVE REF — tracks whether save is dirty, prevents save loops
+     ========================================================================= */
+  const saveTimerRef  = useRef(null);
+  const isSavingRef   = useRef(false);
   const [lastSavedAt, setLastSavedAt] = useState(sv ? (sv.savedAt || null) : null);
+
+  /* Inner Demon Mode */
+  const [innerDemonActive, setInnerDemonActive] = useState(sv ? !!sv.innerDemonActive : false);
+
+  /* Re-evaluation system */
+  const [reevalAvailable, setReevalAvailable] = useState(false);
+  const [reevalOpen, setReevalOpen]           = useState(false);
+  const [reevalScores, setReevalScores]       = useState({});
+  const [reevalResult, setReevalResult]       = useState(null);
+  const [lastEvalStats, setLastEvalStats]     = useState(sv ? (sv.lastEvalStats || null) : null);
 
   /* Derived */
   const rank        = getRankForLevel(player.level);
   const accentColor = isMonarch ? MONARCH_PURP : rank.color;
-  const dailyQuest  = generateDailyQuest(player.job, player.goals, player.level);
+  const dailyQuest  = generateDailyQuest(player.job, player.goals, player.level, energyScore, innerDemonActive);
 
   const totalQuestGoalsCleared =
     dailyQuest.goals.filter(function(g){return (dailyProgress[g.id]||0)>=g.target;}).length +
@@ -7032,34 +7498,83 @@ function App() {
   /* Sound toggle — safe, no implicit return */
   useEffect(function() { sfx.setEnabled(soundOn); }, [soundOn]);
 
+  /* Check if 30-day re-evaluation is available */
+  useEffect(function() {
+    if (phase !== "app") return;
+    try {
+      const last = parseInt(localStorage.getItem(REEVAL_KEY) || "0", 10);
+      const now  = Date.now();
+      if (!last || (now - last) >= REEVAL_INTERVAL_MS) {
+        setReevalAvailable(true);
+      }
+    } catch(_) {}
+  }, [phase]);
+
+  /* =========================================================================
+     AUTO-SAVE — debounced, runs whenever any persisted state changes.
+     Only fires when phase==="app" so onboarding state is never saved mid-flow.
+     500ms debounce prevents save spam during rapid state updates.
+     ========================================================================= */
   useEffect(function() {
     if (phase !== "app") return;
     if (isSavingRef.current) return;
+
+    /* Clear existing timer */
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
     saveTimerRef.current = setTimeout(function() {
       isSavingRef.current = true;
       try {
-        saveGame({
-          phase, player, isDailyDone, dailyProgress,
-          sideProgress, sideDone, extSideProgress, extSideDone,
-          anomalyProgress, anomalyDone, recentAnomalyIds,
-          clearedGates, dungeonKeys, coins, fame, inventory,
-          shadowArmy, shadowMissions, shadowSquads, shadowNames,
-          loreFragments, collectedLoreIds, earnedAchievements, unlockedSpecs,
-          completedBTs, guildId, guildQuestProgress, guildQuestDone,
-          monarchInterest, monarchStage, isMonarch, ascensionCount,
-          soundOn, energyState,
+        const ok = saveGame({
+          phase,
+          player,
+          isDailyDone,
+          dailyProgress,
+          sideProgress,
+          sideDone,
+          extSideProgress,
+          extSideDone,
+          anomalyProgress,
+          anomalyDone,
+          recentAnomalyIds,
+          clearedGates,
+          dungeonKeys,
+          coins,
+          fame,
+          inventory,
+          shadowArmy,
+          shadowMissions,
+          shadowSquads,
+          shadowNames,
+          loreFragments,
+          collectedLoreIds,
+          earnedAchievements,
+          unlockedSpecs,
+          completedBTs,
+          guildId,
+          guildQuestProgress,
+          guildQuestDone,
+          monarchInterest,
+          monarchStage,
+          isMonarch,
+          ascensionCount,
+          soundOn,
+          energyState,
+          innerDemonActive,
+          lastEvalStats,
+          /* Boss HP snapshot — only the HP value, not the full data */
           bossHpSnapshot: bosses.map(function(b){ return { currentHp: b.currentHp }; }),
-          secretUnlockedIds: secretAchievements
-            .filter(function(a){ return a.unlocked; })
-            .map(function(a){ return a.condition; }),
+          /* Secret achievements — store only the unlocked condition strings */
+          secretUnlockedIds: secretAchievements.filter(function(a){return a.unlocked;}).map(function(a){return a.condition;}),
         });
-        setLastSavedAt(Date.now());
+        if (ok) setLastSavedAt(Date.now());
       } catch (_) {
+        /* Save failure is silent — never crash the game */
       } finally {
         isSavingRef.current = false;
       }
     }, 500);
+
     return function() {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
@@ -7073,7 +7588,9 @@ function App() {
     completedBTs, guildId, guildQuestProgress, guildQuestDone,
     monarchInterest, monarchStage, isMonarch, ascensionCount,
     soundOn, energyState, bosses, secretAchievements,
+    innerDemonActive, lastEvalStats,
   ]);
+
   /* System 8: Achievement check — runs when key player values change */
   useEffect(function() {
     if (phase !== "app") return;
@@ -7428,6 +7945,79 @@ function App() {
   }
 
   /* ---- Wave 4: Ascension ---- */
+  /* ---- Save data: delete + show confirmation ---- */
+  /* ---- Inner Demon Mode ---- */
+  function handleToggleInnerDemon() {
+    setInnerDemonActive(function(prev) {
+      const next = !prev;
+      if (next) {
+        showToast("Inner Demon Mode — ACTIVATED. Rewards increased.", "evolve");
+        addLog("Inner Demon Mode activated. Workout intensity and rewards elevated.","evolve");
+        setTimeout(function(){
+          const msg = INNER_DEMON_DIALOGUES[Math.floor(Math.random()*INNER_DEMON_DIALOGUES.length)];
+          showToast(msg,"system");
+        },2000);
+      } else {
+        showToast("Inner Demon Mode — DEACTIVATED.", "warning");
+        addLog("Inner Demon Mode deactivated.","info");
+      }
+      return next;
+    });
+  }
+
+  /* ---- Re-evaluation handlers ---- */
+  function handleReevalScoreChange(testId, val) {
+    const n = parseInt(val, 10);
+    setReevalScores(function(prev){ return Object.assign({},prev,{[testId]:Number.isFinite(n)&&n>=0?n:0}); });
+  }
+
+  function handleReevalSubmit() {
+    /* Compute new stats from eval scores (same as initial eval) */
+    const result = computeEvaluation(reevalScores);
+    const prev   = lastEvalStats || player.stats;
+
+    /* Build comparison */
+    const improvements = {};
+    const statKeys = Object.keys(result.stats);
+    statKeys.forEach(function(k) {
+      const delta = (result.stats[k]||0) - (prev[k]||0);
+      improvements[k] = delta;
+    });
+
+    const newLevel = Math.max(player.level, result.startLevel);
+
+    setReevalResult({ improvements, newStats: result.stats, newLevel, prevStats: prev });
+    setLastEvalStats(result.stats);
+
+    /* Apply stat improvements */
+    setPlayer(function(p) {
+      const merged = Object.assign({}, p.stats);
+      statKeys.forEach(function(k){
+        if (improvements[k] > 0) merged[k] = (merged[k]||0) + improvements[k];
+      });
+      return Object.assign({},p,{stats:merged, level:newLevel});
+    });
+
+    /* Mark re-eval timestamp */
+    try { localStorage.setItem(REEVAL_KEY, String(Date.now())); } catch(_){}
+    setReevalAvailable(false);
+    addFame(30);
+    showToast("Re-evaluation complete. Progress recorded.","evolve");
+    addLog("30-day re-evaluation completed. Stats updated.","evolve");
+  }
+
+  function handleDismissReeval() {
+    setReevalOpen(false);
+    setReevalResult(null);
+    setReevalScores({});
+  }
+
+  function handleDeleteSave() {
+    try { deleteSave(); } catch (_) {}
+    showToast("Save data deleted. Reload to start fresh.", "warning");
+    addLog("Save data deleted by hunter.","warning");
+  }
+
   function handleAscension() {
     if ((player.level||0)<48) { showToast("Ascension requires LV 48 minimum.","warning"); return; }
     setAscensionCount(function(n){return n+1;});
@@ -7873,14 +8463,23 @@ function App() {
     sfx.sfxComplete();
     const next=Object.assign({},dailyProgress,{[goalId]:goal.target});
     setDailyProgress(next);
-    grantXp(Math.round(dailyQuest.xp/dailyQuest.goals.length),goal.stat,1);
+    const perGoalBase = Math.round(dailyQuest.xp/dailyQuest.goals.length);
+    const perGoalXp   = innerDemonActive ? Math.round(perGoalBase * (1 + INNER_DEMON_BONUS_XP)) : perGoalBase;
+    grantXp(perGoalXp,goal.stat,1);
     showToast(goal.name+" complete!","xp");
+    /* Inner Demon: rare dialogue on goal completion (8% chance) */
+    if (innerDemonActive && Math.random() < 0.08) {
+      const msg = INNER_DEMON_DIALOGUES[Math.floor(Math.random()*INNER_DEMON_DIALOGUES.length)];
+      setTimeout(function(){ showToast(msg,"system"); }, 1200);
+    }
     addMonarchInterest(MONARCH_INTEREST_PER_DAILY/dailyQuest.goals.length);
     if(dailyQuest.goals.every(function(g){return (next[g.id]||0)>=g.target;})){
       setIsDailyDone(true);
       grantXp(50,"Discipline",2);
       /* Phase 4: coins reward */
-      addCoins(75);
+      const baseCoins = 75;
+      const bonusCoins = innerDemonActive ? Math.round(baseCoins * INNER_DEMON_BONUS_COINS) : 0;
+      addCoins(baseCoins + bonusCoins);
       addFame(10); /* System 4: +10 fame per daily clear */
       /* Phase 4: reward chest — 3 random options */
       setRewardChest([rollChestReward(), rollChestReward(), rollChestReward()]);
@@ -8089,6 +8688,10 @@ function App() {
       "system"
     );
     setPhase("app");
+    /* Save immediately after onboarding — don't wait for auto-save debounce */
+    setTimeout(function() {
+      try { saveGame({ phase:"app", player:{ name:data.name||"Hunter",level:safeLevel,xp:0,streak:0,job:data.hunterClass||"fighter",physique:data.physique||"hybrid",goals:Array.isArray(data.goals)?data.goals:[],activeTitle:"awakened",stats:safeStats }, coins:0, fame:0, inventory:[], shadowArmy:[], isDailyDone:false }); } catch(_) {}
+    }, 200);
   }
 
   /* ---- Visual evolution by rank (all declarations in dependency order) ---- */
@@ -8182,7 +8785,7 @@ function App() {
           {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} />}
           {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
           {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} />}
-          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} />}
+          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
         </div>
 
         {/* DEV: Monarch interest only — no free XP */}
@@ -8205,6 +8808,8 @@ function App() {
       {cutsceneGate&&<DungeonCutscene gate={cutsceneGate} onEnter={function(){const g=cutsceneGate;setCutsceneGate(null);if(g.rooms&&g.rooms.length>0){setDungeonChainGate(g);}else{completeDungeon(g,[]);}}} onAbort={function(){setCutsceneGate(null);showToast("Gate entry withdrawn.","info");}} />}
       {rewardChest&&pendingStatPoints===0&&<RewardChestModal rewards={rewardChest} onClaim={handleChestClaim} accentColor={accentColor} />}
       {pendingStatPoints>0&&!rewardChest&&<StatPointDistributor points={pendingStatPoints} onConfirm={handleStatPointConfirm} accentColor={accentColor} />}
+      {/* Re-evaluation modal */}
+      {reevalOpen&&<ReevaluationModal onScoreChange={handleReevalScoreChange} scores={reevalScores} onSubmit={handleReevalSubmit} onDismiss={handleDismissReeval} result={reevalResult} accentColor={accentColor} />}
       {/* Wave 4: Guild recruitment */}
       {guildRecruitOffer&&<GuildRecruitmentPopup guild={guildRecruitOffer} onJoin={handleJoinGuild} onDecline={function(){setGuildRecruitOffer(null);showToast("Guild offer declined.","info");}} />}
       {/* Wave 3: Breakthrough + Cinematic Achievement */}
