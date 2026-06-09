@@ -5596,72 +5596,278 @@ function ReevaluationModal({ onScoreChange, scores, onSubmit, onDismiss, result,
 }
 
 /* ===========================================================================
-   RANKINGS VIEW
+   HUNTER POPULATION — 500 seeded hunters + 7 named rivals
+   Generated deterministically so it never changes between renders.
+   Player position is computed live by comparing fame.
+   =========================================================================== */
+
+/* Seeded pseudo-random — same seed always gives same sequence */
+function seededRand(seed) {
+  var s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+
+/* Hunter name pools */
+var POP_FIRST = ["Kai","Zara","Owen","Mira","Ethan","Sora","Leon","Aria","Jin","Nova","Cole","Lena","Ash","Vera","Rex","Nyx","Dax","Mila","Troy","Sera","Beck","Yuna","Finn","Isla","Cruz","Remy","Jace","Tara","Blaze","Kira","Drake","Lyra","Seth","Wren","Axel","Faye","Colt","Zoe","Bane","Sky","Hale","Pix","Vex","Rue","Omar","Ines","Sal","Bex","Tam","Vic"];
+var POP_LAST  = ["Vale","Frost","Cole","Raines","Draven","Ashford","Brooks","Carter","Drake","Marsh","Stone","Voss","Holt","Quinn","Cross","Banks","Reed","Kane","Hart","Fox","Pierce","Wren","Blair","Black","Dunn","Ford","Lane","Beck","Shaw","Tate","Bell","Wade","Park","Hayes","Cruz","Nash","Flynn","Grant","Hunt","King"];
+var POP_SPEC  = ["Strength","Speed","Tank","Assassin","Mage","Balanced","Scout","Healer","Berserker","Duelist","Ranger","Striker"];
+var POP_GUILDS= ["hunters_assoc","crimson_raid","phantom_hunters","white_tiger","shadow_legion","national_hunter",null,null,null];
+
+/* Rank distribution: 40% E, 25% D, 15% C, 10% B, 7% A, 2% S, 1% National */
+var RANK_FAME_RANGES = [
+  { max:0.40, fameMin:0,    fameMax:120  }, /* E */
+  { max:0.65, fameMin:80,   fameMax:280  }, /* D */
+  { max:0.80, fameMin:200,  fameMax:500  }, /* C */
+  { max:0.90, fameMin:400,  fameMax:900  }, /* B */
+  { max:0.97, fameMin:700,  fameMax:1800 }, /* A */
+  { max:0.99, fameMin:1400, fameMax:3200 }, /* S */
+  { max:1.00, fameMin:2800, fameMax:6000 }, /* National */
+];
+
+var GENERATED_POPULATION = (function() {
+  var rng = seededRand(0xA715E42);
+  var pop = [];
+  var usedNames = {};
+
+  for (var i = 0; i < 493; i++) {
+    /* Pick rank tier */
+    var roll = rng();
+    var tier = 0;
+    for (var t = 0; t < RANK_FAME_RANGES.length; t++) {
+      if (roll < RANK_FAME_RANGES[t].max) { tier = t; break; }
+    }
+    var fr = RANK_FAME_RANGES[tier];
+    var hunterFame = Math.floor(fr.fameMin + rng() * (fr.fameMax - fr.fameMin));
+
+    /* Unique name */
+    var attempts = 0;
+    var fname, lname, fullName;
+    do {
+      fname = POP_FIRST[Math.floor(rng() * POP_FIRST.length)];
+      lname = POP_LAST[Math.floor(rng() * POP_LAST.length)];
+      fullName = fname + " " + lname;
+      attempts++;
+    } while (usedNames[fullName] && attempts < 20);
+    usedNames[fullName] = true;
+
+    var spec    = POP_SPEC[Math.floor(rng() * POP_SPEC.length)];
+    var guild   = POP_GUILDS[Math.floor(rng() * POP_GUILDS.length)];
+    var cr      = Math.floor(20 + rng() * 75);
+    var lvl     = Math.floor(1 + rng() * 60);
+
+    pop.push({
+      id:   "gen_" + i,
+      name: fullName,
+      fame: hunterFame,
+      combatRating: Math.min(99, cr),
+      level: lvl,
+      specialty: spec,
+      guild: guild,
+      rankName: getRankForLevel(lvl).name,
+      color: tier >= 6 ? "#f5b65d" : tier >= 5 ? "#a05df5" : tier >= 4 ? "#4db8ff" : tier >= 3 ? "#2ee88a" : "#5b7aa0",
+      icon: tier >= 5 ? "✦" : tier >= 3 ? "⚔" : "◈",
+      isNamed: false,
+    });
+  }
+  return pop;
+})();
+
+/* Milestone thresholds */
+var RANK_MILESTONES = [500,400,300,200,150,100,75,50,25,10,5,3,1];
+
+function getPlayerRankPosition(playerFame, rivals) {
+  /* Count how many hunters (population + named rivals) have more fame */
+  var aboveCount = 0;
+  GENERATED_POPULATION.forEach(function(h){ if (h.fame > playerFame) aboveCount++; });
+  RIVALS_DATA.forEach(function(rd) {
+    var state = rivals.find(function(r){ return r.id===rd.id; });
+    var rivalFame = state ? state.fame : rd.baseFame;
+    if (rivalFame > playerFame) aboveCount++;
+  });
+  return aboveCount + 1; /* 1-indexed */
+}
+
+function buildFullRankingSlice(playerFame, playerName, playerLevel, playerRankName, playerSpec, playerColor, rivals, windowSize) {
+  /* Build the full sorted list: named rivals + generated population + player */
+  var entries = GENERATED_POPULATION.map(function(h){ return Object.assign({},h,{isPlayer:false}); });
+
+  RIVALS_DATA.forEach(function(rd) {
+    var state = rivals.find(function(r){ return r.id===rd.id; });
+    entries.push({
+      id: rd.id, name: rd.name, isNamed: true, isPlayer: false,
+      fame: state ? state.fame : rd.baseFame,
+      combatRating: state ? state.combatRating : rd.combatRating,
+      level: state ? state.level : rd.baseLevel,
+      specialty: rd.specialty, guild: rd.guild,
+      rankName: getRankForLevel(state ? state.level : rd.baseLevel).name,
+      color: rd.color, icon: rd.icon,
+    });
+  });
+
+  entries.push({
+    id:"player", name: playerName, isPlayer: true, isNamed: false,
+    fame: playerFame, combatRating: Math.min(99, Math.round((playerLevel*2.2)+(playerFame*0.03))),
+    level: playerLevel, specialty: playerSpec || "Hunter",
+    guild: null, rankName: playerRankName, color: playerColor, icon: "◈",
+  });
+
+  entries.sort(function(a,b){ return b.fame - a.fame; });
+
+  var playerIdx = entries.findIndex(function(e){ return e.isPlayer; });
+  var ws = windowSize || 8;
+  var start = Math.max(0, playerIdx - ws);
+  var end   = Math.min(entries.length - 1, playerIdx + ws);
+
+  return {
+    totalCount: entries.length,
+    playerPos: playerIdx + 1,
+    slice: entries.slice(start, end + 1).map(function(e, i){ return Object.assign({}, e, { pos: start + i + 1 }); }),
+    playerIdx: playerIdx,
+    startIdx: start,
+  };
+}
+
+/* ===========================================================================
+   RANKINGS VIEW — Full 500+ hunter population
    =========================================================================== */
 function RankingsView({ player, fame, rank, rivals, accentColor }) {
   const c = accentColor || SYS_BLUE;
-  const rivalEntries = RIVALS_DATA.map(function(rd) {
-    const state = rivals.find(function(r){ return r.id===rd.id; }) || {};
-    return {
-      id:rd.id, name:rd.name, isPlayer:false,
-      level:state.level||rd.baseLevel, fame:state.fame||rd.baseFame,
-      combatRating:state.combatRating||rd.combatRating,
-      guild:rd.guild, specialty:rd.specialty, color:rd.color, icon:rd.icon,
-      rankName:getRankForLevel(state.level||rd.baseLevel).name,
-    };
-  });
-  const playerEntry = {
-    id:"player", name:player.name||"Hunter", isPlayer:true,
-    level:player.level, fame,
-    combatRating:Math.min(99,Math.round((player.level*2.2)+(fame*0.03))),
-    guild:"—", specialty:"Hunter", color:c, icon:"◈",
-    rankName:rank?rank.name:"E",
-  };
-  const allEntries = rivalEntries.concat([playerEntry]);
-  allEntries.sort(function(a,b){ return b.fame - a.fame; });
-  const playerPos = allEntries.findIndex(function(e){ return e.isPlayer; }) + 1;
-  const above = allEntries[playerPos-2];
-  const aboveData = above && !above.isPlayer ? RIVALS_DATA.find(function(r){return r.id===above.id;}) : null;
+  const [tab, setTab] = React.useState("nearby");
+
+  const result = buildFullRankingSlice(
+    fame, player.name||"Hunter", player.level,
+    rank?rank.name:"E", null, c, rivals, 10
+  );
+
+  const { totalCount, playerPos, slice } = result;
+
+  /* Top 20 for leaderboard tab */
+  const top20 = (function() {
+    var entries = GENERATED_POPULATION.map(function(h){ return Object.assign({},h,{isPlayer:false,pos:0}); });
+    RIVALS_DATA.forEach(function(rd) {
+      var state = rivals.find(function(r){ return r.id===rd.id; });
+      entries.push({
+        id:rd.id, name:rd.name, isNamed:true, isPlayer:false,
+        fame: state?state.fame:rd.baseFame,
+        combatRating: state?state.combatRating:rd.combatRating,
+        level: state?state.level:rd.baseLevel,
+        specialty:rd.specialty, guild:rd.guild,
+        rankName:getRankForLevel(state?state.level:rd.baseLevel).name,
+        color:rd.color, icon:rd.icon,
+      });
+    });
+    entries.push({
+      id:"player", name:player.name||"Hunter", isPlayer:true, isNamed:false,
+      fame, combatRating:Math.min(99,Math.round((player.level*2.2)+(fame*0.03))),
+      level:player.level, specialty:"Hunter", guild:null,
+      rankName:rank?rank.name:"E", color:c, icon:"◈",
+    });
+    entries.sort(function(a,b){ return b.fame-a.fame; });
+    return entries.slice(0,20).map(function(e,i){ return Object.assign({},e,{pos:i+1}); });
+  })();
+
+  /* Milestone label */
+  var milestoneLabel = "";
+  if (playerPos <= 1)   milestoneLabel = "◈ RANK #1 — LEGENDARY";
+  else if (playerPos<=3)  milestoneLabel = "◈ TOP 3 — ELITE";
+  else if (playerPos<=10) milestoneLabel = "◈ TOP 10";
+  else if (playerPos<=25) milestoneLabel = "◈ TOP 25";
+  else if (playerPos<=50) milestoneLabel = "◈ TOP 50";
+  else if (playerPos<=100)milestoneLabel = "◈ TOP 100";
+  else if (playerPos<=200)milestoneLabel = "TOP 200";
+
+  function renderRow(entry) {
+    const pos = entry.pos;
+    const posColor = pos===1?"#f5b65d":pos===2?"#c0c0c0":pos===3?"#cd7f32":entry.color+"cc";
+    const gd = GUILDS.find(function(g){return g.id===entry.guild;});
+    return (
+      <div key={entry.id+pos} style={{
+        display:"grid", gridTemplateColumns:"40px 1fr 56px 36px",
+        gap:8, padding:"10px 14px",
+        borderBottom:"1px solid rgba(77,184,255,0.05)",
+        background: entry.isPlayer
+          ? "linear-gradient(90deg,"+c+"18,"+c+"04)"
+          : entry.isNamed ? entry.color+"06" : "transparent",
+        borderLeft: entry.isPlayer ? "2px solid "+c
+          : entry.isNamed ? "2px solid "+entry.color+"66"
+          : "2px solid transparent",
+      }}>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:pos<=3?14:10,fontWeight:pos<=3?900:600,color:posColor,alignSelf:"center" }}>
+          {pos<=3?["🥇","🥈","🥉"][pos-1]:"#"+pos}
+        </div>
+        <div style={{ minWidth:0 }}>
+          <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:2 }}>
+            <span style={{ color:entry.color,fontSize:10,flexShrink:0 }}>{entry.icon}</span>
+            <span style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:13,fontWeight:entry.isPlayer||entry.isNamed?700:500,color:entry.isPlayer?"#e0f4ff":entry.isNamed?"#c8eeff":"#6a8aaa",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis" }}>
+              {entry.name}{entry.isPlayer?" ◀ YOU":""}
+            </span>
+          </div>
+          <div style={{ fontSize:8,color:"#2a3a55",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.08em" }}>
+            {entry.rankName} · {entry.specialty}
+            {gd&&<span style={{ color:gd.color+"66",marginLeft:4 }}>· {gd.name}</span>}
+          </div>
+        </div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:600,color:"#f5b65d88",textAlign:"right",alignSelf:"center" }}>{entry.fame}</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:600,color:entry.color+"88",textAlign:"right",alignSelf:"center" }}>{entry.combatRating}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="fade-in">
       <SL text="Hunter Rankings" ac={c} />
-      <div style={{ padding:"10px 16px",border:"1px solid "+c+"44",background:c+"08",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-        <span style={{ fontSize:11,color:"#9ab8d4",fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>YOUR POSITION</span>
-        <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:900,color:c,textShadow:"0 0 16px "+c+"88" }}>#{playerPos}</span>
-      </div>
-      <div style={{ border:"1px solid "+c+"22",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",marginBottom:16 }}>
-        <div style={{ display:"grid",gridTemplateColumns:"32px 1fr 56px 44px",gap:8,padding:"7px 14px",borderBottom:"1px solid "+c+"22",fontFamily:"'Orbitron',sans-serif",fontSize:7,letterSpacing:"0.2em",color:"#3a5a78" }}>
-          <span>#</span><span>HUNTER</span><span style={{ textAlign:"right" }}>FAME</span><span style={{ textAlign:"right" }}>CR</span>
+
+      {/* Position banner */}
+      <div style={{ padding:"14px 18px",border:"1px solid "+c+"44",background:"linear-gradient(90deg,"+c+"0d,transparent)",marginBottom:4,display:"flex",alignItems:"center",justifyContent:"space-between",position:"relative",overflow:"hidden" }}>
+        <div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 0% 50%,"+c+"0a,transparent 70%)",pointerEvents:"none" }} />
+        <div style={{ position:"relative" }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.4em",color:c+"88",marginBottom:4 }}>YOUR GLOBAL RANK</div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:28,fontWeight:900,color:c,lineHeight:1,textShadow:"0 0 20px "+c+"66" }}>#{playerPos}</div>
+          <div style={{ fontSize:10,color:"#5b7aa0",marginTop:3 }}>of {totalCount} registered hunters</div>
         </div>
-        {allEntries.map(function(entry,idx) {
-          const pos=idx+1;
-          const posColor=pos===1?"#f5b65d":pos===2?"#8a8f98":pos===3?"#cd7f32":entry.color;
-          const gd=GUILDS.find(function(g){return g.id===entry.guild;});
+        {milestoneLabel&&(
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,color:c,letterSpacing:"0.2em",border:"1px solid "+c+"44",padding:"4px 10px",background:c+"0d" }}>{milestoneLabel}</div>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display:"flex",gap:0,marginBottom:14,borderBottom:"1px solid rgba(77,184,255,0.12)" }}>
+        {[["nearby","NEARBY"],["top20","TOP 20"]].map(function(t){
+          var active=tab===t[0];
           return (
-            <div key={entry.id} style={{ display:"grid",gridTemplateColumns:"32px 1fr 56px 44px",gap:8,padding:"11px 14px",borderBottom:"1px solid rgba(77,184,255,0.05)",background:entry.isPlayer?"linear-gradient(90deg,"+c+"0d,transparent)":"transparent",borderLeft:entry.isPlayer?"2px solid "+c:"2px solid transparent" }}>
-              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:pos<=3?13:10,fontWeight:pos<=3?900:600,color:posColor,alignSelf:"center" }}>{pos}</div>
-              <div style={{ minWidth:0 }}>
-                <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:2 }}>
-                  <span style={{ color:entry.color,fontSize:11,flexShrink:0 }}>{entry.icon}</span>
-                  <span style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:13,fontWeight:700,color:entry.isPlayer?"#e0f4ff":"#9ab8d4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis" }}>{entry.name}{entry.isPlayer?" (YOU)":""}</span>
-                </div>
-                <div style={{ fontSize:8,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em" }}>
-                  {entry.rankName} · {entry.specialty}{gd?<span style={{ color:gd.color+"77",marginLeft:5 }}>{gd.name}</span>:null}
-                </div>
-              </div>
-              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:"#f5b65d",textAlign:"right",alignSelf:"center" }}>{entry.fame}</div>
-              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:entry.color,textAlign:"right",alignSelf:"center" }}>{entry.combatRating}</div>
-            </div>
+            <button key={t[0]} onClick={function(){setTab(t[0]);}} style={{ padding:"7px 16px",background:active?c+"18":"transparent",border:"none",borderBottom:active?"2px solid "+c:"2px solid transparent",color:active?"#c8eeff":"#3a5a78",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.18em" }}>
+              {t[1]}
+            </button>
           );
         })}
       </div>
-      {aboveData&&(
-        <div style={{ padding:"12px 16px",border:"1px solid "+above.color+"33",background:above.color+"06" }}>
-          <div style={{ fontSize:8,color:above.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",marginBottom:6 }}>[{aboveData.name.toUpperCase()}]</div>
-          <div style={{ fontSize:13,color:"#9ab8d4",fontFamily:"'Rajdhani',sans-serif",fontWeight:500,fontStyle:"italic" }}>"{aboveData.dialogue.ahead}"</div>
-        </div>
-      )}
+
+      {/* Header row */}
+      <div style={{ display:"grid",gridTemplateColumns:"40px 1fr 56px 36px",gap:8,padding:"6px 14px",fontFamily:"'Orbitron',sans-serif",fontSize:7,letterSpacing:"0.2em",color:"#2a3a55",borderBottom:"1px solid rgba(77,184,255,0.08)" }}>
+        <span>RANK</span><span>HUNTER</span><span style={{textAlign:"right"}}>FAME</span><span style={{textAlign:"right"}}>CR</span>
+      </div>
+
+      {/* Table */}
+      <div style={{ border:"1px solid rgba(77,184,255,0.1)",background:"linear-gradient(160deg,rgba(3,8,20,0.98),rgba(2,6,16,0.99))" }}>
+        {tab==="nearby" && slice.map(renderRow)}
+        {tab==="top20"  && top20.map(renderRow)}
+      </div>
+
+      {/* Rival dialogue — nearest named rival above */}
+      {(function(){
+        var aboveNamed = slice.find(function(e){ return e.isNamed && e.pos < playerPos; });
+        var rd = aboveNamed ? RIVALS_DATA.find(function(r){return r.id===aboveNamed.id;}) : null;
+        if (!rd) return null;
+        return (
+          <div style={{ marginTop:12,padding:"12px 16px",border:"1px solid "+aboveNamed.color+"33",background:aboveNamed.color+"06" }}>
+            <div style={{ fontSize:8,color:aboveNamed.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",marginBottom:5 }}>[{rd.name.toUpperCase()}]</div>
+            <div style={{ fontSize:12,color:"#9ab8d4",fontFamily:"'Rajdhani',sans-serif",fontWeight:500,fontStyle:"italic" }}>"{rd.dialogue.ahead}"</div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -5672,32 +5878,34 @@ function RankingsView({ player, fame, rank, rivals, accentColor }) {
 function WorldFeedView({ worldFeed, player, fame, accentColor }) {
   const c = accentColor || SYS_BLUE;
   const playerEvents = [
-    fame>100  &&{ ts:"—",msg:player.name+" entered the Hunter rankings.",       rivalId:"player",id:"pe1" },
-    fame>300  &&{ ts:"—",msg:player.name+" has been flagged by multiple guild observers.", rivalId:"player",id:"pe2" },
-    fame>600  &&{ ts:"—",msg:player.name+"'s combat rating has been reclassified.",       rivalId:"player",id:"pe3" },
-    fame>1000 &&{ ts:"—",msg:player.name+"'s growth rate has been marked as anomalous.",  rivalId:"player",id:"pe4" },
+    fame>50   &&{ ts:"—",msg:"["+player.name+"] entered the global hunter registry.", rivalId:"player",id:"pe0" },
+    fame>100  &&{ ts:"—",msg:"["+player.name+"] entered the Top 500.",                rivalId:"player",id:"pe1" },
+    fame>300  &&{ ts:"—",msg:"["+player.name+"] has been flagged by multiple guild observers.", rivalId:"player",id:"pe2" },
+    fame>600  &&{ ts:"—",msg:"["+player.name+"]'s combat rating reclassified upward.", rivalId:"player",id:"pe3" },
+    fame>1000 &&{ ts:"—",msg:"["+player.name+"]'s growth rate marked as anomalous by the System.", rivalId:"player",id:"pe4" },
+    fame>2000 &&{ ts:"—",msg:"["+player.name+"] is being monitored by National-level guilds.", rivalId:"player",id:"pe5" },
   ].filter(Boolean);
-  const allFeed = playerEvents.concat(worldFeed).slice(0,50);
+  const allFeed = playerEvents.concat(worldFeed).slice(0,60);
 
   return (
     <div className="fade-in">
       <SL text="World Activity Feed" ac={c} />
       <p style={{ fontSize:11,color:"#5b7aa0",marginBottom:16,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
-        Live hunter activity. Updates every few minutes as hunters clear gates, join guilds, and earn fame.
+        Live hunter activity from across the registry. Updates every few minutes.
       </p>
       {allFeed.length===0?(
         <div style={{ padding:"40px 24px",textAlign:"center",border:"1px solid "+c+"22",background:c+"06" }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,color:c+"44",letterSpacing:"0.3em",marginBottom:8 }}>AWAITING DATA</div>
-          <div style={{ fontSize:11,color:"#2a3a55" }}>The feed updates as hunters complete activity. Check back after training.</div>
+          <div style={{ fontSize:11,color:"#2a3a55" }}>The feed updates as hunters complete activity. Return after training.</div>
         </div>
       ):(
         <div style={{ border:"1px solid "+c+"22",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))" }}>
           {allFeed.map(function(entry,i) {
             const isPlayer=entry.rivalId==="player";
             const rd=RIVALS_DATA.find(function(r){return r.id===entry.rivalId;});
-            const ec=isPlayer?c:(rd?rd.color:"#5b7aa0");
+            const ec=isPlayer?c:(rd?rd.color:"#3a5a78");
             return (
-              <div key={entry.id||i} className="log-entry" style={{ padding:"10px 16px",borderBottom:"1px solid rgba(77,184,255,0.05)",display:"flex",alignItems:"flex-start",gap:12 }}>
+              <div key={entry.id||i} className="log-entry" style={{ padding:"9px 16px",borderBottom:"1px solid rgba(77,184,255,0.04)",display:"flex",alignItems:"flex-start",gap:12 }}>
                 <span style={{ fontFamily:"monospace",fontSize:9,color:"#2a3a55",whiteSpace:"nowrap",flexShrink:0,marginTop:2 }}>{entry.ts||"—"}</span>
                 <span style={{ fontSize:11,color:ec,lineHeight:1.6,fontFamily:"'Rajdhani',sans-serif",fontWeight:isPlayer?700:500 }}>{entry.msg}</span>
               </div>
@@ -8137,23 +8345,52 @@ function App() {
           });
         });
       });
-      if (Math.random() < 0.55) {
-        const rd   = RIVALS_DATA[Math.floor(Math.random() * RIVALS_DATA.length)];
-        const evFn = RIVAL_WORLD_EVENTS[Math.floor(Math.random() * RIVAL_WORLD_EVENTS.length)];
-        const msg  = evFn(rd);
-        const now  = new Date();
-        const tstr = now.getHours().toString().padStart(2,"0")+":"+now.getMinutes().toString().padStart(2,"0");
-        setWorldFeed(function(prev) {
-          return [{ ts:tstr, msg, rivalId:rd.id, id:Date.now() }].concat(prev).slice(0, 40);
-        });
+      /* World feed — mix named rivals + generated population */
+      if (Math.random() < 0.7) {
+        const useNamed = Math.random() < 0.4;
+        var actorName, actorColor;
+        if (useNamed) {
+          const rd = RIVALS_DATA[Math.floor(Math.random() * RIVALS_DATA.length)];
+          const evFn = RIVAL_WORLD_EVENTS[Math.floor(Math.random() * RIVAL_WORLD_EVENTS.length)];
+          actorName  = rd.name;
+          actorColor = rd.id;
+          const msg  = evFn(rd);
+          const now  = new Date();
+          const tstr = now.getHours().toString().padStart(2,"0")+":"+now.getMinutes().toString().padStart(2,"0");
+          setWorldFeed(function(prev) {
+            return [{ ts:tstr, msg, rivalId:rd.id, id:Date.now() }].concat(prev).slice(0, 60);
+          });
+        } else {
+          /* Pick a random generated hunter by rank position feel */
+          const posLabel = "#" + (Math.floor(Math.random() * 490) + 1);
+          const actions  = [
+            "cleared a "+["B","A","C","S"][Math.floor(Math.random()*4)]+"-Rank Gate.",
+            "defeated a dungeon boss.",
+            "joined a guild.",
+            "earned a new title.",
+            "completed an elite dungeon.",
+            "was promoted in rank.",
+            "cleared a Red Gate.",
+            "set a new raid record.",
+          ];
+          const msg  = "Hunter "+posLabel+" "+actions[Math.floor(Math.random()*actions.length)];
+          const now  = new Date();
+          const tstr = now.getHours().toString().padStart(2,"0")+":"+now.getMinutes().toString().padStart(2,"0");
+          setWorldFeed(function(prev) {
+            return [{ ts:tstr, msg, rivalId:"gen", id:Date.now() }].concat(prev).slice(0, 60);
+          });
+        }
       }
     }, 4 * 60 * 1000);
     return function() { clearInterval(rivalTickRef.current); };
   }, [phase]);
 
-  /* ── Detect when player surpasses a rival by fame ── */
+  /* ── Detect surpass + ranking milestones ── */
+  const prevPlayerPosRef = useRef(null);
   useEffect(function() {
     if (phase !== "app") return;
+
+    /* Named rival surpass */
     setRivals(function(prev) {
       return prev.map(function(r) {
         const rData = RIVALS_DATA.find(function(rd){ return rd.id === r.id; });
@@ -8179,6 +8416,32 @@ function App() {
         return r;
       });
     });
+
+    /* Milestone check vs full population */
+    const currentPos = getPlayerRankPosition(fame, rivals);
+    const prevPos    = prevPlayerPosRef.current;
+    if (prevPos !== null && prevPos !== currentPos) {
+      RANK_MILESTONES.forEach(function(threshold) {
+        if (prevPos > threshold && currentPos <= threshold) {
+          setTimeout(function() {
+            showToast("You entered the Top "+threshold+".","evolve");
+            addLog("Milestone reached: Top "+threshold+" globally.","evolve");
+            if (threshold <= 100) {
+              setTimeout(function(){
+                setTakeoverEvent({
+                  title:"RANKING MILESTONE",
+                  message:"You have entered the Top "+threshold+" hunters globally. The System has logged this advancement. Other hunters have been notified.",
+                  sub:threshold<=10?"The elite are aware of your existence.":threshold<=50?"Guild observers have flagged your record.":"Your climb has not gone unnoticed.",
+                  color: threshold<=3?MONARCH_PURP:threshold<=10?"#f5b65d":SYS_BLUE,
+                  duration:4500,
+                });
+              }, 1200);
+            }
+          }, 500);
+        }
+      });
+    }
+    prevPlayerPosRef.current = currentPos;
   }, [fame, phase]);
 
   /* Check if 30-day re-evaluation is available */
