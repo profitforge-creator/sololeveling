@@ -155,7 +155,10 @@ const GOAL_TRAINING_MAP = {
   athleticism: {
     training: ["squats","lunges"],
     running:  "sprint_interval",
-core:CORE_4, label:"Athleticism Protocol"  },
+    core:     CORE_4,
+    label:    "Athleticism Protocol",
+  },
+
   endurance:   { training:["run","squats","lunges"],                 running:"run",           core:CORE_4, label:"Endurance Protocol"     },
   core:        { training:["pushups"],                               running:"jog",           core:CORE_4, label:"Core Protocol"          },
   weight_loss: { training:["squats","lunges"],                       running:"jog",           core:CORE_4, label:"Fat Loss Protocol"      },
