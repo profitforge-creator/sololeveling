@@ -144,28 +144,74 @@ const GOAL_OPTIONS = [
 const CORE_4 = ["v_ups","suitcase_crunch","leg_raise","bicycle_crunch"];
 
 const GOAL_TRAINING_MAP = {
-  strength:    { training:["pushups","pullups","dips"],              running:"jog",           core:CORE_4, label:"Strength Protocol"     },
-  aesthetics:  { training:["pushups","pullups","dips"],              running:"jog",           core:CORE_4, label:"Hypertrophy Protocol"   },
-  calisthenics:{ training:["pushups","pullups","dips","squats"],     running:"jog",           core:CORE_4, label:"Calisthenics Protocol"  },
-      training: ["sprint_acc","lunges"],
-    running:  "sprint_acc",
-    core:     CORE_4,
-    label:    "Speed Protocol",
+  strength: {
+    training: ["pushups","pullups","dips"],
+    running: "jog",
+    core: CORE_4,
+    label: "Strength Protocol",
+  },
+  aesthetics: {
+    training: ["pushups","pullups","dips"],
+    running: "jog",
+    core: CORE_4,
+    label: "Hypertrophy Protocol",
+  },
+  calisthenics: {
+    training: ["pushups","pullups","dips","squats"],
+    running: "jog",
+    core: CORE_4,
+    label: "Calisthenics Protocol",
+  },
+  speed: {
+    training: ["sprint_acc","lunges"],
+    running: "sprint_acc",
+    core: CORE_4,
+    label: "Speed Protocol",
   },
   athleticism: {
     training: ["squats","lunges"],
-    running:  "sprint_interval",
-    core:     CORE_4,
-    label:    "Athleticism Protocol",
+    running: "sprint_interval",
+    core: CORE_4,
+    label: "Athleticism Protocol",
   },
-
-  endurance:   { training:["run","squats","lunges"],                 running:"run",           core:CORE_4, label:"Endurance Protocol"     },
-  core:        { training:["pushups"],                               running:"jog",           core:CORE_4, label:"Core Protocol"          },
-  weight_loss: { training:["squats","lunges"],                       running:"jog",           core:CORE_4, label:"Fat Loss Protocol"      },
-  discipline:  { training:["cold_shower","meditation","pushups"],    running:"walk",          core:CORE_4, label:"Discipline Protocol"    },
-  confidence:  { training:["pushups","meditation","cold_shower"],    running:"jog",           core:CORE_4, label:"Confidence Protocol"    },
-  general:     { training:["pushups","squats"],                      running:"jog",           core:CORE_4, label:"General Fitness Protocol"},
+  endurance: {
+    training: ["run","squats","lunges"],
+    running: "run",
+    core: CORE_4,
+    label: "Endurance Protocol",
+  },
+  core: {
+    training: ["pushups"],
+    running: "jog",
+    core: CORE_4,
+    label: "Core Protocol",
+  },
+  weight_loss: {
+    training: ["squats","lunges"],
+    running: "jog",
+    core: CORE_4,
+    label: "Fat Loss Protocol",
+  },
+  discipline: {
+    training: ["cold_shower","meditation","pushups"],
+    running: "walk",
+    core: CORE_4,
+    label: "Discipline Protocol",
+  },
+  confidence: {
+    training: ["pushups","meditation","cold_shower"],
+    running: "jog",
+    core: CORE_4,
+    label: "Confidence Protocol",
+  },
+  general: {
+    training: ["pushups","squats"],
+    running: "jog",
+    core: CORE_4,
+    label: "General Fitness Protocol",
+  },
 };
+
 
 const PHYSIQUE_CORE_MAP = {
   lean:CORE_4, massive:CORE_4, aesthetic:CORE_4, functional:CORE_4, runner:CORE_4, hybrid:CORE_4,
