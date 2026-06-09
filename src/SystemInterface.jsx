@@ -72,8 +72,7 @@ const HUNTER_CLASSES = [
     id: "fighter", name: "Fighter", icon: "⚔",
     desc: "Raw combat power and durability. Prioritizes Strength + Endurance.",
     primaryStats: ["Strength","Endurance"],
-        questFocus: ["pushups","endurance_run","pullups"],
-
+    questFocus: ["pushups","endurance_run","pullups"],
   },
   {
     id: "tank", name: "Tank", icon: "❖",
@@ -146,77 +145,80 @@ const CORE_4 = ["v_ups","suitcase_crunch","leg_raise","bicycle_crunch"];
 const GOAL_TRAINING_MAP = {
   strength: {
     training: ["pushups","pullups","dips"],
-    running: "jog",
-    core: CORE_4,
-    label: "Strength Protocol",
+    running:  "jog",
+    core:     CORE_4,
+    label:    "Strength Protocol",
   },
   aesthetics: {
     training: ["pushups","pullups","dips"],
-    running: "jog",
-    core: CORE_4,
-    label: "Hypertrophy Protocol",
+    running:  "jog",
+    core:     CORE_4,
+    label:    "Hypertrophy Protocol",
   },
   calisthenics: {
     training: ["pushups","pullups","dips","squats"],
-    running: "jog",
-    core: CORE_4,
-    label: "Calisthenics Protocol",
+    running:  "jog",
+    core:     CORE_4,
+    label:    "Calisthenics Protocol",
   },
   speed: {
     training: ["sprint_acc","lunges"],
-    running: "sprint_acc",
-    core: CORE_4,
-    label: "Speed Protocol",
+    running:  "sprint_acc",
+    core:     CORE_4,
+    label:    "Speed Protocol",
   },
   athleticism: {
     training: ["squats","lunges"],
-    running: "sprint_interval",
-    core: CORE_4,
-    label: "Athleticism Protocol",
+    running:  "sprint_interval",
+    core:     CORE_4,
+    label:    "Athleticism Protocol",
   },
   endurance: {
     training: ["run","squats","lunges"],
-    running: "run",
-    core: CORE_4,
-    label: "Endurance Protocol",
+    running:  "run",
+    core:     CORE_4,
+    label:    "Endurance Protocol",
   },
   core: {
     training: ["pushups"],
-    running: "jog",
-    core: CORE_4,
-    label: "Core Protocol",
+    running:  "jog",
+    core:     CORE_4,
+    label:    "Core Protocol",
   },
   weight_loss: {
     training: ["squats","lunges"],
-    running: "jog",
-    core: CORE_4,
-    label: "Fat Loss Protocol",
+    running:  "jog",
+    core:     CORE_4,
+    label:    "Fat Loss Protocol",
   },
   discipline: {
     training: ["cold_shower","meditation","pushups"],
-    running: "walk",
-    core: CORE_4,
-    label: "Discipline Protocol",
+    running:  "walk",
+    core:     CORE_4,
+    label:    "Discipline Protocol",
   },
   confidence: {
     training: ["pushups","meditation","cold_shower"],
-    running: "jog",
-    core: CORE_4,
-    label: "Confidence Protocol",
+    running:  "jog",
+    core:     CORE_4,
+    label:    "Confidence Protocol",
   },
   general: {
     training: ["pushups","squats"],
-    running: "jog",
-    core: CORE_4,
-    label: "General Fitness Protocol",
+    running:  "jog",
+    core:     CORE_4,
+    label:    "General Fitness Protocol",
   },
 };
 
-
 const PHYSIQUE_CORE_MAP = {
-  lean:CORE_4, massive:CORE_4, aesthetic:CORE_4, functional:CORE_4, runner:CORE_4, hybrid:CORE_4,
+  lean:       CORE_4,
+  massive:    CORE_4,
+  aesthetic:  CORE_4,
+  functional: CORE_4,
+  runner:     CORE_4,
+  hybrid:     CORE_4,
 };
-
 
 /* ---------------------------------------------------------------------------
    CALISTHENICS EVALUATION TESTS (no squats per spec)
@@ -421,13 +423,12 @@ function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon, 
     });
   });
 
-    /* 3. Pick running based on goals — only one sprint type ever appears */
+  /* 3. Pick running based on goals — only one sprint type ever appears */
   const wantsSpeed  = activeGoals.includes("speed") || activeGoals.includes("athleticism");
   const wantsEndur  = activeGoals.includes("endurance") || activeGoals.includes("weight_loss");
   const alreadyHasSprint = seenIds["sprint_acc"] || seenIds["sprint_interval"];
   const runKey      = wantsSpeed && !alreadyHasSprint ? (dow % 2 === 0 ? "sprint_acc" : "sprint_interval")
                     : wantsEndur ? "run" : "jog";
-
   const alreadyHasRun = seenIds["run"] || seenIds["jog"] || seenIds["sprint_acc"] || seenIds["sprint_interval"];
   if (!alreadyHasRun) {
     const rg = makeGoal(runKey);
@@ -1930,6 +1931,70 @@ const SYSTEM_TAKEOVER_EVENTS = [
     sub: "The dead grow restless when you grow stronger.",
     duration: 4000,
   },
+  /* ── Rare observer messages — fire randomly, feel alive ── */
+  {
+    id: "body_adapted",
+    chance: 0.05,
+    color: SYS_BLUE,
+    title: "BIOMETRIC UPDATE",
+    message: "Your body has adapted to previous strain. The System has recalibrated your baseline. New limits have been established. They will be tested.",
+    sub: "Adaptation confirmed. Protocol updated.",
+    duration: 3800,
+  },
+  {
+    id: "potential_detected",
+    chance: 0.04,
+    color: "#f5b65d",
+    title: "POTENTIAL DETECTED",
+    message: "An anomaly has been detected within your hunter profile. The System does not assign this classification lightly. You are not an ordinary case.",
+    sub: "What you are becoming has no precedent in the registry.",
+    duration: 4200,
+  },
+  {
+    id: "growth_exceeds",
+    chance: 0.04,
+    color: "#2ee88a",
+    title: "GROWTH ANALYSIS",
+    message: "Stat growth rate exceeds hunter average by a significant margin. The System is logging this for review. Your trajectory is being monitored.",
+    sub: "Growth rate exceeds projections.",
+    duration: 3500,
+  },
+  {
+    id: "shadow_authority",
+    chance: 0.03,
+    color: MONARCH_PURP,
+    title: "AUTHORITY EXPANSION",
+    message: "Your shadow authority has increased. The void recognizes your command. Entities that once resisted now submit. The System observes this with interest.",
+    sub: "Your dominion over the dead has deepened.",
+    duration: 4500,
+  },
+  {
+    id: "unknown_force",
+    chance: 0.03,
+    color: GLITCH_RED,
+    title: "UNKNOWN ENTITY",
+    message: "An unknown force is observing you. Its origin cannot be determined. It has been watching since your first login. It has not intervened. Yet.",
+    sub: "You are not as alone in this System as you think.",
+    duration: 5000,
+  },
+  {
+    id: "unusual_opportunity",
+    chance: 0.04,
+    color: "#f5b65d",
+    title: "SYSTEM FORECAST",
+    message: "The System has identified a window of elevated opportunity. An unusual event may soon appear. Maintain your output. The window is brief.",
+    sub: "An unusual opportunity may soon appear.",
+    duration: 3800,
+  },
+  {
+    id: "first_week_system",
+    chance: 0.06,
+    color: SYS_BLUE,
+    title: "MILESTONE LOGGED",
+    message: "Seven days of continuous output have been recorded. The System acknowledges this is where most hunters stop. You have not stopped. This has been noted.",
+    sub: "The first week is the hardest. You survived it.",
+    duration: 4500,
+  },
 ];
 
 /* Roll a takeover event by trigger type */
@@ -2375,19 +2440,62 @@ const GUILDS = [
 /* ---------------------------------------------------------------------------
    AURA TYPES — derived from dominant stats
 --------------------------------------------------------------------------- */
-function getAuraType(stats, isMonarch) {
-  if (isMonarch) return { name:"Shadow Sovereign Aura", color:MONARCH_PURP };
-  if (!stats) return { name:"Dormant Aura", color:"#5b7aa0" };
+function getAuraType(stats, isMonarch, rankName) {
+  if (isMonarch) return {
+    name: "Shadow Sovereign Aura", color: MONARCH_PURP,
+    tier: 7, glow: "0 0 40px "+MONARCH_PURP+"88, 0 0 80px "+MONARCH_PURP+"33",
+    pulse: "monarch-breathe", particles: true,
+    desc: "The aura of one who rules over death itself.",
+  };
+  if (!stats) return {
+    name: "Dormant Aura", color: "#5b7aa0", tier: 0,
+    glow: "none", pulse: "", particles: false,
+    desc: "Awakening has not yet begun.",
+  };
   const s=stats.Strength||0, a=stats.Agility||0, e=stats.Endurance||0,
         d=stats.Discipline||0, i=stats.Intelligence||0, aur=stats.Aura||0;
-  if (aur>=40)  return { name:"Void Aura",        color:MONARCH_PURP };
-  if (aur>=25)  return { name:"Shadow Aura",       color:"#9b30ff" };
-  if (d>=30)    return { name:"Iron Will Aura",    color:"#4db8ff" };
-  if (s>=30)    return { name:"Combat Aura",       color:"#f53d3d" };
-  if (a>=30)    return { name:"Phantom Aura",      color:"#a05df5" };
-  if (e>=30)    return { name:"Endurance Aura",    color:"#6fae6f" };
-  if (i>=25)    return { name:"Tactical Aura",     color:"#f5b65d" };
-  return        { name:"Awakening Aura",           color:"#8a8f98" };
+  const rank = rankName || "E";
+  if (aur>=40 || rank==="S")  return {
+    name:"Void Aura", color:MONARCH_PURP, tier:6,
+    glow:"0 0 30px "+MONARCH_PURP+"66, 0 0 60px "+MONARCH_PURP+"22",
+    pulse:"monarch-breathe", particles:true,
+    desc:"A darkness that bends light. Even other hunters feel it.",
+  };
+  if (aur>=25 || rank==="A")  return {
+    name:"Shadow Aura", color:"#9b30ff", tier:5,
+    glow:"0 0 20px #9b30ff55, 0 0 40px #9b30ff22",
+    pulse:"pulse-glow", particles:false,
+    desc:"Shadow mana bleeds into the visible spectrum.",
+  };
+  if (d>=30 || rank==="B")    return {
+    name:"Iron Will Aura", color:"#4db8ff", tier:4,
+    glow:"0 0 16px #4db8ff44, 0 0 32px #4db8ff11",
+    pulse:"pulse-glow", particles:false,
+    desc:"Forged through refusal. Your will is becoming tangible.",
+  };
+  if (s>=30 || rank==="C")    return {
+    name:"Combat Aura", color:"#f53d3d", tier:3,
+    glow:"0 0 12px #f53d3d44",
+    pulse:"pulse-glow", particles:false,
+    desc:"Raw physical output radiates from the body.",
+  };
+  if (a>=30 || rank==="D")    return {
+    name:"Phantom Aura", color:"#a05df5", tier:2,
+    glow:"0 0 10px #a05df544",
+    pulse:"energy-pulse", particles:false,
+    desc:"Something stirs beneath the surface. Awakening begins.",
+  };
+  if (e>=25 || i>=25)         return {
+    name:"Awakening Aura", color:SYS_BLUE, tier:1,
+    glow:"0 0 8px "+SYS_BLUE+"33",
+    pulse:"energy-pulse", particles:false,
+    desc:"The first signs of a hunter's mana taking form.",
+  };
+  return {
+    name:"Faint Aura", color:"#8a8f98", tier:0,
+    glow:"none", pulse:"", particles:false,
+    desc:"Barely perceptible. The System is watching.",
+  };
 }
 
 const RELIC_SETS = [
@@ -4706,8 +4814,55 @@ function getRaidRank(score) {
   return RAID_RANKS.find(function(r){return score>=r.min;}) || RAID_RANKS[RAID_RANKS.length-1];
 }
 
-function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inventory, shadowArmy }) {
-  const [prepTarget, setPrepTarget] = useState(null); /* { bossIdx, boss, data } */
+function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inventory, shadowArmy, lastRaidResult, onDismissRaidResult }) {
+  const [prepTarget, setPrepTarget] = useState(null);
+
+  /* Post-raid results overlay */
+  if (lastRaidResult) {
+    const r = lastRaidResult;
+    return (
+      <div className="fade-in" style={{ padding:"0" }}>
+        <div style={{ border:"1px solid "+r.color+"88",background:"linear-gradient(160deg,rgba(2,6,18,0.99),rgba(4,10,22,0.99))",position:"relative",overflow:"hidden" }}>
+          <div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,"+r.color+"18,transparent 70%)",pointerEvents:"none" }} />
+          <div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,"+r.color+"06 3px,"+r.color+"06 4px)",pointerEvents:"none" }} />
+          <div className="sl-corners" />
+          {/* Header */}
+          <div style={{ padding:"20px 24px 0",position:"relative",zIndex:1 }}>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.5em",color:r.color,marginBottom:8 }}>SYSTEM WINDOW</div>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:900,color:"#e0f4ff",textShadow:"0 0 20px "+r.color+"88",marginBottom:4 }}>RAID COMPLETE</div>
+            <div style={{ fontSize:12,color:r.color,fontWeight:700,letterSpacing:"0.2em",marginBottom:20 }}>◈ {r.rankLabel} PERFORMANCE</div>
+          </div>
+          {/* Results grid */}
+          <div style={{ padding:"0 24px 20px",position:"relative",zIndex:1 }}>
+            {[
+              { label:"BOSS DEFEATED",    value:r.bossName,          color:"#e0f4ff" },
+              { label:"PERFORMANCE RANK", value:r.rankLabel,          color:r.color   },
+              { label:"XP EARNED",        value:"+" + r.xp,          color:"#f5b65d"  },
+              { label:"COINS EARNED",     value:"+" + r.coins,       color:"#f5b65d"  },
+              { label:"FAME GAINED",      value:"+" + r.fame,        color:"#2ee88a"  },
+              { label:"APPROACH",         value:r.approach,          color:SYS_BLUE   },
+            ].map(function(row){
+              return (
+                <div key={row.label} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid rgba(77,184,255,0.07)" }}>
+                  <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:"#3a5a78" }}>{row.label}</span>
+                  <span style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:14,fontWeight:700,color:row.color }}>{row.value}</span>
+                </div>
+              );
+            })}
+            {r.shadowExtracted && (
+              <div style={{ marginTop:12,padding:"10px 14px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)" }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:MONARCH_PURP,marginBottom:4 }}>SHADOW EXTRACTED</div>
+                <div style={{ fontSize:13,color:"#c8a0e8",fontWeight:600 }}>◉ {r.shadowExtracted}</div>
+              </div>
+            )}
+            <button onClick={onDismissRaidResult} style={{ width:"100%",marginTop:16,padding:"12px",background:r.color,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.2em" }}>
+              CONFIRM
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fade-in">
@@ -4718,16 +4873,26 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
       <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16 }}>
         {bosses.map(function(boss,i){
           const data=bossData[i]; const hpPct=clamp((boss.currentHp/boss.maxHp)*100,0,100); const defeated=boss.currentHp<=0;
+          const threatColor = hpPct > 60 ? "#f53d3d" : hpPct > 30 ? "#f5b65d" : "#2ee88a";
           return (
-            <div key={boss.id} style={{ border:"1px solid "+(defeated?"#2ee88a44":boss.color+"88"),background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))",padding:"20px",opacity:defeated?0.65:1,position:"relative",overflow:"hidden" }}>
-              <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12 }}>
-                <div style={{ width:44,height:44,border:"2px solid "+(defeated?"#2ee88a":boss.color),display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:boss.color+"11",flexShrink:0 }}>{defeated?"☠":boss.icon}</div>
-                <div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:defeated?"#2ee88a":"#eaf2ff" }}>{boss.name}</div><div style={{ fontSize:11,color:"#5b7aa0" }}>{boss.title}</div></div>
+            <div key={boss.id} style={{ border:"1px solid "+(defeated?"#2ee88a44":boss.color+"88"),background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",padding:"20px",opacity:defeated?0.65:1,position:"relative",overflow:"hidden" }}>
+              {!defeated && <div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,"+boss.color+"0d,transparent 70%)",pointerEvents:"none" }} />}
+              <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12,position:"relative" }}>
+                <div className={defeated?"":hpPct<40?"dng-warn":""} style={{ width:44,height:44,border:"2px solid "+(defeated?"#2ee88a":boss.color),display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:boss.color+"11",flexShrink:0,boxShadow:defeated?"none":"0 0 12px "+boss.color+"44" }}>{defeated?"☠":boss.icon}</div>
+                <div>
+                  <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:defeated?"#2ee88a":"#e0f4ff" }}>{boss.name}</div>
+                  <div style={{ fontSize:10,color:"#5b7aa0",letterSpacing:"0.1em" }}>{boss.title}</div>
+                </div>
+                {!defeated && (
+                  <div style={{ marginLeft:"auto",padding:"2px 8px",border:"1px solid "+threatColor+"66",fontSize:9,color:threatColor,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em" }}>
+                    {hpPct>60?"HIGH THREAT":hpPct>30?"MID THREAT":"WEAKENED"}
+                  </div>
+                )}
               </div>
               {data&&!defeated&&<BossDialogueBox boss={data} bossState={boss} />}
-              <div style={{ marginBottom:8 }}>
+              <div style={{ marginBottom:10 }}>
                 <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,color:"#5b7aa0",marginBottom:4 }}><span>HP</span><span style={{ color:defeated?"#2ee88a":boss.color }}>{boss.currentHp}/{boss.maxHp}</span></div>
-                <div style={{ height:8,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}><div style={{ height:"100%",width:hpPct+"%",background:defeated?"#2ee88a":"linear-gradient(90deg,"+boss.color+",#fff8)",transition:"width 0.5s ease" }} /></div>
+                <div style={{ height:6,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}><div style={{ height:"100%",width:hpPct+"%",background:defeated?"#2ee88a":"linear-gradient(90deg,"+boss.color+",#fff8)",transition:"width 0.5s ease",boxShadow:"0 0 6px "+boss.color+"88" }} /></div>
               </div>
               <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:8 }}>Requires: <span style={{ color:boss.color }}>{boss.minRankName} (LV {boss.minLevel})</span></div>
               {defeated&&boss.shadow&&(<div style={{ marginBottom:12,padding:"8px 12px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)",fontSize:11,color:MONARCH_PURP }}>◉ SHADOW EXTRACTED · {boss.shadow.name}</div>)}
@@ -4735,7 +4900,7 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
                 if(defeated||questGoalsCleared<1) return;
                 setPrepTarget({bossIdx:i,boss,data});
               }}
-                style={{ width:"100%",padding:"10px",background:defeated?"transparent":questGoalsCleared<1?"#0a1020":boss.color,color:defeated?"#2ee88a":questGoalsCleared<1?"#2a3a55":"#03050c",border:defeated?"1px solid #2ee88a44":questGoalsCleared<1?"1px solid #2a3a55":"none",cursor:(defeated||questGoalsCleared<1)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
+                style={{ width:"100%",padding:"10px",background:defeated?"transparent":questGoalsCleared<1?"rgba(10,16,32,0.8)":boss.color,color:defeated?"#2ee88a":questGoalsCleared<1?"#2a3a55":"#03050c",border:defeated?"1px solid #2ee88a44":questGoalsCleared<1?"1px solid #2a3a55":"none",cursor:(defeated||questGoalsCleared<1)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
                 {defeated?"☠ SHADOW EXTRACTED":questGoalsCleared<1?"COMPLETE QUESTS FIRST":"PREPARE RAID"}
               </button>
             </div>
@@ -4743,14 +4908,10 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
         })}
       </div>
 
-      {/* Prep screen overlay */}
       {prepTarget&&(
         <RaidPrepScreen
-          boss={prepTarget.boss}
-          data={prepTarget.data}
-          inventory={inventory}
-          shadowArmy={shadowArmy}
-          accentColor={ac}
+          boss={prepTarget.boss} data={prepTarget.data}
+          inventory={inventory} shadowArmy={shadowArmy} accentColor={ac}
           onCancel={function(){setPrepTarget(null);}}
           onLaunch={function(approach){
             setPrepTarget(null);
@@ -5018,13 +5179,13 @@ function StreakProtectionModal({ streak, onPreserve, onDecline }) {
   );
 }
 
-function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedAchievements }) {
+function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedAchievements, player, clearedGates, bosses, shadowArmy }) {
   const [tab, setTab] = useState("log");
   const unlocked = (secretAchievements||[]).filter(function(a){return a.unlocked;});
   const loreEntries = LORE_POOL.filter(function(l){ return (collectedLoreIds||[]).includes(l.id); });
   const earned = earnedAchievements || [];
   const loreRarityColor = { COMMON:"#8a8f98", UNCOMMON:"#4db8ff", RARE:"#a05df5", EPIC:"#f5b65d", LEGENDARY:"#f53d3d" };
-  const tabs = [["log","Event Log"],["achievements","Achievements ("+earned.length+")"],["secrets","Secrets"],["lore","Lore ("+loreEntries.length+")"]];
+  const tabs = [["log","Event Log"],["achievements","Achiev. ("+earned.length+")"],["secrets","Secrets"],["lore","Lore ("+loreEntries.length+")"],["archives","Archives"]];
 
   return (
     <div className="fade-in">
@@ -5118,6 +5279,46 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
           )}
         </div>
       )}
+
+      {/* ── ARCHIVES ── */}
+      {tab==="archives"&&(function(){
+        const gateCount   = Object.keys(clearedGates||{}).filter(function(k){return (clearedGates||{})[k];}).length;
+        const bossCount   = (bosses||[]).filter(function(b){return b.currentHp<=0;}).length;
+        const shadowCount = (shadowArmy||[]).filter(function(s){return s&&s.id;}).length;
+        const level       = player ? (player.level||1) : 1;
+        const streak      = player ? (player.streak||0) : 0;
+        const archiveRows = [
+          { label:"Hunter Name",       value:player?player.name:"—",          icon:"◈", color:ac },
+          { label:"Current Level",     value:"LV "+level,                      icon:"↑", color:ac },
+          { label:"Highest Streak",    value:streak+" days",                   icon:"🔥",color:streak>=7?"#2ee88a":"#f5b65d" },
+          { label:"Gates Cleared",     value:gateCount+" total",               icon:"⬡", color:SYS_BLUE },
+          { label:"Bosses Defeated",   value:bossCount+" defeated",            icon:"☠", color:"#f53d3d" },
+          { label:"Shadows Extracted", value:shadowCount+" in army",           icon:"◉", color:MONARCH_PURP },
+          { label:"Lore Recovered",    value:loreEntries.length+" fragments",  icon:"📜",color:"#f5b65d" },
+          { label:"Achievements",      value:earned.length+" earned",          icon:"✦", color:"#a05df5" },
+          { label:"Secrets Found",     value:unlocked.length+" unlocked",      icon:"◈", color:GLITCH_RED },
+        ];
+        return (
+          <div>
+            <div style={{ padding:"10px 14px",border:"1px solid "+ac+"22",background:ac+"06",marginBottom:14,fontSize:11,color:"#5b7aa0",fontFamily:"'Rajdhani',sans-serif",fontWeight:500,lineHeight:1.7 }}>
+              You are the only registered user of this System. This archive tracks your legend as it is built. Each entry is permanent.
+            </div>
+            <div style={{ border:"1px solid "+ac+"33",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))" }}>
+              {archiveRows.map(function(row,i){
+                return (
+                  <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"11px 16px",borderBottom:"1px solid rgba(77,184,255,0.07)" }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+                      <span style={{ fontSize:14,color:row.color,flexShrink:0 }}>{row.icon}</span>
+                      <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:"#3a5a78" }}>{row.label}</span>
+                    </div>
+                    <span style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:14,fontWeight:700,color:row.color }}>{row.value}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -6415,7 +6616,7 @@ function HunterIdentityView({ player, rank, isMonarch, fame, shadowArmy, bosses,
   const safeStreak = (typeof player.streak==="number"&&isFinite(player.streak)) ? player.streak : 0;
   const safeFame   = (typeof fame==="number"&&isFinite(fame)) ? fame : 0;
   const fameTier   = getFameTier(safeFame);
-  const auraType   = getAuraType(player.stats, isMonarch);
+  const auraType   = getAuraType(player.stats, isMonarch, rank ? rank.name : "E");
   const activeTitle= HUNTER_TITLES.find(function(t){return t.id===(player.activeTitle||"awakened");}) || HUNTER_TITLES[0];
   const shadowCount= shadowArmy ? shadowArmy.filter(function(s){return s&&s.id;}).length : 0;
   const gateCount  = clearedGates ? Object.keys(clearedGates).filter(function(k){return clearedGates[k];}).length : 0;
@@ -6447,12 +6648,22 @@ function HunterIdentityView({ player, rank, isMonarch, fame, shadowArmy, bosses,
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+c+",transparent)" }} />
       </div>
 
-      {/* Aura badge */}
-      <div className={isMonarch?"monarch-breathe":""} style={{ padding:"14px 20px",marginBottom:20,border:"2px solid "+auraType.color+"66",background:auraType.color+"08",display:"flex",alignItems:"center",gap:16 }}>
-        <div style={{ width:56,height:56,border:"2px solid "+auraType.color,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Orbitron',sans-serif",fontWeight:900,fontSize:20,color:auraType.color,boxShadow:"0 0 20px "+auraType.color+"44",flexShrink:0 }}>{isMonarch?"◉":(rank?rank.name[0]:"E")}</div>
-        <div>
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff",marginBottom:2 }}>{player.name||"Hunter"}</div>
-          <div style={{ fontSize:11,color:auraType.color,marginBottom:2 }}>{auraType.name}</div>
+      {/* Aura badge — visual tier evolves by rank */}
+      <div className={isMonarch?"monarch-breathe":auraType.pulse||""} style={{ padding:"16px 20px",marginBottom:20,border:"1px solid "+auraType.color+"66",background:"linear-gradient(135deg,"+auraType.color+"0d,rgba(2,6,18,0.95))",display:"flex",alignItems:"center",gap:16,position:"relative",overflow:"hidden" }}>
+        {/* Ambient glow layer */}
+        <div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 20% 50%,"+auraType.color+"18,transparent 70%)",pointerEvents:"none" }} />
+        {/* Aura orb */}
+        <div className={auraType.pulse||""} style={{ width:60,height:60,border:"2px solid "+auraType.color,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Orbitron',sans-serif",fontWeight:900,fontSize:22,color:auraType.color,boxShadow:auraType.glow||("0 0 16px "+auraType.color+"44"),flexShrink:0,background:auraType.color+"11",position:"relative" }}>
+          {isMonarch?"◉":(rank?rank.name[0]:"E")}
+          {/* Tier indicator dots */}
+          {[...Array(Math.min(auraType.tier||0,6))].map(function(_,di){
+            return <div key={di} style={{ position:"absolute",width:4,height:4,borderRadius:"50%",background:auraType.color,top:"50%",left:"50%",transform:"rotate("+(di*60)+"deg) translateX(34px) translateY(-2px)",opacity:0.8 }} />;
+          })}
+        </div>
+        <div style={{ position:"relative",zIndex:1 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:15,fontWeight:700,color:"#e0f4ff",marginBottom:3 }}>{player.name||"Hunter"}</div>
+          <div style={{ fontSize:12,color:auraType.color,marginBottom:3,fontWeight:600 }}>{auraType.name}</div>
+          <div style={{ fontSize:10,color:auraType.color+"88",fontStyle:"italic",marginBottom:3 }}>{auraType.desc}</div>
           <div style={{ fontSize:10,color:fameTier.color }}>{fameTier.name} · {safeFame} Fame</div>
         </div>
       </div>
@@ -7567,6 +7778,9 @@ function App() {
   const [reevalResult, setReevalResult]       = useState(null);
   const [lastEvalStats, setLastEvalStats]     = useState(sv ? (sv.lastEvalStats || null) : null);
 
+  /* Post-raid results */
+  const [lastRaidResult, setLastRaidResult] = useState(null);
+
   /* Derived */
   const rank        = getRankForLevel(player.level);
   const accentColor = isMonarch ? MONARCH_PURP : rank.color;
@@ -8436,7 +8650,23 @@ function App() {
         const score = calcRaidScore(safeApproach.id, totalQuestGoalsCleared, shadowArmy.length);
         const raidRank = getRaidRank(score);
         const fameBonus = Math.round(20 * raidRank.fameMod);
+        const xpGained  = Math.round(150 * (safeApproach.xpMod||1.0) * raidRank.fameMod);
+        const coinsGained= Math.round(80 * raidRank.fameMod);
         addFame(fameBonus);
+        grantXp(xpGained, "Strength", 2);
+        addCoins(coinsGained);
+        /* Post-raid results screen */
+        setLastRaidResult({
+          bossName: boss.name,
+          rankLabel: raidRank.label,
+          color: raidRank.color,
+          xp: xpGained,
+          coins: coinsGained,
+          fame: fameBonus,
+          approach: safeApproach.label || "Balanced",
+          shadowExtracted: data&&data.shadow ? data.shadow.name : null,
+          score,
+        });
         setTimeout(function(){
           setCinematicAch({ title:raidRank.label+" PERFORMANCE", sub:"Score: "+score+"/100. Fame +" + fameBonus + " awarded.", color:raidRank.color, icon:"⚔" });
         }, 2200);
@@ -8858,14 +9088,14 @@ function App() {
           {activeView==="Guild"&&<GuildView player={player} fame={fame} guildId={guildId} guildQuestProgress={guildQuestProgress} guildQuestDone={guildQuestDone} onGoalTap={handleGuildGoalTap} onLeave={handleLeaveGuild} accentColor={accentColor} />}
           {activeView==="Specialization"&&<SpecializationView player={player} unlockedSpecs={unlockedSpecs} onUnlock={handleUnlockSpec} accentColor={accentColor} />}
           {activeView==="Dungeon Gates"&&<DungeonGatesView rank={rank} isMonarch={isMonarch} clearedGates={clearedGates} onEnterGate={handleEnterGateWithCutscene} ac={accentColor} player={player} energyScore={energyScore} />}
-          {activeView==="Boss Raids"&&<BossRaidsView bosses={bosses} bossData={BOSS_DATA} onAttack={handleBossAttack} ac={accentColor} questGoalsCleared={totalQuestGoalsCleared} inventory={inventory} shadowArmy={shadowArmy} />}
+          {activeView==="Boss Raids"&&<BossRaidsView bosses={bosses} bossData={BOSS_DATA} onAttack={handleBossAttack} ac={accentColor} questGoalsCleared={totalQuestGoalsCleared} inventory={inventory} shadowArmy={shadowArmy} lastRaidResult={lastRaidResult} onDismissRaidResult={function(){setLastRaidResult(null);}} />}
           {activeView==="Secret Encounters"&&<SecretBossesView player={player} clearedGates={clearedGates} streak={player.streak} secretBosses={secretBossStates} onAttack={handleSecretBossAttack} accentColor={accentColor} questGoalsCleared={totalQuestGoalsCleared} />}
           {activeView==="Shadow Archive"&&<ShadowArchiveView bosses={bosses} bossData={BOSS_DATA} ac={accentColor} />}
           {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} />}
           {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
           {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} />}
           {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
-          {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} />}
+          {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
           {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
         </div>
 
