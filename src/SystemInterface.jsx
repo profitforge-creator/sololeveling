@@ -137,75 +137,101 @@ const GOAL_OPTIONS = [
 
 /* ---------------------------------------------------------------------------
    GOAL → EXERCISE MAPPING
-   Each goal produces a primary exercise set. Combined goals merge their sets.
+   core[] = dynamic core exercises used on training days, chosen by goal+physique.
+   Static holds (plank, hollow_hold) only appear in recovery contexts.
 --------------------------------------------------------------------------- */
 const GOAL_TRAINING_MAP = {
   strength: {
-    training:  ["pushups","pullups","dips"],
-    running:   "jog",
-    core:      "plank",
-    label:     "Strength Protocol",
+    training: ["pushups","pullups","dips"],
+    running:  "jog",
+    /* Core: basic anti-extension, suits strength focus */
+    core:     ["leg_raise","hollow_rocker","dead_bug"],
+    label:    "Strength Protocol",
   },
   aesthetics: {
-    training:  ["pushups","pullups","dips","situps"],
-    running:   "jog",
-    core:      "hollow_hold",
-    label:     "Hypertrophy Protocol",
+    training: ["pushups","pullups","dips"],
+    running:  "jog",
+    /* Core: high-rep visible ab work */
+    core:     ["v_ups","bicycle_crunch","toe_touch","suitcase_crunch","reverse_crunch"],
+    label:    "Hypertrophy Protocol",
   },
   calisthenics: {
-    training:  ["pushups","pullups","dips","situps","squats"],
-    running:   "jog",
-    core:      "hollow_hold",
-    label:     "Calisthenics Protocol",
+    training: ["pushups","pullups","dips","squats"],
+    running:  "jog",
+    /* Core: hollow body mechanics, foundational calisthenics core */
+    core:     ["hollow_rocker","v_ups","leg_raise","hanging_knee"],
+    label:    "Calisthenics Protocol",
   },
   speed: {
-    training:  ["sprint_acc","sprint_interval","lunges"],
-    running:   "sprint_acc",
-    core:      "plank",
-    label:     "Speed Protocol",
+    training: ["sprint_acc","sprint_interval","lunges"],
+    running:  "sprint_acc",
+    /* Core: hip flexor + explosive trunk for sprint support */
+    core:     ["hanging_knee","hanging_leg","mountain_climber","reverse_crunch"],
+    label:    "Speed Protocol",
   },
   athleticism: {
-    training:  ["sprint_acc","squats","lunges","burpees"],
-    running:   "sprint_interval",
-    core:      "hollow_hold",
-    label:     "Athleticism Protocol",
+    training: ["sprint_acc","squats","lunges","burpees"],
+    running:  "sprint_interval",
+    /* Core: rotational + explosive — full athletic core */
+    core:     ["v_ups","mountain_climber","hanging_knee","bicycle_crunch","hollow_rocker"],
+    label:    "Athleticism Protocol",
   },
   endurance: {
-    training:  ["run","situps","squats"],
-    running:   "run",
-    core:      "plank",
-    label:     "Endurance Protocol",
+    training: ["run","squats","lunges"],
+    running:  "run",
+    /* Core: anti-fatigue stability for runners */
+    core:     ["dead_bug","reverse_crunch","leg_raise","bicycle_crunch"],
+    label:    "Endurance Protocol",
   },
   core: {
-    training:  ["plank","hollow_hold","situps","pushups"],
-    running:   "jog",
-    core:      "hollow_hold",
-    label:     "Core Protocol",
+    training: ["pushups"],
+    running:  "jog",
+    /* Core: full dynamic ab circuit */
+    core:     ["v_ups","hanging_leg","bicycle_crunch","reverse_crunch","suitcase_crunch","toe_touch","hollow_rocker"],
+    label:    "Core Protocol",
   },
   weight_loss: {
-    training:  ["burpees","squats","lunges","run"],
-    running:   "jog",
-    core:      "plank",
-    label:     "Fat Loss Protocol",
+    training: ["burpees","squats","lunges"],
+    running:  "jog",
+    /* Core: high-rep metabolic core */
+    core:     ["mountain_climber","bicycle_crunch","reverse_crunch","v_ups"],
+    label:    "Fat Loss Protocol",
   },
   discipline: {
-    training:  ["cold_shower","meditation","pushups","plank"],
-    running:   "walk",
-    core:      "plank",
-    label:     "Discipline Protocol",
+    training: ["cold_shower","meditation","pushups"],
+    running:  "walk",
+    /* Core: controlled static supplemental only */
+    core:     ["dead_bug","hollow_rocker"],
+    label:    "Discipline Protocol",
   },
   confidence: {
-    training:  ["pushups","meditation","cold_shower","situps"],
-    running:   "jog",
-    core:      "plank",
-    label:     "Confidence Protocol",
+    training: ["pushups","meditation","cold_shower"],
+    running:  "jog",
+    /* Core: achievable, builds visible progress */
+    core:     ["bicycle_crunch","reverse_crunch","toe_touch"],
+    label:    "Confidence Protocol",
   },
   general: {
-    training:  ["pushups","situps","squats","jog"],
-    running:   "jog",
-    core:      "plank",
-    label:     "General Fitness Protocol",
+    training: ["pushups","squats"],
+    running:  "jog",
+    /* Core: well-rounded dynamic circuit */
+    core:     ["reverse_crunch","bicycle_crunch","dead_bug","leg_raise"],
+    label:    "General Fitness Protocol",
   },
+};
+
+/* ---------------------------------------------------------------------------
+   PHYSIQUE → CORE OVERRIDE
+   Physique selected during onboarding overrides the core exercise selection
+   when it differs meaningfully from the goal-based default.
+--------------------------------------------------------------------------- */
+const PHYSIQUE_CORE_MAP = {
+  lean:       ["hanging_knee","mountain_climber","bicycle_crunch","reverse_crunch"],
+  massive:    ["leg_raise","v_ups","hollow_rocker","dead_bug"],
+  aesthetic:  ["v_ups","bicycle_crunch","toe_touch","suitcase_crunch","reverse_crunch"],
+  functional: ["mountain_climber","dead_bug","hanging_knee","hollow_rocker","v_ups"],
+  runner:     ["hanging_knee","reverse_crunch","dead_bug","mountain_climber"],
+  hybrid:     ["v_ups","reverse_crunch","bicycle_crunch","mountain_climber","dead_bug"],
 };
 
 /* ---------------------------------------------------------------------------
@@ -223,48 +249,63 @@ const EVAL_TESTS = [
 const REEVAL_INTERVAL_MS = 30 * 24 * 60 * 60 * 1000; /* 30 days */
 const REEVAL_KEY         = "arise_last_reeval";
 const QUEST_TEMPLATES = {
-  pushups:        (n) => ({ id:"pushups",        name:"Push-ups",               target:n, unit:"",    stat:"Strength"     }),
-  pullups:        (n) => ({ id:"pullups",         name:"Pull-ups",               target:n, unit:"",    stat:"Strength"     }),
-  situps:         (n) => ({ id:"situps",          name:"Sit-ups",                target:n, unit:"",    stat:"Endurance"    }),
-  burpees:        (n) => ({ id:"burpees",         name:"Burpees",                target:n, unit:"",    stat:"Endurance"    }),
-  /* Running — realistic, varied by type */
-  jog:            (n) => ({ id:"jog",             name:"Easy Jog",               target:n, unit:"min", stat:"Endurance"    }),
-  run:            (n) => ({ id:"run",             name:"Endurance Run",          target:n, unit:"km",  stat:"Endurance"    }),
-  sprint_acc:     (n) => ({ id:"sprint_acc",      name:"60m Accelerations",      target:n, unit:"×",   stat:"Agility"      }),
-  sprint_interval:(n) => ({ id:"sprint_interval", name:"100m Intervals",         target:n, unit:"×",   stat:"Agility"      }),
-  /* Strength accessories */
-  dips:           (n) => ({ id:"dips",            name:"Dips",                   target:n, unit:"",    stat:"Strength"     }),
-  squats:         (n) => ({ id:"squats",          name:"Bodyweight Squats",      target:n, unit:"",    stat:"Endurance"    }),
-  lunges:         (n) => ({ id:"lunges",          name:"Lunges",                 target:n, unit:"",    stat:"Endurance"    }),
-  /* Core */
-  plank:          (n) => ({ id:"plank",           name:"Plank Hold",             target:n, unit:"min", stat:"Discipline"   }),
-  hollow_hold:    (n) => ({ id:"hollow_hold",     name:"Hollow Body Hold",       target:n, unit:"min", stat:"Discipline"   }),
+  /* Strength */
+  pushups:         (n) => ({ id:"pushups",         name:"Push-ups",               target:n, unit:"",    stat:"Strength"     }),
+  pullups:         (n) => ({ id:"pullups",          name:"Pull-ups",               target:n, unit:"",    stat:"Strength"     }),
+  situps:          (n) => ({ id:"situps",           name:"Sit-ups",                target:n, unit:"",    stat:"Endurance"    }),
+  burpees:         (n) => ({ id:"burpees",          name:"Burpees",                target:n, unit:"",    stat:"Endurance"    }),
+  dips:            (n) => ({ id:"dips",             name:"Dips",                   target:n, unit:"",    stat:"Strength"     }),
+  squats:          (n) => ({ id:"squats",           name:"Bodyweight Squats",      target:n, unit:"",    stat:"Endurance"    }),
+  lunges:          (n) => ({ id:"lunges",           name:"Lunges",                 target:n, unit:"",    stat:"Endurance"    }),
+  /* Running */
+  jog:             (n) => ({ id:"jog",              name:"Easy Jog",               target:n, unit:"min", stat:"Endurance"    }),
+  run:             (n) => ({ id:"run",              name:"Endurance Run",          target:n, unit:"km",  stat:"Endurance"    }),
+  sprint_acc:      (n) => ({ id:"sprint_acc",       name:"60m Accelerations",      target:n, unit:"×",   stat:"Agility"      }),
+  sprint_interval: (n) => ({ id:"sprint_interval",  name:"100m Intervals",         target:n, unit:"×",   stat:"Agility"      }),
+  /* Dynamic core — primary for training days */
+  v_ups:           (n) => ({ id:"v_ups",            name:"V-Ups",                  target:n, unit:"",    stat:"Discipline"   }),
+  reverse_crunch:  (n) => ({ id:"reverse_crunch",   name:"Reverse Crunches",       target:n, unit:"",    stat:"Discipline"   }),
+  bicycle_crunch:  (n) => ({ id:"bicycle_crunch",   name:"Bicycle Crunches",       target:n, unit:"",    stat:"Discipline"   }),
+  toe_touch:       (n) => ({ id:"toe_touch",        name:"Toe Touches",            target:n, unit:"",    stat:"Discipline"   }),
+  hollow_rocker:   (n) => ({ id:"hollow_rocker",    name:"Hollow Rockers",         target:n, unit:"",    stat:"Discipline"   }),
+  dead_bug:        (n) => ({ id:"dead_bug",         name:"Dead Bugs",              target:n, unit:"",    stat:"Discipline"   }),
+  mountain_climber:(n) => ({ id:"mountain_climber", name:"Mountain Climbers",      target:n, unit:"",    stat:"Agility"      }),
+  hanging_knee:    (n) => ({ id:"hanging_knee",     name:"Hanging Knee Raises",    target:n, unit:"",    stat:"Discipline"   }),
+  hanging_leg:     (n) => ({ id:"hanging_leg",      name:"Hanging Leg Raises",     target:n, unit:"",    stat:"Discipline"   }),
+  suitcase_crunch: (n) => ({ id:"suitcase_crunch",  name:"Suitcase Crunches",      target:n, unit:"",    stat:"Discipline"   }),
+  leg_raise:       (n) => ({ id:"leg_raise",        name:"Lying Leg Raises",       target:n, unit:"",    stat:"Discipline"   }),
+  /* Static core — supplemental only */
+  plank:           (n) => ({ id:"plank",            name:"Plank Hold",             target:n, unit:"min", stat:"Discipline"   }),
+  hollow_hold:     (n) => ({ id:"hollow_hold",      name:"Hollow Body Hold",       target:n, unit:"min", stat:"Discipline"   }),
+  side_plank:      (n) => ({ id:"side_plank",       name:"Side Plank (each side)", target:n, unit:"min", stat:"Discipline"   }),
   /* Recovery */
-  mobility:       (n) => ({ id:"mobility",        name:"Mobility Session",       target:n, unit:"min", stat:"Recovery"     }),
-  stretching:     (n) => ({ id:"stretching",      name:"Stretching Routine",     target:n, unit:"min", stat:"Recovery"     }),
-  walk:           (n) => ({ id:"walk",            name:"Recovery Walk",          target:n, unit:"min", stat:"Recovery"     }),
-  breathing:      (n) => ({ id:"breathing",       name:"Breathing Work",         target:n, unit:"min", stat:"Recovery"     }),
-  light_cardio:   (n) => ({ id:"light_cardio",    name:"Light Cardio",           target:n, unit:"min", stat:"Endurance"    }),
-  /* Mind/habits */
-  cold_shower:    ()  => ({ id:"cold_shower",     name:"Cold Shower",            target:1, unit:"",    stat:"Discipline"   }),
-  meditation:     (n) => ({ id:"meditation",      name:"Meditation",             target:n, unit:"min", stat:"Discipline"   }),
-  reading:        (n) => ({ id:"reading",         name:"Reading",                target:n, unit:"min", stat:"Intelligence" }),
-  focus_session:  (n) => ({ id:"focus_session",   name:"Deep Focus Session",     target:n, unit:"min", stat:"Intelligence" }),
-  hydration:      ()  => ({ id:"hydration",       name:"Water Intake (3L)",      target:3, unit:"L",   stat:"Recovery"     }),
-  sleep:          ()  => ({ id:"sleep",           name:"Sleep (8h)",             target:8, unit:"h",   stat:"Recovery"     }),
-  clean_meals:    ()  => ({ id:"clean_meals",     name:"Clean Meals",            target:3, unit:"",    stat:"Recovery"     }),
+  mobility:        (n) => ({ id:"mobility",         name:"Mobility Session",       target:n, unit:"min", stat:"Recovery"     }),
+  stretching:      (n) => ({ id:"stretching",       name:"Stretching Routine",     target:n, unit:"min", stat:"Recovery"     }),
+  walk:            (n) => ({ id:"walk",             name:"Recovery Walk",          target:n, unit:"min", stat:"Recovery"     }),
+  breathing:       (n) => ({ id:"breathing",        name:"Breathing Work",         target:n, unit:"min", stat:"Recovery"     }),
+  light_cardio:    (n) => ({ id:"light_cardio",     name:"Light Cardio",           target:n, unit:"min", stat:"Endurance"    }),
+  /* Habits */
+  cold_shower:     ()  => ({ id:"cold_shower",      name:"Cold Shower",            target:1, unit:"",    stat:"Discipline"   }),
+  meditation:      (n) => ({ id:"meditation",       name:"Meditation",             target:n, unit:"min", stat:"Discipline"   }),
+  reading:         (n) => ({ id:"reading",          name:"Reading",                target:n, unit:"min", stat:"Intelligence" }),
+  focus_session:   (n) => ({ id:"focus_session",    name:"Deep Focus Session",     target:n, unit:"min", stat:"Intelligence" }),
+  hydration:       ()  => ({ id:"hydration",        name:"Water Intake (3L)",      target:3, unit:"L",   stat:"Recovery"     }),
+  sleep:           ()  => ({ id:"sleep",            name:"Sleep (8h)",             target:8, unit:"h",   stat:"Recovery"     }),
+  clean_meals:     ()  => ({ id:"clean_meals",      name:"Clean Meals",            target:3, unit:"",    stat:"Recovery"     }),
 };
 
 /* ---------------------------------------------------------------------------
-   SMART DAILY QUEST GENERATOR — Goal-Primary System
-   Uses player's chosen goals as the primary workout driver.
-   Class questFocus is a fallback only if no goals are set.
+   SMART DAILY QUEST GENERATOR — Goal + Physique Primary System
+   Goals drive the main workout. Physique overrides core selection.
+   Dynamic core exercises are PRIMARY on training days.
+   Static holds (plank, hollow_hold) only appear on recovery/rest days.
    Inner Demon mode boosts volume ~20% — never unsafe.
 --------------------------------------------------------------------------- */
-function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon) {
+function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon, physique) {
   const safeLevel   = (typeof level === "number" && isFinite(level) && level >= 0) ? level : 1;
   const safeGoals   = Array.isArray(goals) && goals.length > 0 ? goals : [];
   const safeEnergy  = (typeof energyScore === "number" && isFinite(energyScore)) ? energyScore : 70;
+  const safePhysique= typeof physique === "string" ? physique : "hybrid";
   const demonActive = !!innerDemon;
   const classData   = HUNTER_CLASSES.find(function(c){ return c.id === hunterClass; }) || HUNTER_CLASSES[1];
 
@@ -272,57 +313,78 @@ function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon) 
   const tier = Math.min(6, Math.floor(safeLevel / 5));
 
   /* Day of week rotation */
-  const dow = new Date().getDay();
-  const isFullRest       = dow === 0;
+  const dow            = new Date().getDay();
+  const isFullRest     = dow === 0;
   const isActiveRecovery = dow === 3 || dow === 6;
-  const isTrainingDay    = !isFullRest && !isActiveRecovery;
-  const lowEnergy        = safeEnergy < 35;
-  const highEnergy       = safeEnergy >= 80;
+  const isTrainingDay  = !isFullRest && !isActiveRecovery;
+  const lowEnergy      = safeEnergy < 35;
+  const highEnergy     = safeEnergy >= 80;
 
-  /* Inner Demon volume multiplier: 1.0 base, 1.2 with demon active */
+  /* Volume multipliers */
   const demonMult  = demonActive ? 1.2 : 1.0;
   const energyMult = Math.max(0.6, Math.min(1.3, safeEnergy / 70));
-  const totalMult  = Math.min(1.4, demonMult * energyMult); /* cap at 1.4× */
+  const totalMult  = Math.min(1.4, demonMult * energyMult);
 
   /* Base volumes per tier — conservative, only Monarch is brutal */
   const BASE = {
-    pushups:         [15, 25, 35, 50, 65, 80, 120][tier],
-    pullups:         [5,  8,  12, 18, 24, 30, 45 ][tier],
-    situps:          [20, 30, 40, 55, 70, 85, 120][tier],
-    burpees:         [8,  12, 18, 25, 32, 40, 60 ][tier],
-    dips:            [8,  12, 16, 22, 28, 35, 50 ][tier],
-    squats:          [20, 30, 40, 55, 70, 85, 120][tier],
-    lunges:          [10, 16, 22, 30, 38, 46, 70 ][tier],
-    jog:             [10, 12, 15, 15, 20, 20, 20 ][tier],
-    run:             [1,  2,  3,  4,  5,  6,  8  ][tier],
-    sprint_acc:      [3,  4,  5,  6,  7,  8,  10 ][tier],
-    sprint_interval: [3,  4,  5,  6,  7,  8,  10 ][tier],
-    plank:           [1,  1,  2,  3,  4,  5,  7  ][tier],
-    hollow_hold:     [1,  1,  2,  2,  3,  3,  5  ][tier],
-    mobility:        [10, 10, 15, 15, 20, 20, 20 ][tier],
-    stretching:      [10, 10, 15, 15, 20, 20, 20 ][tier],
-    walk:            [15, 20, 20, 25, 25, 30, 30 ][tier],
-    breathing:       [5,  5,  5,  10, 10, 10, 10 ][tier],
-    light_cardio:    [10, 15, 15, 20, 20, 25, 25 ][tier],
-    meditation:      [5,  10, 10, 15, 15, 20, 20 ][tier],
-    reading:         [15, 20, 20, 30, 30, 30, 30 ][tier],
-    focus_session:   [20, 25, 30, 40, 45, 45, 45 ][tier],
+    /* Strength */
+    pushups:          [15, 25, 35, 50, 65, 80, 120][tier],
+    pullups:          [5,  8,  12, 18, 24, 30, 45 ][tier],
+    situps:           [20, 30, 40, 55, 70, 85, 120][tier],
+    burpees:          [8,  12, 18, 25, 32, 40, 60 ][tier],
+    dips:             [8,  12, 16, 22, 28, 35, 50 ][tier],
+    squats:           [20, 30, 40, 55, 70, 85, 120][tier],
+    lunges:           [10, 16, 22, 30, 38, 46, 70 ][tier],
+    /* Running */
+    jog:              [10, 12, 15, 15, 20, 20, 20 ][tier],
+    run:              [1,  2,  3,  4,  5,  6,  8  ][tier],
+    sprint_acc:       [3,  4,  5,  6,  7,  8,  10 ][tier],
+    sprint_interval:  [3,  4,  5,  6,  7,  8,  10 ][tier],
+    /* Dynamic core — scales by tier, realistic volume */
+    v_ups:            [10, 15, 20, 25, 30, 35, 50 ][tier],
+    reverse_crunch:   [10, 15, 20, 25, 30, 35, 50 ][tier],
+    bicycle_crunch:   [15, 20, 30, 40, 50, 60, 80 ][tier],  /* counted per side */
+    toe_touch:        [10, 15, 20, 25, 30, 35, 50 ][tier],
+    hollow_rocker:    [8,  12, 16, 20, 25, 30, 40 ][tier],
+    dead_bug:         [8,  10, 14, 18, 22, 28, 40 ][tier],  /* per side */
+    mountain_climber: [15, 20, 30, 40, 50, 60, 80 ][tier],  /* per side */
+    hanging_knee:     [5,  8,  12, 16, 20, 25, 35 ][tier],
+    hanging_leg:      [5,  6,  10, 14, 18, 22, 30 ][tier],
+    suitcase_crunch:  [10, 15, 20, 25, 30, 35, 50 ][tier],
+    leg_raise:        [8,  12, 16, 20, 25, 30, 40 ][tier],
+    /* Static core — supplemental only, low volume */
+    plank:            [1,  1,  1,  2,  2,  3,  4  ][tier],
+    hollow_hold:      [1,  1,  1,  1,  2,  2,  3  ][tier],
+    side_plank:       [1,  1,  1,  1,  2,  2,  3  ][tier],
+    /* Recovery */
+    mobility:         [10, 10, 15, 15, 20, 20, 20 ][tier],
+    stretching:       [10, 10, 15, 15, 20, 20, 20 ][tier],
+    walk:             [15, 20, 20, 25, 25, 30, 30 ][tier],
+    breathing:        [5,  5,  5,  10, 10, 10, 10 ][tier],
+    light_cardio:     [10, 15, 15, 20, 20, 25, 25 ][tier],
+    /* Habits */
+    meditation:       [5,  10, 10, 15, 15, 20, 20 ][tier],
+    reading:          [15, 20, 20, 30, 30, 30, 30 ][tier],
+    focus_session:    [20, 25, 30, 40, 45, 45, 45 ][tier],
   };
 
-  const physicalKeys = ["pushups","pullups","situps","burpees","dips","squats","lunges","sprint_acc","sprint_interval","run","jog"];
-  const staticGoals  = ["cold_shower","hydration","sleep","clean_meals"];
+  const repKeys    = ["pushups","pullups","situps","burpees","dips","squats","lunges",
+                      "sprint_acc","sprint_interval","v_ups","reverse_crunch","bicycle_crunch",
+                      "toe_touch","hollow_rocker","dead_bug","mountain_climber","hanging_knee",
+                      "hanging_leg","suitcase_crunch","leg_raise"];
+  const staticGoalKeys = ["cold_shower","hydration","sleep","clean_meals"];
 
   function scaled(key) {
     const v = BASE[key];
-    if (!v) return 1;
-    if (physicalKeys.includes(key)) return Math.max(1, Math.round(v * totalMult));
+    if (v === undefined) return 1;
+    if (repKeys.includes(key)) return Math.max(1, Math.round(v * totalMult));
     return v;
   }
 
   function makeGoal(key) {
     const fn = QUEST_TEMPLATES[key];
     if (!fn) return null;
-    const goal = staticGoals.includes(key) ? fn() : fn(scaled(key));
+    const goal = staticGoalKeys.includes(key) ? fn() : fn(scaled(key));
     if (goal && typeof goal.target === "number" && isFinite(goal.target) && goal.target > 0) return goal;
     return null;
   }
@@ -339,24 +401,31 @@ function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon) 
   }
 
   /* ---- ACTIVE RECOVERY DAY ---- */
+  /* Recovery may occasionally include light stability (side plank, dead bug) but NOT full plank circuits */
   if (isActiveRecovery || (lowEnergy && isTrainingDay)) {
+    const recoveryGoals = [makeGoal("walk"), makeGoal("mobility"), makeGoal("breathing"), makeGoal("hydration")].filter(Boolean);
+    /* Tier 3+ gets one supplemental static core on recovery — low volume */
+    if (tier >= 3) {
+      const lightCore = makeGoal("dead_bug") || makeGoal("side_plank");
+      if (lightCore) recoveryGoals.push(lightCore);
+    }
     return {
       id: "daily_recovery_" + hunterClass,
       label: demonActive ? "Active Recovery Protocol [DEMON]" : "Active Recovery Protocol",
-      goals: [makeGoal("walk"), makeGoal("mobility"), makeGoal("breathing"), makeGoal("hydration")].filter(Boolean),
+      goals: recoveryGoals.slice(0, 5),
       xp: Math.max(30, 50 + tier * 15),
       tier, dayType: "recovery",
     };
   }
 
   /* ---- TRAINING DAY ---- */
-  /* Build exercise list from goals — goals are PRIMARY */
-  const seenIds   = {};
-  const goalsList = [];
 
-  /* Collect exercises from all selected goals, deduplicated */
-  const activeGoals = safeGoals.length > 0 ? safeGoals : [classData.questFocus[0] || "strength"];
+  /* 1. Resolve active goals */
+  const activeGoals = safeGoals.length > 0 ? safeGoals : [classData.questFocus[0] || "general"];
 
+  /* 2. Collect main training exercises from goals, deduplicated */
+  const seenIds  = {};
+  const mainList = [];
   activeGoals.forEach(function(gid) {
     const map = GOAL_TRAINING_MAP[gid];
     if (!map) return;
@@ -364,50 +433,76 @@ function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon) 
       if (seenIds[key]) return;
       seenIds[key] = true;
       const g = makeGoal(key);
-      if (g) goalsList.push(g);
+      if (g) mainList.push(g);
     });
   });
 
-  /* Pick the right running type based on goals present */
-  const wantsSpeed   = activeGoals.includes("speed") || activeGoals.includes("athleticism");
-  const wantsEndur   = activeGoals.includes("endurance") || activeGoals.includes("weight_loss");
-  const runKey       = wantsSpeed ? (dow % 2 === 0 ? "sprint_acc" : "sprint_interval")
-                     : wantsEndur ? "run" : "jog";
-
-  /* Add running if not already included */
-  if (!seenIds[runKey] && !seenIds["run"] && !seenIds["jog"] && !seenIds["sprint_acc"] && !seenIds["sprint_interval"]) {
+  /* 3. Pick running based on goals */
+  const wantsSpeed  = activeGoals.includes("speed") || activeGoals.includes("athleticism");
+  const wantsEndur  = activeGoals.includes("endurance") || activeGoals.includes("weight_loss");
+  const runKey      = wantsSpeed ? (dow % 2 === 0 ? "sprint_acc" : "sprint_interval")
+                    : wantsEndur ? "run" : "jog";
+  const alreadyHasRun = seenIds["run"] || seenIds["jog"] || seenIds["sprint_acc"] || seenIds["sprint_interval"];
+  if (!alreadyHasRun) {
     const rg = makeGoal(runKey);
-    if (rg) { goalsList.push(rg); seenIds[runKey] = true; }
+    if (rg) { mainList.push(rg); seenIds[runKey] = true; }
   }
 
-  /* Add core if goals include core or not yet covered */
-  const wantsCore = activeGoals.includes("core");
-  const hasCoreAlready = seenIds["plank"] || seenIds["hollow_hold"] || seenIds["situps"];
-  if (wantsCore && !hasCoreAlready) {
-    const cg = makeGoal("hollow_hold");
-    if (cg) goalsList.push(cg);
+  /* 4. Select dynamic core exercises
+        Priority: physique override → goal-specific core → general default
+        NEVER add plank/hollow_hold/side_plank as primary core on training days */
+  const staticCoreKeys = ["plank","hollow_hold","side_plank"];
+
+  /* Determine core pool */
+  let corePool = null;
+
+  /* Physique takes priority for core */
+  if (PHYSIQUE_CORE_MAP[safePhysique]) {
+    corePool = PHYSIQUE_CORE_MAP[safePhysique];
   }
 
-  /* Cap at 5 goals to avoid overwhelming */
-  const finalGoals = goalsList.slice(0, 5);
+  /* Goals can augment/override if they have a specific core intent */
+  const goalWithCore = activeGoals.find(function(gid){ return gid === "core" || gid === "athleticism" || gid === "speed" || gid === "aesthetics"; });
+  if (goalWithCore && GOAL_TRAINING_MAP[goalWithCore] && GOAL_TRAINING_MAP[goalWithCore].core) {
+    corePool = GOAL_TRAINING_MAP[goalWithCore].core;
+  }
 
-  /* Fallback */
-  if (finalGoals.length === 0) finalGoals.push(makeGoal("pushups") || { id:"pushups", name:"Push-ups", target:20, unit:"", stat:"Strength" });
+  /* Fallback if somehow nil */
+  if (!corePool || corePool.length === 0) corePool = ["reverse_crunch","bicycle_crunch","leg_raise"];
 
-  /* Build label from goals */
-  const firstGoalMap = GOAL_TRAINING_MAP[activeGoals[0]];
-  const baseLabel    = firstGoalMap ? firstGoalMap.label : (classData.name + " Protocol");
-  const tierLabel    = tier > 0 ? " [+" + tier + "]" : "";
-  const demonLabel   = demonActive ? " ◈DEMON" : "";
-  const energyLabel  = highEnergy ? " ◈PEAK" : "";
+  /* Filter out any static holds that crept in */
+  corePool = corePool.filter(function(k){ return !staticCoreKeys.includes(k); });
+
+  /* Pick 1–2 core exercises based on tier */
+  const coreCount = tier <= 1 ? 1 : tier <= 3 ? 2 : 2;
+  const coreExercises = [];
+  const usedCore = {};
+  corePool.forEach(function(key) {
+    if (usedCore[key] || seenIds[key] || coreExercises.length >= coreCount) return;
+    const g = makeGoal(key);
+    if (g) { coreExercises.push(g); usedCore[key] = true; seenIds[key] = true; }
+  });
+
+  /* 5. Combine: main + core, cap at 5 */
+  const combined = mainList.concat(coreExercises).slice(0, 5);
+
+  /* 6. Fallback */
+  if (combined.length === 0) combined.push(makeGoal("pushups") || { id:"pushups", name:"Push-ups", target:20, unit:"", stat:"Strength" });
+
+  /* 7. Build label */
+  const firstMap  = GOAL_TRAINING_MAP[activeGoals[0]];
+  const baseLabel = firstMap ? firstMap.label : (classData.name + " Protocol");
+  const tierLabel  = tier > 0 ? " [+" + tier + "]" : "";
+  const demonLabel = demonActive ? " ◈DEMON" : "";
+  const energyLabel= highEnergy  ? " ◈PEAK"  : "";
 
   const baseXp = 80 + tier * 40;
-  const xp     = Math.max(20, Math.round(baseXp * (finalGoals.length / 4) * totalMult));
+  const xp     = Math.max(20, Math.round(baseXp * (combined.length / 4) * totalMult));
 
   return {
     id:      "daily_" + hunterClass,
     label:   baseLabel + tierLabel + demonLabel + energyLabel,
-    goals:   finalGoals,
+    goals:   combined,
     xp,
     tier,
     dayType: "training",
@@ -7489,7 +7584,7 @@ function App() {
   /* Derived */
   const rank        = getRankForLevel(player.level);
   const accentColor = isMonarch ? MONARCH_PURP : rank.color;
-  const dailyQuest  = generateDailyQuest(player.job, player.goals, player.level, energyScore, innerDemonActive);
+  const dailyQuest  = generateDailyQuest(player.job, player.goals, player.level, energyScore, innerDemonActive, player.physique);
 
   const totalQuestGoalsCleared =
     dailyQuest.goals.filter(function(g){return (dailyProgress[g.id]||0)>=g.target;}).length +
