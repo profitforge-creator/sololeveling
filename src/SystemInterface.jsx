@@ -2210,68 +2210,143 @@ const SHADOW_RANKS = ["Soldier","Knight","Elite Knight","Commander","Marshal","M
 
 const SHADOW_TEMPLATES = [
   /* Soldiers */
-  { id: "sh_iron",    name: "Iron",     rank: "Soldier",      rarity: "COMMON",    icon: "⚔", color: "#8a8f98",
-    specialty: "Frontline", aura: "dim grey",
-    passive: "Absorbs 5% incoming damage for you", lore: "The first shadow you ever called. Unnamed. Loyal.",
-    statBoost: { Strength: 1 }, evolutionTo: "sh_steel" },
-  { id: "sh_fleet",   name: "Fleet",    rank: "Soldier",      rarity: "COMMON",    icon: "➤", color: "#6fae6f",
-    specialty: "Scout", aura: "faint green",
-    passive: "+1 Agility on sprint completion", lore: "Runs ahead so you never enter a room unprepared.",
-    statBoost: { Agility: 1 }, evolutionTo: "sh_blade" },
+  { id:"sh_iron",     name:"Iron",         rank:"Soldier",       rarity:"COMMON",    icon:"⚔", color:"#8a8f98", specialty:"Frontline",       aura:"dim grey",           passive:"Absorbs 5% incoming damage for you",          lore:"The first shadow you ever called. Unnamed. Loyal.",                    statBoost:{Strength:1},           evolutionTo:"sh_steel"   },
+  { id:"sh_fleet",    name:"Fleet",        rank:"Soldier",       rarity:"COMMON",    icon:"➤", color:"#6fae6f", specialty:"Scout",            aura:"faint green",        passive:"+1 Agility on sprint completion",             lore:"Runs ahead so you never enter a room unprepared.",                    statBoost:{Agility:1},            evolutionTo:"sh_blade"   },
+  { id:"sh_grunt",    name:"Grunt",        rank:"Soldier",       rarity:"COMMON",    icon:"⚔", color:"#5b7aa0", specialty:"Brawler",          aura:"dim blue",           passive:"Endurance +1 on daily completion",            lore:"Never asked for a name. Never needed one.",                           statBoost:{Endurance:1},          evolutionTo:"sh_steel"   },
+  { id:"sh_ash",      name:"Ash",          rank:"Soldier",       rarity:"COMMON",    icon:"◈", color:"#8a8f98", specialty:"Sentinel",         aura:"pale smoke",         passive:"Recovery +1 on rest day",                     lore:"Stands watch while you sleep.",                                       statBoost:{Recovery:1},           evolutionTo:"sh_shade"   },
+  { id:"sh_pike",     name:"Pike",         rank:"Soldier",       rarity:"COMMON",    icon:"➤", color:"#6fae6f", specialty:"Spear",            aura:"forest mist",        passive:"Agility +1 on streak ≥ 3",                    lore:"First in, last out.",                                                 statBoost:{Agility:1},            evolutionTo:"sh_blade"   },
   /* Knights */
-  { id: "sh_steel",   name: "Steel",    rank: "Knight",       rarity: "UNCOMMON",  icon: "❖", color: "#4db8ff",
-    specialty: "Tank", aura: "ice blue",
-    passive: "Reduces daily quest penalty severity by 10%", lore: "Evolved from Iron. Colder now. More deliberate.",
-    statBoost: { Strength: 2, Endurance: 1 }, evolutionTo: "sh_titan" },
-  { id: "sh_blade",   name: "Blade",    rank: "Knight",       rarity: "UNCOMMON",  icon: "◈", color: "#a05df5",
-    specialty: "Assassin", aura: "violet mist",
-    passive: "+2 Agility on streak ≥ 3", lore: "Silent. Precise. Never misses a target you set.",
-    statBoost: { Agility: 2, Discipline: 1 }, evolutionTo: "sh_void" },
+  { id:"sh_steel",    name:"Steel",        rank:"Knight",        rarity:"UNCOMMON",  icon:"❖", color:"#4db8ff", specialty:"Tank",             aura:"ice blue",           passive:"Reduces quest penalty severity by 10%",       lore:"Evolved from Iron. Colder now. More deliberate.",                     statBoost:{Strength:2,Endurance:1},evolutionTo:"sh_titan"   },
+  { id:"sh_blade",    name:"Blade",        rank:"Knight",        rarity:"UNCOMMON",  icon:"◈", color:"#a05df5", specialty:"Assassin",         aura:"violet mist",        passive:"+2 Agility on streak ≥ 3",                    lore:"Silent. Precise. Never misses a target you set.",                     statBoost:{Agility:2,Discipline:1},evolutionTo:"sh_void"    },
+  { id:"sh_shade",    name:"Shade",        rank:"Knight",        rarity:"UNCOMMON",  icon:"◈", color:"#9b30ff", specialty:"Shadow Walker",    aura:"shifting dark",      passive:"Intelligence +1 on meditation",               lore:"Moves between moments. Hard to track even for you.",                  statBoost:{Intelligence:2},       evolutionTo:"sh_void"    },
+  { id:"sh_crag",     name:"Crag",         rank:"Knight",        rarity:"UNCOMMON",  icon:"❖", color:"#5d7cf5", specialty:"Defender",         aura:"stone grey",         passive:"Endurance +2 when dungeon cleared",           lore:"Built from the pressure you put on yourself.",                        statBoost:{Endurance:2,Strength:1},evolutionTo:"sh_titan"   },
+  { id:"sh_fang",     name:"Fang",         rank:"Knight",        rarity:"UNCOMMON",  icon:"➤", color:"#f53d3d", specialty:"Hunter",           aura:"blood trace",        passive:"+1 Strength on boss encounter",               lore:"Hunts before you give the order.",                                    statBoost:{Strength:2,Agility:1},  evolutionTo:"sh_titan"   },
+  { id:"sh_hollow",   name:"Hollow",       rank:"Knight",        rarity:"UNCOMMON",  icon:"✦", color:"#8a8f98", specialty:"Void Knight",      aura:"empty black",        passive:"Aura +1 on deep focus session",               lore:"Empty inside. That emptiness is its weapon.",                         statBoost:{Aura:2,Intelligence:1}, evolutionTo:"sh_phantom" },
   /* Elite Knights */
-  { id: "sh_titan",   name: "Titan",    rank: "Elite Knight", rarity: "RARE",      icon: "❖", color: "#5d7cf5",
-    specialty: "Berserker", aura: "deep blue surge",
-    passive: "+3 Endurance when daily cleared without fails", lore: "Grown from Steel's restraint. Now the opposite.",
-    statBoost: { Strength: 3, Endurance: 2 }, evolutionTo: "sh_warlord" },
-  { id: "sh_void",    name: "Void",     rank: "Elite Knight", rarity: "RARE",      icon: "✦", color: "#f55d8a",
-    specialty: "Mage", aura: "crimson shadow fire",
-    passive: "+2 Intelligence on focus sessions", lore: "Speaks only in silence. Teaches through absence.",
-    statBoost: { Intelligence: 3, Aura: 2 }, evolutionTo: "sh_phantom" },
-  { id: "sh_igris",   name: "Igris",    rank: "Elite Knight", rarity: "RARE",      icon: "⚔", color: "#f53d3d",
-    specialty: "Vanguard", aura: "blood red",
-    passive: "Discipline +2 each day active", lore: "Once your laziness. Now your most loyal vanguard.",
-    statBoost: { Discipline: 3, Strength: 2 }, evolutionTo: null },
-  { id: "sh_tusk",    name: "Tusk",     rank: "Elite Knight", rarity: "RARE",      icon: "◈", color: "#a05df5",
-    specialty: "Focus Sentinel", aura: "purple static",
-    passive: "Blocks distraction — +2 Intelligence daily", lore: "Once your distraction. Now your focus guardian.",
-    statBoost: { Intelligence: 2, Discipline: 2 }, evolutionTo: null },
+  { id:"sh_titan",    name:"Titan",        rank:"Elite Knight",  rarity:"RARE",      icon:"❖", color:"#5d7cf5", specialty:"Berserker",        aura:"deep blue surge",    passive:"+3 Endurance when daily cleared without fails",lore:"Grown from Steel's restraint. Now the opposite.",                    statBoost:{Strength:3,Endurance:2},evolutionTo:"sh_warlord" },
+  { id:"sh_void",     name:"Void",         rank:"Elite Knight",  rarity:"RARE",      icon:"✦", color:"#f55d8a", specialty:"Mage",             aura:"crimson shadow fire", passive:"+2 Intelligence on focus sessions",           lore:"Speaks only in silence. Teaches through absence.",                    statBoost:{Intelligence:3,Aura:2}, evolutionTo:"sh_phantom" },
+  { id:"sh_igris",    name:"Igris",        rank:"Elite Knight",  rarity:"RARE",      icon:"⚔", color:"#f53d3d", specialty:"Vanguard",         aura:"blood red",          passive:"Discipline +2 each day active",               lore:"Once your laziness. Now your most loyal vanguard.",                   statBoost:{Discipline:3,Strength:2},evolutionTo:null         },
+  { id:"sh_tusk",     name:"Tusk",         rank:"Elite Knight",  rarity:"RARE",      icon:"◈", color:"#a05df5", specialty:"Focus Sentinel",   aura:"purple static",      passive:"Blocks distraction — +2 Intelligence daily",  lore:"Once your distraction. Now your focus guardian.",                     statBoost:{Intelligence:2,Discipline:2},evolutionTo:null     },
+  { id:"sh_vex",      name:"Vex",          rank:"Elite Knight",  rarity:"RARE",      icon:"✦", color:"#9b30ff", specialty:"Chaos Knight",     aura:"fractured violet",   passive:"Aura +2 after dungeon clear",                 lore:"Unpredictable. Effective. Difficult to command.",                     statBoost:{Aura:3,Agility:2},      evolutionTo:"sh_phantom" },
+  { id:"sh_ruin",     name:"Ruin",         rank:"Elite Knight",  rarity:"RARE",      icon:"⚔", color:"#f5b65d", specialty:"Siege Breaker",    aura:"amber shockwave",    passive:"+2 Strength on boss damage dealt",            lore:"Specializes in breaking things that were supposed to be unbreakable.", statBoost:{Strength:3,Discipline:1},evolutionTo:"sh_warlord" },
+  { id:"sh_null",     name:"Null",         rank:"Elite Knight",  rarity:"RARE",      icon:"◈", color:"#5b7aa0", specialty:"Negator",          aura:"absolute stillness", passive:"Prevents one quest penalty per week",          lore:"Cancels effects. Nullifies outcomes. Exists in the gap.",             statBoost:{Discipline:3,Recovery:2},evolutionTo:null         },
   /* Commanders */
-  { id: "sh_warlord", name: "Warlord",  rank: "Commander",    rarity: "EPIC",      icon: "⚔", color: "#f5b65d",
-    specialty: "Siege", aura: "golden war aura",
-    passive: "+5 Strength on boss defeat", lore: "Commands entire battalions. Obeys only you.",
-    statBoost: { Strength: 4, Endurance: 3 }, evolutionTo: "sh_marshal" },
-  { id: "sh_phantom", name: "Phantom",  rank: "Commander",    rarity: "EPIC",      icon: "✦", color: "#9b30ff",
-    specialty: "Shadow Mage", aura: "pulsing violet",
-    passive: "All shadow stats +1 when dungeon cleared", lore: "Evolved from the void. Cannot be tracked. Cannot be stopped.",
-    statBoost: { Intelligence: 4, Aura: 3 }, evolutionTo: "sh_marshal" },
-  { id: "sh_kargal",  name: "Kargal",   rank: "Commander",    rarity: "EPIC",      icon: "✦", color: "#5d7cf5",
-    specialty: "Fear Amplifier", aura: "deep indigo pressure",
-    passive: "Aura +3 when streak ≥ 5", lore: "Once your fear. Now it amplifies your enemies' terror.",
-    statBoost: { Aura: 4, Discipline: 3 }, evolutionTo: null },
-  { id: "sh_baruka",  name: "Baruka",   rank: "Commander",    rarity: "EPIC",      icon: "❖", color: "#f5b65d",
-    specialty: "Routine Enforcer", aura: "amber discipline field",
-    passive: "Prevents streak loss once per week", lore: "Once your inconsistency. Now the enforcer of every routine.",
-    statBoost: { Discipline: 5, Recovery: 2 }, evolutionTo: null },
+  { id:"sh_warlord",  name:"Warlord",      rank:"Commander",     rarity:"EPIC",      icon:"⚔", color:"#f5b65d", specialty:"Siege",            aura:"golden war aura",    passive:"+5 Strength on boss defeat",                  lore:"Commands entire battalions. Obeys only you.",                         statBoost:{Strength:4,Endurance:3},evolutionTo:"sh_marshal" },
+  { id:"sh_phantom",  name:"Phantom",      rank:"Commander",     rarity:"EPIC",      icon:"✦", color:"#9b30ff", specialty:"Shadow Mage",      aura:"pulsing violet",     passive:"All shadow stats +1 when dungeon cleared",    lore:"Evolved from the void. Cannot be tracked. Cannot be stopped.",        statBoost:{Intelligence:4,Aura:3}, evolutionTo:"sh_marshal" },
+  { id:"sh_kargal",   name:"Kargal",       rank:"Commander",     rarity:"EPIC",      icon:"✦", color:"#5d7cf5", specialty:"Fear Amplifier",   aura:"deep indigo pressure",passive:"Aura +3 when streak ≥ 5",                    lore:"Once your fear. Now it amplifies your enemies' terror.",              statBoost:{Aura:4,Discipline:3},   evolutionTo:null         },
+  { id:"sh_baruka",   name:"Baruka",       rank:"Commander",     rarity:"EPIC",      icon:"❖", color:"#f5b65d", specialty:"Routine Enforcer", aura:"amber discipline field",passive:"Prevents streak loss once per week",         lore:"Once your inconsistency. Now the enforcer of every routine.",         statBoost:{Discipline:5,Recovery:2},evolutionTo:null         },
+  { id:"sh_sovereign",name:"Sovereign",    rank:"Commander",     rarity:"EPIC",      icon:"◉", color:MONARCH_PURP,specialty:"Void Commander",  aura:"absolute black",    passive:"Aura +5 on streak ≥ 7",                       lore:"It never moved. It never needed to.",                                 statBoost:{Aura:5,Discipline:3},   evolutionTo:"sh_marshal" },
+  { id:"sh_ember",    name:"Ember",        rank:"Commander",     rarity:"EPIC",      icon:"✸", color:"#f53d3d", specialty:"Flame Commander",  aura:"volatile red",       passive:"+4 Strength on cold shower completion",       lore:"Burns hotter the more you push.",                                     statBoost:{Strength:4,Aura:2},     evolutionTo:"sh_marshal" },
   /* Marshal */
-  { id: "sh_marshal", name: "The Marshal", rank: "Marshal",   rarity: "LEGENDARY", icon: "◉", color: "#ff2244",
-    specialty: "Army General", aura: "crimson sovereign pulse",
-    passive: "All shadows gain +1 to primary stat", lore: "Commands the entire shadow army. Speaks rarely. When he does, the dead listen.",
-    statBoost: { Strength: 5, Aura: 5 }, evolutionTo: null },
+  { id:"sh_marshal",  name:"The Marshal",  rank:"Marshal",       rarity:"LEGENDARY", icon:"◉", color:"#ff2244", specialty:"Army General",     aura:"crimson sovereign pulse",passive:"All shadows gain +1 to primary stat",       lore:"Commands the entire shadow army. Speaks rarely. When he does, the dead listen.", statBoost:{Strength:5,Aura:5}, evolutionTo:null },
+  { id:"sh_iron_mon", name:"Iron Monarch", rank:"Marshal",       rarity:"LEGENDARY", icon:"⚔", color:"#f5b65d", specialty:"Unbreakable Will", aura:"iron sovereignty",   passive:"All stats +2 permanently",                    lore:"A king who refused to fall. His army is long gone. His will remains.", statBoost:{Strength:6,Endurance:4},evolutionTo:null         },
   /* Monarch-Level */
-  { id: "sh_beru",    name: "Beru",     rank: "Monarch-Level", rarity: "MYTHIC",   icon: "✸", color: "#2ee88a",
-    specialty: "Ant Marshal", aura: "emerald sovereign field",
-    passive: "All quest XP +10% while active", lore: "The greatest of the ant generals. Loyal beyond death. Calls you 'Master'.",
-    statBoost: { Strength: 6, Agility: 4, Aura: 5 }, evolutionTo: null },
+  { id:"sh_beru",     name:"Beru",         rank:"Monarch-Level", rarity:"MYTHIC",    icon:"✸", color:"#2ee88a", specialty:"Ant Marshal",      aura:"emerald sovereign field",passive:"All quest XP +10% while active",            lore:"The greatest of the ant generals. Loyal beyond death. Calls you Master.", statBoost:{Strength:6,Agility:4,Aura:5}, evolutionTo:null },
+  { id:"sh_absolute", name:"The First Shadow",rank:"Monarch-Level",rarity:"MYTHIC",  icon:"◉", color:"#2ee88a", specialty:"Echo of Absolute", aura:"primordial void",    passive:"All stats +3 permanently",                    lore:"The System was created by something. That something left this behind.", statBoost:{Strength:5,Intelligence:5,Aura:6}, evolutionTo:null },
 ];
+
+/* ---------------------------------------------------------------------------
+   SHADOW POOL — 120+ extractable enemies for dungeon / raid encounters
+   Tier: common / elite / knight / commander / general / marshal / legendary / monarch
+   baseChance: base extraction probability (0-1), modified by player rank
+--------------------------------------------------------------------------- */
+const SHADOW_POOL = [
+  /* ── COMMON ── */
+  { id:"sp_stone_watcher",   name:"Stone Watcher",     tier:"common",     icon:"◈", color:"#8a8f98", baseChance:0.75, trait:"Guardian",   power:12, lore:"Stood at a dungeon gate for centuries. Waiting for someone worth following." },
+  { id:"sp_grey_crawler",    name:"Grey Crawler",       tier:"common",     icon:"⚔", color:"#8a8f98", baseChance:0.72, trait:"Brawler",    power:10, lore:"Low rank. High loyalty. Died protecting someone who never knew its name." },
+  { id:"sp_hollow_scout",    name:"Hollow Scout",       tier:"common",     icon:"➤", color:"#6fae6f", baseChance:0.78, trait:"Scout",      power:11, lore:"Always ahead. Never caught." },
+  { id:"sp_dim_archer",      name:"Dim Archer",         tier:"common",     icon:"➤", color:"#5b7aa0", baseChance:0.70, trait:"Ranger",     power:10, lore:"Hit targets it couldn't see. A skill it carries into shadow form." },
+  { id:"sp_bone_sentinel",   name:"Bone Sentinel",      tier:"common",     icon:"❖", color:"#8a8f98", baseChance:0.73, trait:"Tank",       power:13, lore:"Guarded a dungeon entrance for so long it became part of the architecture." },
+  { id:"sp_mist_wraith",     name:"Mist Wraith",        tier:"common",     icon:"◈", color:"#9b30ff", baseChance:0.68, trait:"Stealth",    power:9,  lore:"Impossible to track in low-light conditions. Yours now." },
+  { id:"sp_rust_blade",      name:"Rust Blade",         tier:"common",     icon:"⚔", color:"#f5b65d", baseChance:0.71, trait:"Striker",    power:11, lore:"Old weapon. Still lethal." },
+  { id:"sp_cave_beast",      name:"Cave Beast",         tier:"common",     icon:"⚔", color:"#6fae6f", baseChance:0.74, trait:"Berserker",  power:14, lore:"Pure instinct. Redirected toward your enemies." },
+  { id:"sp_pale_soldier",    name:"Pale Soldier",       tier:"common",     icon:"⚔", color:"#5b7aa0", baseChance:0.69, trait:"Frontline",  power:10, lore:"A forgotten soldier from a forgotten war." },
+  { id:"sp_shadow_pup",      name:"Shadow Hound",       tier:"common",     icon:"➤", color:"#8a8f98", baseChance:0.80, trait:"Hunter",     power:8,  lore:"Tracks prey across dimensions. Small but relentless." },
+  { id:"sp_iron_shard",      name:"Iron Shard",         tier:"common",     icon:"❖", color:"#4db8ff", baseChance:0.76, trait:"Sentinel",   power:12, lore:"A fragment of something greater. Still useful." },
+  { id:"sp_dust_golem",      name:"Dust Golem",         tier:"common",     icon:"❖", color:"#8a8f98", baseChance:0.65, trait:"Tank",       power:15, lore:"Absorbed decades of dungeon mana. Slow. Unstoppable." },
+  { id:"sp_night_crawler",   name:"Night Crawler",      tier:"common",     icon:"◈", color:"#5b7aa0", baseChance:0.77, trait:"Scout",      power:9,  lore:"Thrives in the dark. Your army just got better at night ops." },
+  { id:"sp_grey_hound",      name:"Grey Hound",         tier:"common",     icon:"➤", color:"#6fae6f", baseChance:0.73, trait:"Tracker",    power:10, lore:"Never loses a trail." },
+  { id:"sp_worn_guardian",   name:"Worn Guardian",      tier:"common",     icon:"❖", color:"#5b7aa0", baseChance:0.70, trait:"Defender",   power:13, lore:"Damaged but loyal. Has refused death many times." },
+  /* ── ELITE ── */
+  { id:"sp_silver_fang",     name:"Silver Fang",        tier:"elite",      icon:"➤", color:"#4db8ff", baseChance:0.55, trait:"Assassin",   power:22, lore:"Fastest thing in the dungeon. Now it serves the fastest hunter." },
+  { id:"sp_black_wolf",      name:"Black Wolf",         tier:"elite",      icon:"➤", color:"#5b7aa0", baseChance:0.52, trait:"Hunter",     power:24, lore:"Hunted alone. Adapted to any environment. Yours now." },
+  { id:"sp_stone_knight",    name:"Stone Knight",       tier:"elite",      icon:"❖", color:"#5d7cf5", baseChance:0.50, trait:"Tank",       power:28, lore:"Built to take punishment. Has never fallen in combat." },
+  { id:"sp_ember_mage",      name:"Ember Mage",         tier:"elite",      icon:"✦", color:"#f53d3d", baseChance:0.48, trait:"Mage",       power:26, lore:"Burned its way through seventeen dungeons before you found it." },
+  { id:"sp_ice_wraith",      name:"Ice Wraith",         tier:"elite",      icon:"◈", color:"#4db8ff", baseChance:0.53, trait:"Stealth",    power:20, lore:"Temperature drops when it enters a room. Enemies panic." },
+  { id:"sp_bone_knight",     name:"Bone Knight",        tier:"elite",      icon:"❖", color:"#8a8f98", baseChance:0.51, trait:"Vanguard",   power:25, lore:"Has led charges in a hundred dungeons. Leads yours now." },
+  { id:"sp_shade_duelist",   name:"Shade Duelist",      tier:"elite",      icon:"◈", color:"#a05df5", baseChance:0.54, trait:"Duelist",    power:23, lore:"One-on-one, it has never lost." },
+  { id:"sp_storm_striker",   name:"Storm Striker",      tier:"elite",      icon:"⚔", color:"#f5b65d", baseChance:0.49, trait:"Berserker",  power:27, lore:"Fights like weather. Unpredictable. Destructive." },
+  { id:"sp_twin_blade",      name:"Twin Blade",         tier:"elite",      icon:"◈", color:"#f53d3d", baseChance:0.50, trait:"Striker",    power:24, lore:"Two weapons. One mind. Yours." },
+  { id:"sp_iron_guardian",   name:"Iron Guardian",      tier:"elite",      icon:"❖", color:"#4db8ff", baseChance:0.56, trait:"Guardian",   power:30, lore:"Nothing gets past it. You don't want anything to." },
+  { id:"sp_void_stalker",    name:"Void Stalker",       tier:"elite",      icon:"✦", color:"#9b30ff", baseChance:0.45, trait:"Predator",   power:29, lore:"Moves through gaps in reality. Emerged in your dungeon by accident. Or choice." },
+  { id:"sp_red_fang",        name:"Red Fang",           tier:"elite",      icon:"➤", color:"#f53d3d", baseChance:0.52, trait:"Hunter",     power:22, lore:"Hunted high-rank hunters. Failed for the first time against you." },
+  { id:"sp_crystal_mage",    name:"Crystal Mage",       tier:"elite",      icon:"✦", color:"#4db8ff", baseChance:0.47, trait:"Mage",       power:25, lore:"Converts dungeon mana into offensive crystals. Instantly." },
+  { id:"sp_war_golem",       name:"War Golem",          tier:"elite",      icon:"❖", color:"#f5b65d", baseChance:0.44, trait:"Siege",      power:32, lore:"Built by hunters who no longer exist. Adopted by your army." },
+  { id:"sp_night_assassin",  name:"Night Assassin",     tier:"elite",      icon:"◈", color:"#5b7aa0", baseChance:0.53, trait:"Assassin",   power:21, lore:"Operates exclusively after midnight. Precise. Invisible." },
+  /* ── KNIGHT ── */
+  { id:"sp_shadow_knight",   name:"Shadow Knight",      tier:"knight",     icon:"❖", color:MONARCH_PURP, baseChance:0.38, trait:"Vanguard",  power:40, lore:"A knight-class shadow. Carries the weight of a thousand battles." },
+  { id:"sp_blood_templar",   name:"Blood Templar",      tier:"knight",     icon:"⚔", color:"#f53d3d",    baseChance:0.36, trait:"Berserker", power:44, lore:"Sanctified in battle. Consecrated in blood. Yours now." },
+  { id:"sp_frost_paladin",   name:"Frost Paladin",      tier:"knight",     icon:"❖", color:"#4db8ff",    baseChance:0.40, trait:"Tank",      power:42, lore:"Slows everything around it. Your enemies included." },
+  { id:"sp_arcane_knight",   name:"Arcane Knight",      tier:"knight",     icon:"✦", color:"#a05df5",    baseChance:0.35, trait:"Mage",      power:46, lore:"Carries ancient combat spells in its blade. Rare combination." },
+  { id:"sp_void_knight",     name:"Void Knight",        tier:"knight",     icon:"◈", color:"#9b30ff",    baseChance:0.33, trait:"Predator",  power:48, lore:"Existed before the gates. A remnant of something older." },
+  { id:"sp_iron_templar",    name:"Iron Templar",       tier:"knight",     icon:"❖", color:"#5d7cf5",    baseChance:0.37, trait:"Guardian",  power:43, lore:"Defended a lost kingdom for four hundred years. Still standing." },
+  { id:"sp_phantom_blade",   name:"Phantom Blade",      tier:"knight",     icon:"◈", color:"#f55d8a",    baseChance:0.34, trait:"Assassin",  power:45, lore:"Invisible in combat. Kills before being detected." },
+  { id:"sp_storm_knight",    name:"Storm Knight",       tier:"knight",     icon:"⚔", color:"#f5b65d",    baseChance:0.38, trait:"Striker",   power:41, lore:"Commands a storm presence that destabilizes enemy formations." },
+  { id:"sp_siege_knight",    name:"Siege Knight",       tier:"knight",     icon:"❖", color:"#6fae6f",    baseChance:0.36, trait:"Siege",     power:47, lore:"Broke through city walls for three different rulers. Now breaks for you." },
+  { id:"sp_ember_knight",    name:"Ember Knight",       tier:"knight",     icon:"✸", color:"#f53d3d",    baseChance:0.32, trait:"Flame",     power:50, lore:"Surrounded by fire. Burns brighter the harder you push." },
+  /* ── COMMANDER ── */
+  { id:"sp_dark_commander",  name:"Dark Commander",     tier:"commander",  icon:"◉", color:MONARCH_PURP, baseChance:0.22, trait:"Commander", power:62, lore:"Led armies in the void for centuries. Chose you over nothingness." },
+  { id:"sp_war_commander",   name:"War Commander",      tier:"commander",  icon:"⚔", color:"#f53d3d",    baseChance:0.20, trait:"Siege",     power:65, lore:"Has never lost a siege. Not once." },
+  { id:"sp_frost_commander", name:"Frost Commander",    tier:"commander",  icon:"❖", color:"#4db8ff",    baseChance:0.24, trait:"Tank",      power:60, lore:"Turns cold strategy into cold dominance." },
+  { id:"sp_chaos_lord",      name:"Chaos Lord",         tier:"commander",  icon:"✸", color:"#f55d8a",    baseChance:0.18, trait:"Chaos",     power:70, lore:"Thrives in disorder. Your army just became unpredictable." },
+  { id:"sp_night_commander", name:"Night Commander",    tier:"commander",  icon:"◈", color:"#5b7aa0",    baseChance:0.21, trait:"Stealth",   power:64, lore:"Controls the darkness. Your enemies will never see the attack coming." },
+  { id:"sp_phantom_general", name:"Phantom General",    tier:"commander",  icon:"✦", color:"#9b30ff",    baseChance:0.19, trait:"Mage",      power:68, lore:"Commands shadow forces from a place that doesn't exist." },
+  { id:"sp_iron_commander",  name:"Iron Commander",     tier:"commander",  icon:"❖", color:"#5d7cf5",    baseChance:0.23, trait:"Vanguard",  power:63, lore:"Iron discipline. Iron results." },
+  { id:"sp_ancient_keeper",  name:"Ancient Keeper",     tier:"commander",  icon:"✦", color:"#f5b65d",    baseChance:0.17, trait:"Guardian",  power:72, lore:"Kept something ancient locked away. Now keeps your enemies out." },
+  { id:"sp_blood_general",   name:"Blood General",      tier:"commander",  icon:"⚔", color:"#f53d3d",    baseChance:0.20, trait:"Berserker", power:67, lore:"Bled for every victory. Still does." },
+  /* ── GENERAL ── */
+  { id:"sp_void_general",    name:"Void General",       tier:"general",    icon:"◉", color:MONARCH_PURP, baseChance:0.12, trait:"Commander", power:82, lore:"Commands an army that only exists when you need it." },
+  { id:"sp_shadow_sovereign",name:"Shadow Sovereign",   tier:"general",    icon:"✸", color:"#9b30ff",    baseChance:0.10, trait:"Monarch",   power:88, lore:"Was once a ruler of the dead. Now answers to one ruler only." },
+  { id:"sp_war_sovereign",   name:"War Sovereign",      tier:"general",    icon:"⚔", color:"#f53d3d",    baseChance:0.11, trait:"Siege",     power:85, lore:"Never lost a war. Made you its first general." },
+  { id:"sp_frost_sovereign", name:"Frost Sovereign",    tier:"general",    icon:"❖", color:"#4db8ff",    baseChance:0.13, trait:"Dominator", power:80, lore:"Cold authority. Cold loyalty." },
+  { id:"sp_ancient_general", name:"Ancient General",    tier:"general",    icon:"✦", color:"#f5b65d",    baseChance:0.09, trait:"Legend",    power:90, lore:"A name spoken in hushed tones in the Association. Now under your command." },
+  /* ── MARSHAL ── */
+  { id:"sp_iron_marshal",    name:"Iron Marshal",       tier:"marshal",    icon:"◉", color:"#ff2244",    baseChance:0.05, trait:"Army",      power:96, lore:"Commands entire shadow armies. Takes orders from no one. Except you." },
+  { id:"sp_void_marshal",    name:"Void Marshal",       tier:"marshal",    icon:"✸", color:MONARCH_PURP, baseChance:0.04, trait:"Void",      power:99, lore:"Exists at the border between presence and absence. A weapon you barely understand." },
+  /* ── LEGENDARY ── */
+  { id:"sp_first_knight",    name:"The First Knight",   tier:"legendary",  icon:"⚔", color:"#f5b65d",    baseChance:0.025,trait:"Legend",    power:110,lore:"The first shadow ever created. It waited until someone worthy appeared." },
+  { id:"sp_silent_one",      name:"The Silent One",     tier:"legendary",  icon:"◉", color:"#2ee88a",    baseChance:0.02, trait:"Unknown",   power:120,lore:"No classification. No record. The System cannot describe it.", unique:true },
+  /* ── MONARCH-CLASS (hidden conditions) ── */
+  { id:"sp_shadow_king",     name:"Shadow King Fragment",tier:"monarch",   icon:"◉", color:MONARCH_PURP, baseChance:0.01, trait:"Monarch",   power:150,lore:"A fragment of Monarch-level authority. Attracted to hunters on the edge of something great.", unique:true, hiddenCondition:"monarchInterest" },
+];
+
+/* Extraction success chance — based on player stats vs enemy tier */
+var TIER_DIFFICULTY = { common:0, elite:1, knight:2, commander:3, general:4, marshal:5, legendary:6, monarch:7 };
+
+function calcExtractionChance(shadow, player, fame) {
+  if (!shadow) return 0;
+  var base = shadow.baseChance || 0.5;
+  var tier = TIER_DIFFICULTY[shadow.tier] || 0;
+  /* Player modifiers */
+  var rankBonus   = Math.min(0.15, (player.level||1) * 0.002);
+  var fameBonus   = Math.min(0.10, (fame||0) * 0.00005);
+  var auraBonus   = Math.min(0.10, ((player.stats&&player.stats.Aura)||0) * 0.002);
+  var tierPenalty = tier * 0.05;
+  var final = base + rankBonus + fameBonus + auraBonus - tierPenalty;
+  return Math.max(0.03, Math.min(0.95, final));
+}
+
+/* Get available shadows for a raid/dungeon — returns pool filtered by player rank */
+function getAvailableShadows(player, count) {
+  var playerTierMax = Math.min(7, Math.floor((player.level||1) / 8));
+  var eligible = SHADOW_POOL.filter(function(s) {
+    var sTier = TIER_DIFFICULTY[s.tier] || 0;
+    return sTier <= playerTierMax + 1; /* can attempt one tier above */
+  });
+  /* Shuffle and pick */
+  var shuffled = eligible.slice().sort(function(){ return Math.random()-0.5; });
+  return shuffled.slice(0, count||3);
+}
 
 const RARITY_COLOR = { COMMON:"#8a8f98", UNCOMMON:"#4db8ff", RARE:"#a05df5", EPIC:"#f5b65d", LEGENDARY:"#f53d3d", MYTHIC:"#2ee88a" };
 
@@ -3519,7 +3594,7 @@ function AccessDeniedScreen({ boss, playerRank, onClose }) {
    SHADOW EXTRACTION — ARISE SYSTEM
    3 attempts. Dramatic. Permanent failure on 3 misses.
    =========================================================================== */
-function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx }) {
+function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx, extractionChance }) {
   const [progress, setProgress] = useState({});
   const [done, setDone] = useState(false);
   const challenge = boss.ariseChallenge;
@@ -3555,6 +3630,11 @@ function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx })
             {boss.name} · Shadow Extraction Attempt {attemptNumber}/3<br />
             <span style={{ color:attemptsLeft<=1?GLITCH_RED:"#8a6ab0" }}>{attemptsLeft} attempt{attemptsLeft!==1?"s":""} remaining after this</span>
           </div>
+          {extractionChance!==undefined&&(
+            <div style={{ marginTop:10,display:"inline-block",padding:"4px 12px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.08)",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:MONARCH_PURP }}>
+              EXTRACTION RATE: {Math.round(extractionChance*100)}%
+            </div>
+          )}
         </div>
 
         {/* Warning */}
@@ -6806,7 +6886,39 @@ function getShadowLoyalty(loyalty) {
 }
 
 /* Build a full shadow record when ARISE succeeds */
-function buildShadowRecord(bossData) {
+function buildShadowRecord(bossData, poolShadow) {
+  /* poolShadow — optional SHADOW_POOL entry if this came from a pool extraction */
+  if (poolShadow) {
+    return {
+      id:           "shadow_" + poolShadow.id + "_" + Date.now(),
+      templateId:   poolShadow.id,
+      name:         poolShadow.name,
+      rank:         poolShadow.tier.charAt(0).toUpperCase() + poolShadow.tier.slice(1),
+      rarity:       poolShadow.tier === "monarch" ? "MYTHIC"
+                  : poolShadow.tier === "legendary" ? "LEGENDARY"
+                  : poolShadow.tier === "marshal" ? "LEGENDARY"
+                  : poolShadow.tier === "general" ? "EPIC"
+                  : poolShadow.tier === "commander" ? "EPIC"
+                  : poolShadow.tier === "knight" ? "RARE"
+                  : poolShadow.tier === "elite" ? "UNCOMMON" : "COMMON",
+      specialty:    poolShadow.trait,
+      aura:         poolShadow.tier + " aura",
+      lore:         poolShadow.lore,
+      passive:      "Combat Power: " + poolShadow.power,
+      statBoost:    {},
+      evolutionTo:  null,
+      icon:         poolShadow.icon,
+      color:        poolShadow.color,
+      loyalty:      0,
+      evolutionLevel:1,
+      defeatedAt:   Date.now(),
+      fromBoss:     poolShadow.id,
+      customName:   null,
+      favorite:     false,
+      power:        poolShadow.power,
+    };
+  }
+  /* Standard boss-sourced shadow */
   const template = SHADOW_TEMPLATES.find(function(t) { return t.id === "sh_" + bossData.id; });
   return {
     id:             "shadow_" + bossData.id + "_" + Date.now(),
@@ -8192,8 +8304,9 @@ function App() {
   const [accessDeniedBoss, setAccessDeniedBoss] = useState(null);
 
   /* Shadow extraction ARISE system */
-  const [ariseTarget, setAriseTarget]   = useState(null);
-  const [ariseAttempt, setAriseAttempt] = useState(1);
+  const [ariseTarget, setAriseTarget]     = useState(null);
+  const [ariseAttempt, setAriseAttempt]   = useState(1);
+  const [arisePoolShadow, setArisePoolShadow] = useState(null); /* SHADOW_POOL entry if pool extraction */
 
   /* Hidden quests */
   const [seenHiddenIds, setSeenHiddenIds]             = useState([]);
@@ -9356,6 +9469,42 @@ function App() {
         }, 2200);
       }
     }
+    /* Shadow extraction opportunity — 25% chance after any dungeon clear */
+    if (Math.random() < 0.25) {
+      var candidates = getAvailableShadows(player, 1);
+      if (candidates.length > 0) {
+        var candidate = candidates[0];
+        /* Don't offer if player already has this shadow */
+        var alreadyOwned = shadowArmy.some(function(s){ return s.fromBoss === candidate.id; });
+        if (!alreadyOwned) {
+          setTimeout(function() {
+            showToast("Shadow detected: " + candidate.name + ". ARISE available.", "system");
+            addLog("Shadow extraction opportunity: "+candidate.name+" detected in dungeon aftermath.","system");
+            /* Give a simulated boss data wrapper so AriseScreen works */
+            var syntheticBoss = {
+              id:       candidate.id,
+              name:     candidate.name,
+              title:    candidate.tier.charAt(0).toUpperCase()+candidate.tier.slice(1)+" Entity",
+              icon:     candidate.icon,
+              color:    candidate.color,
+              xp:       Math.round(candidate.power * 1.5),
+              statKey:  "Aura",
+              statGain: Math.max(1, Math.floor(candidate.power / 20)),
+              dialogue: {
+                intro:  ["\"You found me inside the dungeon.\"","\"Most hunters pass without noticing.\"","\"You are different.\""],
+                mid:    ["\"Your authority is sufficient.\"","\"I will resist, but I acknowledge your power.\""],
+                low:    ["\"Interesting.\"","\"Perhaps.\""],
+                defeat: "\"Arise.\"",
+              },
+              shadow: { name:candidate.name, rarity:"RARE", title:candidate.trait, passiveBoost:"Combat Power: "+candidate.power, lore:candidate.lore },
+            };
+            setArisePoolShadow(candidate);
+            setAriseTarget({ bossIndex:-2, bossData:syntheticBoss });
+            setAriseAttempt(1);
+          }, 3500);
+        }
+      }
+    }
   }
 
   /* ---- Boss attacks ---- */
@@ -9460,13 +9609,13 @@ function App() {
     addFame(25);
     addMonarchInterest(MONARCH_INTEREST_BOSS);
     unlockSecret("shadowExtracted");
-    const shadowRecord = buildShadowRecord(data);
+    const shadowRecord = buildShadowRecord(data, arisePoolShadow);
     setShadowArmy(function(prev) { return prev.concat([shadowRecord]); });
-    setAriseTarget(null); setAriseAttempt(1);
-    setCinematic({kind:"boss",title:"ARISE",flavor:"The shadow has yielded.",bigText:data.shadow?data.shadow.name:data.name,sub:data.dialogue.defeat,reward:"+"+data.xp+" XP · Shadow extracted · "+data.statKey+" +"+data.statGain,bossColor:data.color});
-    addLog("Shadow extracted: "+data.name+". ARISE successful.","evolve");
+    setAriseTarget(null); setAriseAttempt(1); setArisePoolShadow(null);
+    const shadowName = arisePoolShadow ? arisePoolShadow.name : (data.shadow ? data.shadow.name : data.name);
+    setCinematic({kind:"boss",title:"ARISE",flavor:"The shadow has yielded.",bigText:shadowName,sub:data.dialogue?data.dialogue.defeat:"Arise.",reward:"+"+data.xp+" XP · Shadow extracted · "+(data.statKey||"")+" +"+(data.statGain||0),bossColor:data.color});
+    addLog("Shadow extracted: "+shadowName+". ARISE successful.","evolve");
     collectLore();
-    /* Wave 5: monarch item drop from secret boss defeat */
     const drop = rollMonarchDrop("secret_boss");
     if (drop) {
       setInventory(function(prev){ return prev.includes(drop.id)?prev:prev.concat([drop.id]); });
@@ -9485,10 +9634,10 @@ function App() {
     const next=ariseAttempt+1;
     if(next>3){
       sfx.sfxDefeat();
-      setAriseTarget(null); setAriseAttempt(1);
-      setCinematic({kind:"fail",title:"ARISE FAILED",bigText:"Shadow Lost",flavor:"Three attempts exhausted.",sub:"The shadow of "+ariseTarget.bossData.name+" has dissipated. It may return much later, or not at all.",reward:null});
-      addLog("ARISE failed 3 times. "+ariseTarget.bossData.name+"'s shadow dissipated.","warning");
-      /* Mark shadow as permanently lost for this session */
+      setAriseTarget(null); setAriseAttempt(1); setArisePoolShadow(null);
+      const lostName = arisePoolShadow ? arisePoolShadow.name : ariseTarget.bossData.name;
+      setCinematic({kind:"fail",title:"ARISE FAILED",bigText:"Shadow Lost",flavor:"Three attempts exhausted.",sub:"The shadow of "+lostName+" has dissipated. It may return, or not at all.",reward:null});
+      addLog("ARISE failed 3 times. "+lostName+"'s shadow dissipated.","warning");
       setBosses(function(prev){return prev.map(function(b,i){return i===ariseTarget.bossIndex?Object.assign({},b,{shadowLost:true}):b;});});
     } else {
       sfx.sfxDefeat();
@@ -9498,7 +9647,7 @@ function App() {
   }
 
   function handleAriseAbandon() {
-    setAriseTarget(null); setAriseAttempt(1);
+    setAriseTarget(null); setAriseAttempt(1); setArisePoolShadow(null);
     showToast("Extraction abandoned. Attempt not consumed.","info");
   }
 
@@ -9875,7 +10024,7 @@ function App() {
       {cutsceneGate&&<DungeonCutscene gate={cutsceneGate} onEnter={function(){const g=cutsceneGate; const mod=rollDungeonModifier(); setActiveModifier(mod); setCutsceneGate(null); if(mod.label){showToast("Modifier: "+mod.label,"warning");} if(g.rooms&&g.rooms.length>0){setDungeonChainGate(g);}else{completeDungeon(g,[],mod);}}} onAbort={function(){setCutsceneGate(null);setActiveModifier(null);showToast("Gate entry withdrawn.","info");}} />}
       {dungeonChainGate&&<DungeonChain gate={dungeonChainGate} modifier={activeModifier} onComplete={function(choices,mod,events){setDungeonChainGate(null);completeDungeon(dungeonChainGate,choices,mod||activeModifier,events||[]);setActiveModifier(null);}} onAbandon={function(){setDungeonChainGate(null);setActiveModifier(null);showToast("Dungeon abandoned.","warning");}} sfx={sfx} />}
       {accessDeniedBoss&&<AccessDeniedScreen boss={accessDeniedBoss} playerRank={rank} onClose={function(){setAccessDeniedBoss(null);}} />}
-      {ariseTarget&&<AriseScreen boss={ariseTarget.bossData} attemptNumber={ariseAttempt} onSuccess={handleAriseSuccess} onFail={handleAriseFail} onAbandon={handleAriseAbandon} sfx={sfx} />}
+      {ariseTarget&&<AriseScreen boss={ariseTarget.bossData} attemptNumber={ariseAttempt} onSuccess={handleAriseSuccess} onFail={handleAriseFail} onAbandon={handleAriseAbandon} sfx={sfx} extractionChance={arisePoolShadow?calcExtractionChance(arisePoolShadow,player,fame):undefined} />}
       {crypticVisible&&<CrypticNote message={crypticMessage} onDismiss={handleCrypticDismiss} />}
       {trialOpen&&<MonarchTrialScreen progress={trialProgress} onGoalTap={handleTrialGoalTap} onForfeit={handleTrialForfeit} />}
       {reawakeningActive&&<ReawakeningSequence playerName={player.name} onComplete={handleReawakeningComplete} />}
