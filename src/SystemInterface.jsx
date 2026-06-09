@@ -72,7 +72,8 @@ const HUNTER_CLASSES = [
     id: "fighter", name: "Fighter", icon: "⚔",
     desc: "Raw combat power and durability. Prioritizes Strength + Endurance.",
     primaryStats: ["Strength","Endurance"],
-    questFocus: ["pushups","burpees","endurance_run","pullups"],
+        questFocus: ["pushups","endurance_run","pullups"],
+
   },
   {
     id: "tank", name: "Tank", icon: "❖",
@@ -140,99 +141,26 @@ const GOAL_OPTIONS = [
    core[] = dynamic core exercises used on training days, chosen by goal+physique.
    Static holds (plank, hollow_hold) only appear in recovery contexts.
 --------------------------------------------------------------------------- */
+const CORE_4 = ["v_ups","suitcase_crunch","leg_raise","bicycle_crunch"];
+
 const GOAL_TRAINING_MAP = {
-  strength: {
-    training: ["pushups","pullups","dips"],
-    running:  "jog",
-    /* Core: basic anti-extension, suits strength focus */
-    core:     ["leg_raise","hollow_rocker","dead_bug"],
-    label:    "Strength Protocol",
-  },
-  aesthetics: {
-    training: ["pushups","pullups","dips"],
-    running:  "jog",
-    /* Core: high-rep visible ab work */
-    core:     ["v_ups","bicycle_crunch","toe_touch","suitcase_crunch","reverse_crunch"],
-    label:    "Hypertrophy Protocol",
-  },
-  calisthenics: {
-    training: ["pushups","pullups","dips","squats"],
-    running:  "jog",
-    /* Core: hollow body mechanics, foundational calisthenics core */
-    core:     ["hollow_rocker","v_ups","leg_raise","hanging_knee"],
-    label:    "Calisthenics Protocol",
-  },
-  speed: {
-    training: ["sprint_acc","sprint_interval","lunges"],
-    running:  "sprint_acc",
-    /* Core: hip flexor + explosive trunk for sprint support */
-    core:     ["hanging_knee","hanging_leg","mountain_climber","reverse_crunch"],
-    label:    "Speed Protocol",
-  },
-  athleticism: {
-    training: ["sprint_acc","squats","lunges","burpees"],
-    running:  "sprint_interval",
-    /* Core: rotational + explosive — full athletic core */
-    core:     ["v_ups","mountain_climber","hanging_knee","bicycle_crunch","hollow_rocker"],
-    label:    "Athleticism Protocol",
-  },
-  endurance: {
-    training: ["run","squats","lunges"],
-    running:  "run",
-    /* Core: anti-fatigue stability for runners */
-    core:     ["dead_bug","reverse_crunch","leg_raise","bicycle_crunch"],
-    label:    "Endurance Protocol",
-  },
-  core: {
-    training: ["pushups"],
-    running:  "jog",
-    /* Core: full dynamic ab circuit */
-    core:     ["v_ups","hanging_leg","bicycle_crunch","reverse_crunch","suitcase_crunch","toe_touch","hollow_rocker"],
-    label:    "Core Protocol",
-  },
-  weight_loss: {
-    training: ["burpees","squats","lunges"],
-    running:  "jog",
-    /* Core: high-rep metabolic core */
-    core:     ["mountain_climber","bicycle_crunch","reverse_crunch","v_ups"],
-    label:    "Fat Loss Protocol",
-  },
-  discipline: {
-    training: ["cold_shower","meditation","pushups"],
-    running:  "walk",
-    /* Core: controlled static supplemental only */
-    core:     ["dead_bug","hollow_rocker"],
-    label:    "Discipline Protocol",
-  },
-  confidence: {
-    training: ["pushups","meditation","cold_shower"],
-    running:  "jog",
-    /* Core: achievable, builds visible progress */
-    core:     ["bicycle_crunch","reverse_crunch","toe_touch"],
-    label:    "Confidence Protocol",
-  },
-  general: {
-    training: ["pushups","squats"],
-    running:  "jog",
-    /* Core: well-rounded dynamic circuit */
-    core:     ["reverse_crunch","bicycle_crunch","dead_bug","leg_raise"],
-    label:    "General Fitness Protocol",
-  },
+  strength:    { training:["pushups","pullups","dips"],              running:"jog",           core:CORE_4, label:"Strength Protocol"     },
+  aesthetics:  { training:["pushups","pullups","dips"],              running:"jog",           core:CORE_4, label:"Hypertrophy Protocol"   },
+  calisthenics:{ training:["pushups","pullups","dips","squats"],     running:"jog",           core:CORE_4, label:"Calisthenics Protocol"  },
+  speed:       { training:["sprint_acc","sprint_interval","lunges"], running:"sprint_acc",    core:CORE_4, label:"Speed Protocol"         },
+  athleticism: { training:["sprint_acc","squats","lunges"],          running:"sprint_interval",core:CORE_4, label:"Athleticism Protocol"  },
+  endurance:   { training:["run","squats","lunges"],                 running:"run",           core:CORE_4, label:"Endurance Protocol"     },
+  core:        { training:["pushups"],                               running:"jog",           core:CORE_4, label:"Core Protocol"          },
+  weight_loss: { training:["squats","lunges"],                       running:"jog",           core:CORE_4, label:"Fat Loss Protocol"      },
+  discipline:  { training:["cold_shower","meditation","pushups"],    running:"walk",          core:CORE_4, label:"Discipline Protocol"    },
+  confidence:  { training:["pushups","meditation","cold_shower"],    running:"jog",           core:CORE_4, label:"Confidence Protocol"    },
+  general:     { training:["pushups","squats"],                      running:"jog",           core:CORE_4, label:"General Fitness Protocol"},
 };
 
-/* ---------------------------------------------------------------------------
-   PHYSIQUE → CORE OVERRIDE
-   Physique selected during onboarding overrides the core exercise selection
-   when it differs meaningfully from the goal-based default.
---------------------------------------------------------------------------- */
 const PHYSIQUE_CORE_MAP = {
-  lean:       ["hanging_knee","mountain_climber","bicycle_crunch","reverse_crunch"],
-  massive:    ["leg_raise","v_ups","hollow_rocker","dead_bug"],
-  aesthetic:  ["v_ups","bicycle_crunch","toe_touch","suitcase_crunch","reverse_crunch"],
-  functional: ["mountain_climber","dead_bug","hanging_knee","hollow_rocker","v_ups"],
-  runner:     ["hanging_knee","reverse_crunch","dead_bug","mountain_climber"],
-  hybrid:     ["v_ups","reverse_crunch","bicycle_crunch","mountain_climber","dead_bug"],
+  lean:CORE_4, massive:CORE_4, aesthetic:CORE_4, functional:CORE_4, runner:CORE_4, hybrid:CORE_4,
 };
+
 
 /* ---------------------------------------------------------------------------
    CALISTHENICS EVALUATION TESTS (no squats per spec)
