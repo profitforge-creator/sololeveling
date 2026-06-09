@@ -2438,6 +2438,57 @@ const GUILDS = [
 ];
 
 /* ---------------------------------------------------------------------------
+   RIVAL HUNTERS — AI hunters that progress independently
+--------------------------------------------------------------------------- */
+const RIVALS_DATA = [
+  { id:"marcus_vale",  name:"Marcus Vale",   specialty:"Strength",    personality:"cold",
+    guild:"white_tiger",    color:"#f53d3d",     icon:"⚔",
+    baseLevel:28, baseFame:820,  combatRating:91,
+    desc:"Former military. Highest recorded physical output in the Association database.",
+    dialogue:{ ahead:"You are getting closer. Do not slow down.", behind:"I expected more from you by now.", surpassed:"...Noted." } },
+  { id:"aria_frost",   name:"Aria Frost",    specialty:"Speed",       personality:"composed",
+    guild:"phantom_hunters", color:"#a05df5",     icon:"➤",
+    baseLevel:24, baseFame:640,  combatRating:84,
+    desc:"Fastest gate clearance on record. Operates alone. Declines all raid invitations.",
+    dialogue:{ ahead:"Speed is not everything. But it is most things.", behind:"Catch up.", surpassed:"You are faster than I calculated." } },
+  { id:"kael_draven",  name:"Kael Draven",   specialty:"Assassin",    personality:"ruthless",
+    guild:"shadow_legion",  color:MONARCH_PURP,  icon:"◈",
+    baseLevel:30, baseFame:950,  combatRating:96,
+    desc:"Classified record. No public gate logs. Appears and disappears without registration.",
+    dialogue:{ ahead:"You should not be able to see me on this list.", behind:"Stay in your lane.", surpassed:"This was not supposed to happen." } },
+  { id:"nova_ashford", name:"Nova Ashford",  specialty:"Balanced",    personality:"analytical",
+    guild:"national_hunter", color:"#2ee88a",     icon:"✦",
+    baseLevel:22, baseFame:510,  combatRating:77,
+    desc:"Consistently in the top percentile across all stat categories. No single weakness.",
+    dialogue:{ ahead:"You have optimized well.", behind:"Your data is interesting.", surpassed:"My projections were incorrect. Updating." } },
+  { id:"ethan_cole",   name:"Ethan Cole",    specialty:"Tank",        personality:"direct",
+    guild:"crimson_raid",   color:"#f5b65d",     icon:"❖",
+    baseLevel:18, baseFame:380,  combatRating:68,
+    desc:"Known for surviving gates that killed others. Refuses to retreat.",
+    dialogue:{ ahead:"I am not going anywhere.", behind:"You have potential. Do not waste it.", surpassed:"Good. Keep going." } },
+  { id:"jin_yoo",      name:"Jin Yoo",       specialty:"Intelligence",personality:"strategic",
+    guild:"hunters_assoc",  color:"#f5b65d",     icon:"✸",
+    baseLevel:15, baseFame:260,  combatRating:58,
+    desc:"Clears gates through preparation and analysis rather than power.",
+    dialogue:{ ahead:"Knowledge is rank.", behind:"You are ahead. Interesting.", surpassed:"I misjudged your growth curve." } },
+  { id:"sol_raines",   name:"Sol Raines",    specialty:"Mage",        personality:"eccentric",
+    guild:"phantom_hunters", color:"#4db8ff",     icon:"◉",
+    baseLevel:20, baseFame:440,  combatRating:72,
+    desc:"Unclassified ability type. The System has attempted to categorize it four times and failed.",
+    dialogue:{ ahead:"The numbers do not explain you.", behind:"I see something building in your data.", surpassed:"There it is." } },
+];
+
+const RIVAL_WORLD_EVENTS = [
+  function(r){ return r.name+" cleared a "+["B","A","C"][Math.floor(Math.random()*3)]+"-Rank Gate."; },
+  function(r){ return r.name+" has been promoted within the "+r.guild.replace(/_/g," ")+"."; },
+  function(r){ return r.name+"'s fame rating increased."; },
+  function(r){ return r.name+" was seen entering a Red Gate."; },
+  function(r){ return r.name+" defeated a dungeon boss solo."; },
+  function(r){ return r.name+"'s combat rating was updated."; },
+  function(r){ return r.name+" rejected a recruitment offer."; },
+];
+
+/* ---------------------------------------------------------------------------
    AURA TYPES — derived from dominant stats
 --------------------------------------------------------------------------- */
 function getAuraType(stats, isMonarch, rankName) {
@@ -2833,7 +2884,7 @@ function getUnlockedSpecNodes(playerStats, unlockedIds) {
 const MENU_ITEMS = [
   "Dashboard","Daily Quest","Side Quests","Hunter Profile","Hunter Stats","Specialization",
   "Dungeon Gates","Boss Raids","Secret Encounters","Shadow Army","Guild","Inventory",
-  "Hunter Shop","Energy","System Log","Settings",
+  "Hunter Shop","Energy","Rankings","World Feed","System Log","Settings",
 ];
 
 /* ---------------------------------------------------------------------------
@@ -3247,1106 +3298,6 @@ const GLOBAL_CSS = `
     border-left-color: rgba(77,184,255,0.9);
     text-shadow: 0 0 12px rgba(77,184,255,0.6);
   }
-  .sl-menu-item:active { background: rgba(77,184,255,0.12); }
-
-  /* ═══════════════════════════════════════════════════
-     LEVEL BADGE — .sl-level-badge
-     Large centered level number, like the STATUS screen
-  ═══════════════════════════════════════════════════ */
-  .sl-level-badge {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    color: #c8eeff;
-    text-shadow: 0 0 20px rgba(77,184,255,0.8), 0 0 50px rgba(77,184,255,0.4);
-    line-height: 1;
-  }
-
-  /* ═══════════════════════════════════════════════════
-     CIRCUIT BACKGROUND TEXTURE
-  ═══════════════════════════════════════════════════ */
-  .sl-circuit-bg {
-    background-image:
-      linear-gradient(rgba(77,184,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(77,184,255,0.04) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
-
-  /* ═══════════════════════════════════════════════════
-     NOTIFICATION (SYSTEM ALERT STYLE)
-     Matches Image 3 — dark panel, cyan/green highlight
-  ═══════════════════════════════════════════════════ */
-  .sl-notification {
-    position: relative;
-    background: linear-gradient(160deg, rgba(3,8,22,0.97), rgba(2,6,16,0.99));
-    border: 1px solid rgba(77,184,255,0.4);
-    box-shadow: 0 0 30px rgba(77,184,255,0.15), inset 0 0 30px rgba(77,184,255,0.03);
-    overflow: hidden;
-  }
-  .sl-notification::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(77,184,255,0.015) 3px,rgba(77,184,255,0.015) 4px);
-    pointer-events: none;
-  }
-
-  /* ═══════════════════════════════════════════════════
-     TABS — .sl-tab-bar
-  ═══════════════════════════════════════════════════ */
-  .sl-tab {
-    padding: 6px 14px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 9px;
-    letter-spacing: 0.2em;
-    cursor: pointer;
-    background: transparent;
-    border: 1px solid rgba(77,184,255,0.25);
-    color: #5a7a98;
-    text-transform: uppercase;
-    -webkit-tap-highlight-color: transparent;
-    transition: all 0.15s;
-  }
-  .sl-tab.active {
-    background: rgba(77,184,255,0.12);
-    border-color: rgba(77,184,255,0.7);
-    color: #c8eeff;
-    text-shadow: 0 0 8px rgba(77,184,255,0.5);
-  }
-`;
-
-
-function StyleTag() { return <style dangerouslySetInnerHTML={{ __html: GLOBAL_CSS }} />; }
-
-/* ===========================================================================
-   AUDIO ENGINE
-   =========================================================================== */
-function useAudio() {
-  const ctxRef = useRef(null); const enabledRef = useRef(true);
-  function getCtx() { if (!ctxRef.current) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) ctxRef.current = new AC(); } if (ctxRef.current && ctxRef.current.state === "suspended") ctxRef.current.resume(); return ctxRef.current; }
-  function tone(freq, dur, type, gain, slideTo) { if (!enabledRef.current) return; const ctx = getCtx(); if (!ctx) return; const osc = ctx.createOscillator(); const g = ctx.createGain(); osc.type = type || "sine"; osc.frequency.setValueAtTime(freq, ctx.currentTime); if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, ctx.currentTime + dur); g.gain.setValueAtTime(0.0001, ctx.currentTime); g.gain.exponentialRampToValueAtTime(gain || 0.06, ctx.currentTime + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur); osc.connect(g); g.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + dur + 0.02); }
-  function sfxClick()    { tone(420, 0.08, "triangle", 0.04, 620); }
-  function sfxOpen()     { tone(300, 0.18, "sine", 0.05, 720); tone(150, 0.22, "sine", 0.03, 360); }
-  function sfxComplete() { tone(523, 0.12, "sine", 0.05); setTimeout(function() { tone(784, 0.18, "sine", 0.05); }, 90); }
-  function sfxLevelUp()  { [523,659,784,1046].forEach(function(f,i) { setTimeout(function() { tone(f, 0.3, "triangle", 0.06); }, i*110); }); }
-  function sfxRankUp()   { [392,523,659,880,1318].forEach(function(f,i) { setTimeout(function() { tone(f, 0.45, "sawtooth", 0.045); }, i*140); }); }
-  function sfxAlert()    { tone(180, 0.4, "sawtooth", 0.05, 90); setTimeout(function() { tone(180, 0.4, "sawtooth", 0.05, 90); }, 220); }
-  function sfxEvolve()   { [220,277,330,440,554,660].forEach(function(f,i) { setTimeout(function() { tone(f, 0.5, "sine", 0.05); }, i*100); }); }
-  function sfxDefeat()   { tone(120, 0.6, "sawtooth", 0.06, 50); }
-  function sfxBoss()     { tone(80, 0.5, "sawtooth", 0.08, 60); tone(160, 0.3, "square", 0.04, 120); }
-  function sfxSecret()   { [330,415,523,660].forEach(function(f,i) { setTimeout(function() { tone(f, 0.4, "sine", 0.04); }, i*80); }); }
-  function sfxDenied()   { tone(200, 0.15, "sawtooth", 0.06, 100); setTimeout(function() { tone(150, 0.2, "sawtooth", 0.06, 80); }, 180); }
-  function sfxArise()    { [110,138,165,220,277,330,440].forEach(function(f,i) { setTimeout(function() { tone(f, 0.8, "sine", 0.07); }, i*120); }); }
-  function setEnabled(on) { enabledRef.current = on; }
-  return { sfxClick, sfxOpen, sfxComplete, sfxLevelUp, sfxRankUp, sfxAlert, sfxEvolve, sfxDefeat, sfxBoss, sfxSecret, sfxDenied, sfxArise, setEnabled };
-}
-
-/* ===========================================================================
-   PARTICLE FIELD
-   =========================================================================== */
-function ParticleField({ color, density }) {
-  const canvasRef = useRef(null); const rafRef = useRef(null);
-  useEffect(function() {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext("2d"); let w = 0, h = 0;
-    function resize() { w = canvas.width = canvas.offsetWidth; h = canvas.height = canvas.offsetHeight; }
-    resize(); window.addEventListener("resize", resize);
-    const count = density || 50;
-    const particles = Array.from({ length: count }, function() { return { x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.6+0.4, vy: -(Math.random()*0.35+0.08), vx: (Math.random()-0.5)*0.12, a: Math.random()*0.45+0.1 }; });
-    function draw() { ctx.clearRect(0,0,w,h); for (let i=0;i<particles.length;i++) { const p=particles[i]; p.y+=p.vy; p.x+=p.vx; if(p.y<-6){p.y=h+6;p.x=Math.random()*w;} if(p.x<-6)p.x=w+6; if(p.x>w+6)p.x=-6; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=color||"rgba(77,184,255,0.5)"; ctx.globalAlpha=p.a; ctx.shadowBlur=6; ctx.shadowColor=color||"rgba(77,184,255,0.8)"; ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0; } rafRef.current=requestAnimationFrame(draw); }
-    draw();
-    return function() { cancelAnimationFrame(rafRef.current); window.removeEventListener("resize",resize); };
-  }, [color, density]);
-  return <canvas ref={canvasRef} style={{ position:"fixed",inset:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:0,opacity:0.65 }} />;
-}
-
-/* ===========================================================================
-   CINEMATIC OVERLAYS
-   =========================================================================== */
-function LevelUpOverlay({ level, accent, onDone }) {
-  const t = useRef(null);
-  useEffect(function() { t.current = setTimeout(function() { if (typeof onDone==="function") onDone(); }, 2400); return function() { clearTimeout(t.current); }; }, []);
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:7000,display:"flex",alignItems:"center",justifyContent:"center",pointerEvents:"none",background:"radial-gradient(circle at center,"+accent+"22 0%,transparent 65%)" }}>
-      <div style={{ position:"absolute",width:300,height:300,borderRadius:"50%",border:"2px solid "+accent,animation:"level-up-burst 1s ease forwards" }} />
-      {Array.from({length:12}).map(function(_,i) { return <div key={i} style={{ position:"absolute",width:3,height:90,background:"linear-gradient(to bottom,"+accent+",transparent)",transformOrigin:"center bottom",transform:"rotate("+(i*30)+"deg) translateY(-100px)",animation:"level-up-ray 1s ease forwards",animationDelay:(i*20)+"ms" }} />; })}
-      <div style={{ position:"relative",textAlign:"center",animation:"fade-in-up 0.4s ease forwards" }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.5em",color:accent,marginBottom:8 }}>LEVEL UP</div>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:72,fontWeight:900,color:"#fff",textShadow:"0 0 30px "+accent }}>{level}</div>
-      </div>
-    </div>
-  );
-}
-
-function RankUpOverlay({ rank, onDone }) {
-  const t = useRef(null);
-  useEffect(function() { t.current = setTimeout(function() { if (typeof onDone==="function") onDone(); }, 4200); return function() { clearTimeout(t.current); }; }, []);
-  /* Safe: rank may be null before data loads */
-  if (!rank) return null;
-  const rankMsg = getSystemMessage(SYSTEM_DIALOGUE.rankUp, rank.minRankIndex || 0);
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:7100,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",background:"radial-gradient(ellipse at center,"+rank.color+"33 0%,rgba(0,0,0,0.94) 70%)",animation:"rank-flash 4.2s ease forwards",pointerEvents:"none" }}>
-      {/* Aura rings */}
-      <div className="aura-surge" style={{ position:"absolute",width:440,height:440,borderRadius:"50%",border:"1px solid "+rank.color+"55" }} />
-      <div style={{ position:"absolute",width:320,height:320,borderRadius:"50%",border:"2px solid "+rank.color+"88",animation:"aura-ring-2 2s ease 0.5s forwards" }} />
-      {/* Text */}
-      <div style={{ position:"relative",textAlign:"center",padding:"0 32px" }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.5em",color:rank.color,marginBottom:16,animation:"fade-in 0.5s ease 0.1s both" }}>
-          RANK ASCENSION
-        </div>
-        <div className="rank-text-surge" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:52,fontWeight:900,color:rank.color,textShadow:"0 0 40px "+rank.color+",0 0 80px "+rank.color+"55",marginBottom:8 }}>
-          {rank.name}
-        </div>
-        <div style={{ fontSize:16,color:"#dbe6ff",marginBottom:20,animation:"fade-in 0.5s ease 0.6s both" }}>
-          {rank.title}
-        </div>
-        {/* System message about the rank */}
-        <div style={{ fontSize:12,color:rank.color+"aa",fontStyle:"italic",maxWidth:340,margin:"0 auto",animation:"fade-in 0.5s ease 1s both",lineHeight:1.6 }}>
-          {rankMsg}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   CINEMATIC POPUP
-   =========================================================================== */
-function CinematicPopup({ data, onClose, sfx }) {
-  const color = data.kind==="fail"?"#f53d3d":data.kind==="awakening"?"#a05df5":data.kind==="shadow"?MONARCH_PURP:data.kind==="victory"?"#2ee88a":data.kind==="boss"?data.bossColor||"#f53d3d":data.kind==="hidden"?"#f5b65d":SYS_BLUE;
-  useEffect(function() { if (sfx && typeof sfx.sfxOpen==="function") sfx.sfxOpen(); }, []);
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:8500,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(3,5,12,0.88)",backdropFilter:"blur(6px)",padding:"24px 16px" }}>
-      <div style={{ maxWidth:460,width:"100%",border:"1px solid "+color+"88",background:"linear-gradient(160deg,rgba(10,16,28,0.99),rgba(5,8,18,0.99))",boxShadow:"0 0 60px "+color+"33",position:"relative",overflow:"hidden",animation:"cinematic-in 0.35s ease forwards" }}>
-        <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.012) 2px,rgba(255,255,255,0.012) 4px)" }} />
-        <div style={{ padding:"32px 28px",position:"relative" }}>
-          <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:20 }}>
-            <div style={{ width:38,height:38,border:"2px solid "+color,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 12px "+color+"88",flexShrink:0 }}><span style={{ color,fontWeight:900,fontSize:18,fontFamily:"'Orbitron',sans-serif",lineHeight:1 }}>!</span></div>
-            <div style={{ padding:"7px 20px",border:"1.5px solid "+color,boxShadow:"0 0 14px "+color+"55" }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:15,fontWeight:700,color:"#eaf2ff",letterSpacing:"0.1em" }}>{data.title||"NOTIFICATION"}</span></div>
-          </div>
-          {data.flavor&&<p style={{ textAlign:"center",fontSize:13,color:"#cfe0f5",marginBottom:16 }}>{data.flavor}</p>}
-          {data.bigText&&<div style={{ textAlign:"center",fontFamily:"'Orbitron',sans-serif",fontSize:26,fontWeight:900,color,marginBottom:12,textShadow:"0 0 20px "+color }}>{data.bigText}</div>}
-          {data.sub&&<p style={{ textAlign:"center",fontSize:14,color:"#9fb8d8",lineHeight:1.7,marginBottom:16 }}>{data.sub}</p>}
-          {data.reward&&<div style={{ padding:"8px 14px",marginBottom:20,border:"1px solid "+color+"44",background:color+"11",textAlign:"center",fontSize:13,fontWeight:700,color }}>{data.reward}</div>}
-          <div style={{ display:"flex",gap:10,justifyContent:"center" }}>
-            {data.onAccept&&<button onClick={function(){if(typeof data.onAccept==="function")data.onAccept();onClose();}} style={{ padding:"10px 28px",background:color,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.15em" }}>ACCEPT</button>}
-            <button onClick={onClose} style={{ padding:"10px 28px",background:"transparent",border:"1px solid "+color,color,cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.15em" }}>{data.onAccept?"DISMISS":"ACKNOWLEDGE"}</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   BOSS ACCESS DENIED SCREEN
-   =========================================================================== */
-function AccessDeniedScreen({ boss, playerRank, onClose }) {
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:8600,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.95)",backdropFilter:"blur(8px)",padding:"24px 16px" }}>
-      <div className="fade-in-up" style={{ maxWidth:440,width:"100%",border:"1px solid "+GLITCH_RED+"88",background:"linear-gradient(160deg,rgba(20,5,5,0.99),rgba(10,0,0,0.99))",boxShadow:"0 0 60px "+GLITCH_RED+"33",padding:"36px 28px",textAlign:"center" }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.5em",color:GLITCH_RED,marginBottom:16 }} className="shake">⚠ ACCESS DENIED ⚠</div>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:900,color:"#eaf2ff",marginBottom:20 }}>{boss.name}</div>
-        <div style={{ padding:"16px",border:"1px solid "+GLITCH_RED+"44",background:"rgba(255,34,68,0.06)",marginBottom:20 }}>
-          <p style={{ fontSize:13,color:GLITCH_RED,lineHeight:1.8 }}>
-            Your current rank is insufficient.<br />
-            <strong>Required: {boss.minRankName} (LV {boss.minLevel})</strong><br />
-            <strong>Current: {playerRank.name}</strong>
-          </p>
-        </div>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:28,fontWeight:900,color:GLITCH_RED,marginBottom:8 }}>{boss.survivalChance}%</div>
-        <div style={{ fontSize:11,color:"#8a6070",marginBottom:20 }}>Hunter survival probability at current rank</div>
-        <p style={{ fontSize:12,color:"#7e98ba",marginBottom:24,lineHeight:1.7 }}>
-          Raise your rank before challenging this entity. The System will not permit a hunter of your current caliber to enter this encounter.
-        </p>
-        <button onClick={onClose} style={{ padding:"10px 28px",background:"transparent",border:"1px solid "+GLITCH_RED+"66",color:GLITCH_RED+"cc",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.2em" }}>WITHDRAW</button>
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   SHADOW EXTRACTION — ARISE SYSTEM
-   3 attempts. Dramatic. Permanent failure on 3 misses.
-   =========================================================================== */
-function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx }) {
-  const [progress, setProgress] = useState({});
-  const [done, setDone] = useState(false);
-  const challenge = boss.ariseChallenge;
-
-  const allDone = challenge.goals.every(function(g) { return (progress[g.id]||0) >= g.target; });
-
-  function tapGoal(goalId) {
-    const goal = challenge.goals.find(function(g) { return g.id === goalId; });
-    if (!goal || (progress[goalId]||0) >= goal.target || done) return;
-    if (sfx && typeof sfx.sfxComplete === "function") sfx.sfxComplete();
-    const next = Object.assign({}, progress, { [goalId]: goal.target });
-    setProgress(next);
-    if (challenge.goals.every(function(g) { return (next[g.id]||0) >= g.target; })) {
-      setDone(true);
-      if (sfx && typeof sfx.sfxArise === "function") sfx.sfxArise();
-      setTimeout(function() { if (typeof onSuccess === "function") onSuccess(); }, 2200);
-    }
-  }
-
-  const attemptsLeft = 3 - attemptNumber + 1;
-
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:9100,background:"radial-gradient(ellipse at center,#0a0015 0%,#000 100%)",overflow:"auto",padding:"20px 16px 60px" }}>
-      <div style={{ position:"fixed",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(155,48,255,0.05) 2px,rgba(155,48,255,0.05) 4px)" }} />
-      <div style={{ position:"fixed",left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+MONARCH_PURP+"88,transparent)",animation:"scan-line 2.5s linear infinite" }} />
-
-      <div style={{ position:"relative",zIndex:2,maxWidth:540,margin:"0 auto",paddingTop:24 }}>
-        {/* Header */}
-        <div style={{ textAlign:"center",marginBottom:28 }}>
-          <div className="arise-pulse" style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",width:64,height:64,borderRadius:"50%",border:"2px solid "+MONARCH_PURP,marginBottom:16,fontSize:24,color:MONARCH_PURP }}>◉</div>
-          <div className="monarch-text" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:32,fontWeight:900,color:MONARCH_PURP,marginBottom:8 }}>A R I S E</div>
-          <div style={{ fontSize:14,color:"#8a6ab0",lineHeight:1.6 }}>
-            {boss.name} · Shadow Extraction Attempt {attemptNumber}/3<br />
-            <span style={{ color:attemptsLeft<=1?GLITCH_RED:"#8a6ab0" }}>{attemptsLeft} attempt{attemptsLeft!==1?"s":""} remaining after this</span>
-          </div>
-        </div>
-
-        {/* Warning */}
-        <div style={{ border:"1px solid "+MONARCH_PURP+"55",background:"rgba(155,48,255,0.06)",padding:"12px 16px",marginBottom:20,fontSize:12,color:"#8a6ab0",lineHeight:1.7 }}>
-          Complete the challenge below to extract {boss.name}'s shadow. Failure costs one attempt. Three failures and the shadow is gone.
-        </div>
-
-        {/* Challenge card */}
-        <div style={{ border:"1px solid "+MONARCH_PURP+"88",background:"linear-gradient(160deg,rgba(15,5,30,0.99),rgba(8,0,18,0.99))",marginBottom:16 }}>
-          <div style={{ padding:"16px 20px",borderBottom:"1px solid "+MONARCH_PURP+"33" }}>
-            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:MONARCH_PURP }}>{challenge.name}</div>
-          </div>
-          <div style={{ padding:"16px 20px" }}>
-            {challenge.goals.map(function(g) {
-              const cur = progress[g.id]||0; const gdone = cur >= g.target; const canTap = !gdone && !done;
-              return (
-                <div key={g.id} onClick={function(){tapGoal(g.id);}}
-                  style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(155,48,255,0.1)",cursor:canTap?"pointer":"default" }}>
-                  <span style={{ fontSize:14,fontWeight:600,color:gdone?"#5a3a7a":"#dbe6ff" }}>{g.name}</span>
-                  <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <span style={{ fontSize:12,color:gdone?"#2ee88a":"#8a6ab0" }}>[{cur}/{g.target}{g.unit}]</span>
-                    <div style={{ width:20,height:20,border:"1.5px solid "+(gdone?"#2ee88a":MONARCH_PURP+"77"),background:gdone?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#2ee88a" }}>{gdone?"✓":""}</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Success state */}
-        {done && (
-          <div className="fade-in" style={{ textAlign:"center",padding:"20px 0" }}>
-            <div className="monarch-text" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,color:MONARCH_PURP }}>Shadow extraction successful...</div>
-          </div>
-        )}
-
-        {/* Fail button */}
-        {!done && (
-          <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-            <button onClick={onFail} style={{ width:"100%",padding:"12px",background:"transparent",border:"1px solid #f53d3d55",color:"#f53d3d88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.2em" }}>
-              FAIL ATTEMPT — I could not complete this
-            </button>
-            <button onClick={onAbandon} style={{ width:"100%",padding:"10px",background:"transparent",border:"1px solid #2a3a55",color:"#5b7aa0",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10 }}>
-              Abandon extraction (attempt not consumed)
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   DESIGN PRIMITIVES
-   =========================================================================== */
-function Win({ children, ac, style, className, glitching }) {
-  const c = ac || SYS_BLUE;
-  const borderColor = c + "55";
-  const glowColor   = c + "22";
-  return (
-    <div
-      className={"sl-panel" + (glitching ? " glitching" : "") + (className ? " " + className : "")}
-      style={{
-        border: "1px solid " + borderColor,
-        boxShadow: "0 0 24px -8px " + glowColor + ", inset 0 0 20px rgba(0,0,0,0.4)",
-        ...(style || {})
-      }}
-    >
-      <div className="sl-corners" />
-      {children}
-    </div>
-  );
-}
-function SL({ text, ac }) {
-  const c = ac || SYS_BLUE;
-  return (
-    <div style={{ marginBottom:20 }}>
-      <div className="sl-header-bar" style={{ borderBottom:"1px solid "+c+"44", background:"linear-gradient(90deg,"+c+"18,"+c+"06)" }}>
-        <div style={{ width:20,height:20,border:"1.5px solid "+c,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-          <span style={{ color:c,fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:900,lineHeight:1 }}>!</span>
-        </div>
-        <span className="sl-header-title" style={{ color:c === SYS_BLUE ? "#c8eeff" : c, textShadow:"0 0 12px "+c+"aa,0 0 28px "+c+"44" }}>{text}</span>
-      </div>
-    </div>
-  );
-}
-function Bang({ size, color }) {
-  const s = size || 40;
-  const c = color || SYS_BLUE;
-  return (
-    <div style={{
-      width:s, height:s,
-      border:"1.5px solid "+c,
-      display:"flex", alignItems:"center", justifyContent:"center",
-      flexShrink:0,
-      background: c+"0d",
-      boxShadow:"0 0 10px "+c+"44, inset 0 0 8px "+c+"11",
-      position:"relative",
-    }}>
-      {/* Corner dots */}
-      <div style={{ position:"absolute",top:2,left:2,width:3,height:3,background:c,opacity:0.5 }} />
-      <div style={{ position:"absolute",bottom:2,right:2,width:3,height:3,background:c,opacity:0.5 }} />
-      <span style={{ color:c, fontWeight:900, fontSize:s*0.44, fontFamily:"'Orbitron',sans-serif", lineHeight:1, textShadow:"0 0 8px "+c }}>!</span>
-    </div>
-  );
-}
-function XpBar({ xp, level, ac }) {
-  const safeXp    = (typeof xp    === "number" && isFinite(xp))    ? xp    : 0;
-  const safeLevel = (typeof level === "number" && isFinite(level) && level >= 1) ? level : 1;
-  const needed    = xpForLevel(safeLevel);
-  const pct       = needed > 0 ? clamp((safeXp / needed) * 100, 0, 100) : 0;
-  const c         = ac || SYS_BLUE;
-  return (
-    <div style={{ display:"flex",alignItems:"center",gap:10,flex:1 }}>
-      <span style={{ color:c+"99",fontSize:9,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",whiteSpace:"nowrap",flexShrink:0 }}>XP</span>
-      <div className="sl-bar-track" style={{ flex:1 }}>
-        <div className="sl-bar-fill" style={{ width:pct+"%", background:"linear-gradient(90deg,"+c+","+c+"cc)", boxShadow:"0 0 6px "+c+"88" }} />
-      </div>
-      <span style={{ color:c+"88",fontSize:9,fontFamily:"'Orbitron',sans-serif",whiteSpace:"nowrap",flexShrink:0 }}>{safeXp}/{needed}</span>
-    </div>
-  );
-}
-function Toast({ message, kind, ac, isMonarch }) {
-  const c = isMonarch ? MONARCH_PURP
-    : kind==="xp"      ? "#f5b65d"
-    : kind==="ach"     ? "#a05df5"
-    : kind==="evolve"  ? "#2ee88a"
-    : kind==="glitch"  ? GLITCH_RED
-    : kind==="warning" ? "#ff8800"
-    : kind==="denied"  ? "#f53d3d"
-    : kind==="system"  ? SYS_BLUE
-    : ac || SYS_BLUE;
-  return (
-    <div style={{
-      position:"fixed", bottom:28, left:"50%",
-      transform:"translateX(-50%)",
-      zIndex:9999,
-      background:"linear-gradient(90deg,rgba(2,6,18,0.98),rgba(3,8,22,0.98))",
-      border:"1px solid "+c+"88",
-      boxShadow:"0 0 24px "+c+"44, 0 0 4px "+c+"22",
-      padding:"9px 20px",
-      display:"flex", alignItems:"center", gap:10,
-      minWidth:240, maxWidth:420,
-      pointerEvents:"none",
-      animation:"toast-in 0.28s ease forwards",
-    }}>
-      {/* Corner accents */}
-      <div style={{ position:"absolute",top:0,left:0,width:8,height:8,borderTop:"1.5px solid "+c,borderLeft:"1.5px solid "+c }} />
-      <div style={{ position:"absolute",bottom:0,right:0,width:8,height:8,borderBottom:"1.5px solid "+c,borderRight:"1.5px solid "+c }} />
-      <div style={{ width:18,height:18,border:"1.5px solid "+c,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0 }}>
-        <span style={{ color:c,fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:900,lineHeight:1 }}>!</span>
-      </div>
-      <span style={{ color:isMonarch?c:"#d0eeff",fontSize:12,fontFamily:"'Rajdhani',sans-serif",fontWeight:600,letterSpacing:"0.05em",lineHeight:1.3 }}>{message}</span>
-    </div>
-  );
-}
-function GlitchOverlay({ intensity }) {
-  if (!intensity) return null;
-  return (<div style={{ position:"fixed",inset:0,zIndex:5000,pointerEvents:"none" }}><div style={{ position:"absolute",left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+GLITCH_RED+"44,transparent)",animation:"scan-line 3s linear infinite",opacity:intensity*0.6 }} /><div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at center,transparent 60%,"+MONARCH_PURP+Math.round(intensity*0.12*255).toString(16).padStart(2,"0")+" 100%)" }} />{intensity>0.5&&<div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(155,48,255,0.015) 3px,rgba(155,48,255,0.015) 4px)" }} />}</div>);
-}
-function CrypticNote({ message, onDismiss }) {
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:8000,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(3,0,8,0.88)",backdropFilter:"blur(4px)",padding:24 }}>
-      <div className="fade-in-up" style={{ maxWidth:440,width:"100%",border:"1px solid "+GLITCH_RED+"88",background:"linear-gradient(160deg,rgba(20,5,30,0.99),rgba(5,0,10,0.99))",padding:"32px 28px",position:"relative",overflow:"hidden" }}>
-        <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(155,48,255,0.04) 2px,rgba(155,48,255,0.04) 4px)" }} />
-        <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:20 }}>
-          <div className="pulse-glow" style={{ width:36,height:36,border:"2px solid "+GLITCH_RED,display:"flex",alignItems:"center",justifyContent:"center" }}><span style={{ color:GLITCH_RED,fontWeight:900,fontSize:16,fontFamily:"'Orbitron',sans-serif" }}>!</span></div>
-          <div style={{ padding:"6px 16px",border:"1px solid "+GLITCH_RED+"66" }}><span className="flicker" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:GLITCH_RED,letterSpacing:"0.2em" }}>UNKNOWN SYSTEM ACTIVITY</span></div>
-        </div>
-        <p className="flicker" style={{ fontSize:15,color:"#c8a0e8",lineHeight:1.7,marginBottom:24,fontFamily:"'Rajdhani',sans-serif" }}>{message}</p>
-        <div style={{ fontFamily:"monospace",fontSize:10,color:MONARCH_DIM+"88",marginBottom:20,lineHeight:1.8 }}>{"> SCAN_ID: "+Math.floor(Math.random()*9999999).toString(16).toUpperCase()}<br />{"> ORIGIN: [REDACTED]"}</div>
-        <button onClick={onDismiss} style={{ width:"100%",padding:"10px 0",background:"transparent",border:"1px solid "+GLITCH_RED+"55",color:GLITCH_RED+"aa",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.2em" }}>ACKNOWLEDGE</button>
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   HARDCORE ONBOARDING — AWAKENING REGISTRATION
-   Step 0: "Do you wish to become a Hunter?"
-   Step 1: Name
-   Step 2: Class
-   Step 3: Physique
-   Step 4: Goals
-   Step 5–10: Calisthenics evaluation tests
-   Step 11: Evaluating cinematic
-   Step 12: Rank reveal
-   =========================================================================== */
-function AwakeningRegistration({ onComplete }) {
-  const [step, setStep] = useState(0);
-  const [name, setName] = useState("");
-  const [chosenClass, setChosenClass] = useState(null);
-  const [chosenPhysique, setChosenPhysique] = useState(null);
-  const [chosenGoals, setChosenGoals] = useState([]);
-  const [evalScores, setEvalScores] = useState({});
-  const [evalInput, setEvalInput] = useState("");
-  const [evaluating, setEvaluating] = useState(false);
-  const [evalResult, setEvalResult] = useState(null);
-  const evalTimerRef = useRef(null);
-
-  const currentTestIndex = step - 5; /* steps 5-10 are tests */
-  const currentTest = EVAL_TESTS[currentTestIndex] || null;
-
-  function toggleGoal(id) {
-    setChosenGoals(function(prev) {
-      if (prev.includes(id)) return prev.filter(function(g) { return g !== id; });
-      if (prev.length >= 3) return prev; /* max 3 goals */
-      return prev.concat([id]);
-    });
-  }
-
-  function submitEvalScore() {
-    if (!evalInput || !currentTest) return;
-    const val = parseFloat(evalInput) || 0;
-    const next = Object.assign({}, evalScores, { [currentTest.id]: val });
-    setEvalScores(next);
-    setEvalInput("");
-    if (currentTestIndex + 1 < EVAL_TESTS.length) {
-      setStep(function(s) { return s + 1; });
-    } else {
-      /* All tests done — evaluate */
-      setEvaluating(true);
-      setStep(11);
-      evalTimerRef.current = setTimeout(function() {
-        const result = computeEvaluation(next);
-        setEvalResult(result);
-        setEvaluating(false);
-        setStep(12);
-      }, 5000);
-    }
-  }
-
-  useEffect(function() { return function() { if (evalTimerRef.current) clearTimeout(evalTimerRef.current); }; }, []);
-
-  function finish() {
-    if (!evalResult) return;
-    const physique = PHYSIQUES.find(function(p) { return p.id === chosenPhysique; });
-    const baseStats = Object.assign({}, evalResult.stats);
-    if (physique) {
-      Object.keys(physique.statBonus).forEach(function(k) { baseStats[k] = (baseStats[k]||10) + physique.statBonus[k]; });
-    }
-    onComplete({
-      name: name.trim() || "Hunter",
-      hunterClass: chosenClass || "unknown",
-      physique: chosenPhysique || "hybrid",
-      goals: chosenGoals,
-      startLevel: evalResult.startLevel,
-      stats: baseStats,
-    });
-  }
-
-  const accentMap = { 0:"#4db8ff", 1:"#4db8ff", 2:"#4db8ff", 3:"#a05df5", 4:"#f5b65d" };
-  const accent = currentTest ? currentTest.stat === "Strength" ? "#f53d3d" : currentTest.stat === "Agility" ? "#4db8ff" : currentTest.stat === "Discipline" ? "#a05df5" : "#6fae6f" : accentMap[Math.min(step,4)] || SYS_BLUE;
-
-  return (
-    <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px 16px" }}>
-      <Win ac={accent} className="fade-in-up" style={{ maxWidth:520,width:"100%" }}>
-        <div style={{ padding:"36px 32px" }}>
-
-          {/* STEP 0: Consent */}
-          {step===0&&(
-            <div className="fade-in">
-              <div style={{ textAlign:"center",marginBottom:32 }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.4em",color:SYS_BLUE,marginBottom:12 }}>SYSTEM NOTIFICATION</div>
-                <div style={{ height:1,background:"linear-gradient(90deg,transparent,"+SYS_BLUE+",transparent)",marginBottom:24 }} />
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:700,color:"#eaf2ff",lineHeight:1.4,marginBottom:16 }}>
-                  You have acquired the qualification to become a Player.
-                </div>
-                <p style={{ fontSize:14,color:"#9fb8d8",lineHeight:1.8,marginBottom:8 }}>
-                  The System has detected latent potential within your physical vessel. A Hunter Awakening event has been triggered.
-                </p>
-                <p style={{ fontSize:13,color:"#5b7aa0",lineHeight:1.7 }}>
-                  From this point forward, all physical effort will be tracked, measured, and rewarded. Nothing is given freely. Everything must be earned.
-                </p>
-              </div>
-              <p style={{ textAlign:"center",fontSize:16,color:"#dbe6ff",fontWeight:600,marginBottom:24 }}>Do you wish to become a Hunter?</p>
-              <div style={{ display:"flex",gap:12 }}>
-                <button onClick={function(){setStep(1);}} style={{ flex:1,padding:"14px",background:SYS_BLUE,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,letterSpacing:"0.15em" }}>I ACCEPT</button>
-                <button onClick={function(){setStep(1);}} style={{ flex:1,padding:"14px",background:"transparent",border:"1px solid #2a3a55",color:"#5b7aa0",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11 }}>
-                  I have no choice
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 1: Name */}
-          {step===1&&(
-            <div className="fade-in">
-              <div style={{ textAlign:"center",marginBottom:24 }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:SYS_BLUE,marginBottom:8 }}>HUNTER AWAKENING REGISTRATION</div>
-                <div style={{ height:1,background:"linear-gradient(90deg,transparent,"+SYS_BLUE+",transparent)" }} />
-              </div>
-              <p style={{ color:"#9fb8d8",fontSize:15,textAlign:"center",marginBottom:20 }}>Designate your hunter name.</p>
-              <input autoFocus value={name} onChange={function(e){setName(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter"&&name.trim())setStep(2);}} placeholder="Enter name..."
-                style={{ width:"100%",background:"transparent",border:"none",borderBottom:"2px solid "+SYS_BLUE,color:"#eaf2ff",fontSize:22,textAlign:"center",padding:"8px 0",outline:"none",fontFamily:"'Orbitron',sans-serif",marginBottom:24 }} />
-              <button disabled={!name.trim()} onClick={function(){setStep(2);}} style={{ width:"100%",padding:"12px",background:name.trim()?SYS_BLUE:"#1a2438",color:name.trim()?"#03050c":"#5b7aa0",fontWeight:700,fontSize:13,letterSpacing:"0.2em",border:"none",cursor:name.trim()?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM</button>
-            </div>
-          )}
-
-          {/* STEP 2: Class */}
-          {step===2&&(
-            <div className="fade-in">
-              <div style={{ marginBottom:20,textAlign:"center" }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:SYS_BLUE,marginBottom:8 }}>CLASSIFICATION</div>
-                <div style={{ height:1,background:"linear-gradient(90deg,transparent,"+SYS_BLUE+",transparent)",marginBottom:12 }} />
-                <p style={{ fontSize:14,color:"#9fb8d8" }}>Select your Hunter Class.</p>
-              </div>
-              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16 }}>
-                {HUNTER_CLASSES.map(function(cls) {
-                  const sel = chosenClass===cls.id;
-                  return (
-                    <button key={cls.id} onClick={function(){setChosenClass(cls.id);}}
-                      style={{ padding:"12px 10px",background:sel?"rgba(77,184,255,0.12)":"transparent",border:sel?"1px solid "+SYS_BLUE:"1px solid rgba(77,184,255,0.2)",color:sel?"#eaf2ff":"#9fb8d8",cursor:"pointer",textAlign:"left" }}>
-                      <div style={{ fontSize:16,marginBottom:2 }}>{cls.icon}</div>
-                      <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:sel?SYS_BLUE:"#9fb8d8" }}>{cls.name}</div>
-                      <div style={{ fontSize:10,color:"#5b7aa0",marginTop:2,lineHeight:1.4 }}>{cls.desc.split(".")[0]}</div>
-                    </button>
-                  );
-                })}
-              </div>
-              <button disabled={!chosenClass} onClick={function(){setStep(3);}} style={{ width:"100%",padding:"12px",background:chosenClass?SYS_BLUE:"#1a2438",color:chosenClass?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenClass?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM CLASS</button>
-            </div>
-          )}
-
-          {/* STEP 3: Physique */}
-          {step===3&&(
-            <div className="fade-in">
-              <div style={{ marginBottom:20,textAlign:"center" }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:"#a05df5",marginBottom:8 }}>PHYSIQUE TARGET</div>
-                <div style={{ height:1,background:"linear-gradient(90deg,transparent,#a05df5,transparent)",marginBottom:12 }} />
-                <p style={{ fontSize:14,color:"#9fb8d8" }}>Select your dream physique.</p>
-              </div>
-              <div style={{ display:"flex",flexDirection:"column",gap:8,marginBottom:16 }}>
-                {PHYSIQUES.map(function(p) {
-                  const sel = chosenPhysique===p.id;
-                  return (
-                    <button key={p.id} onClick={function(){setChosenPhysique(p.id);}}
-                      style={{ padding:"12px 14px",background:sel?"rgba(160,93,245,0.1)":"transparent",border:sel?"1px solid #a05df5":"1px solid rgba(160,93,245,0.2)",color:"#dbe6ff",cursor:"pointer",textAlign:"left",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-                      <div>
-                        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:sel?"#a05df5":"#9fb8d8" }}>{p.name}</div>
-                        <div style={{ fontSize:11,color:"#5b7aa0",marginTop:2 }}>{p.desc}</div>
-                      </div>
-                      {sel&&<span style={{ color:"#a05df5",fontSize:16 }}>✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
-              <button disabled={!chosenPhysique} onClick={function(){setStep(4);}} style={{ width:"100%",padding:"12px",background:chosenPhysique?"#a05df5":"#1a2438",color:chosenPhysique?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenPhysique?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM PHYSIQUE</button>
-            </div>
-          )}
-
-          {/* STEP 4: Goals */}
-          {step===4&&(
-            <div className="fade-in">
-              <div style={{ marginBottom:20,textAlign:"center" }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:"#f5b65d",marginBottom:8 }}>OBJECTIVES</div>
-                <div style={{ height:1,background:"linear-gradient(90deg,transparent,#f5b65d,transparent)",marginBottom:12 }} />
-                <p style={{ fontSize:14,color:"#9fb8d8" }}>Select up to 3 primary goals.</p>
-              </div>
-              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16 }}>
-                {GOAL_OPTIONS.map(function(g) {
-                  const sel = chosenGoals.includes(g.id);
-                  return (
-                    <button key={g.id} onClick={function(){toggleGoal(g.id);}}
-                      style={{ padding:"10px 12px",background:sel?"rgba(245,182,93,0.1)":"transparent",border:sel?"1px solid #f5b65d":"1px solid rgba(245,182,93,0.2)",color:sel?"#eaf2ff":"#9fb8d8",cursor:"pointer",display:"flex",alignItems:"center",gap:8 }}>
-                      <span style={{ fontSize:16 }}>{g.icon}</span>
-                      <span style={{ fontSize:13,fontWeight:sel?700:400 }}>{g.name}</span>
-                      {sel&&<span style={{ color:"#f5b65d",marginLeft:"auto" }}>✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ fontSize:11,color:"#5b7aa0",textAlign:"center",marginBottom:16 }}>{chosenGoals.length}/3 selected</div>
-              <button disabled={chosenGoals.length===0} onClick={function(){setStep(5);}} style={{ width:"100%",padding:"12px",background:chosenGoals.length>0?"#f5b65d":"#1a2438",color:chosenGoals.length>0?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenGoals.length>0?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>BEGIN EVALUATION</button>
-            </div>
-          )}
-
-          {/* STEPS 5-10: Evaluation tests */}
-          {step>=5&&step<=10&&currentTest&&(
-            <div className="fade-in" key={step}>
-              <div style={{ textAlign:"center",marginBottom:8 }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:accent,marginBottom:8 }}>PHYSICAL EVALUATION</div>
-                <div style={{ height:1,background:"linear-gradient(90deg,transparent,"+accent+",transparent)",marginBottom:16 }} />
-                <div style={{ display:"flex",justifyContent:"center",gap:6,marginBottom:16 }}>
-                  {EVAL_TESTS.map(function(_,i) { return <div key={i} style={{ width:8,height:8,borderRadius:"50%",background:i<currentTestIndex?"#2ee88a":i===currentTestIndex?accent:"#1a2438" }} />; })}
-                </div>
-              </div>
-              <div style={{ textAlign:"center",marginBottom:20 }}>
-                <div style={{ fontSize:28,marginBottom:8 }}>{currentTest.icon}</div>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:"#eaf2ff",marginBottom:6 }}>{currentTest.name}</div>
-                <div style={{ fontSize:12,color:"#5b7aa0" }}>
-                  {currentTest.invert ? "Enter your time in seconds (lower = better)" : "Enter your maximum reps / hold time"}
-                </div>
-              </div>
-              <input autoFocus type="number" min="0" value={evalInput} onChange={function(e){setEvalInput(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter"&&evalInput)submitEvalScore();}}
-                placeholder="0"
-                style={{ width:"100%",background:"transparent",border:"none",borderBottom:"2px solid "+accent,color:"#eaf2ff",fontSize:32,textAlign:"center",padding:"8px 0",outline:"none",fontFamily:"'Orbitron',sans-serif",marginBottom:24 }} />
-              <button disabled={!evalInput} onClick={submitEvalScore} style={{ width:"100%",padding:"12px",background:evalInput?accent:"#1a2438",color:evalInput?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:evalInput?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>
-                {currentTestIndex+1<EVAL_TESTS.length?"SUBMIT & CONTINUE":"COMPLETE EVALUATION"}
-              </button>
-            </div>
-          )}
-
-          {/* STEP 11: Evaluating cinematic */}
-          {step===11&&(
-            <div className="fade-in" style={{ textAlign:"center",padding:"20px 0" }}>
-              <div style={{ width:80,height:80,borderRadius:"50%",border:"3px solid "+SYS_BLUE,borderTopColor:"transparent",animation:"shake 0.3s linear infinite",margin:"0 auto 24px",boxShadow:"0 0 30px "+SYS_BLUE }} />
-              <div className="flicker" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,color:SYS_BLUE,letterSpacing:"0.2em",marginBottom:12 }}>EVALUATING HUNTER...</div>
-              <div style={{ fontFamily:"monospace",fontSize:11,color:"#5b7aa0",lineHeight:2 }}>
-                <div className="fade-in">Analyzing combat potential...</div>
-                <div className="fade-in" style={{ animationDelay:"0.8s" }}>Measuring aura output...</div>
-                <div className="fade-in" style={{ animationDelay:"1.6s" }}>Classifying latent abilities...</div>
-                <div className="fade-in" style={{ animationDelay:"2.4s" }}>Assigning rank...</div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 12: Rank reveal */}
-          {step===12&&evalResult&&(
-            <div className="fade-in" style={{ textAlign:"center" }}>
-              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.4em",color:evalResult.startRank.color,marginBottom:16 }}>RANK ASSIGNED</div>
-              <div style={{ width:120,height:120,borderRadius:"50%",border:"3px solid "+evalResult.startRank.color,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",boxShadow:"0 0 40px "+evalResult.startRank.color+"66" }}>
-                <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:40,fontWeight:900,color:evalResult.startRank.color }}>{evalResult.startRank.name[0]}</span>
-              </div>
-              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:28,fontWeight:900,color:evalResult.startRank.color,marginBottom:4 }}>{evalResult.startRank.name}</div>
-              <div style={{ fontSize:14,color:"#9fb8d8",marginBottom:20 }}>{evalResult.startRank.title}</div>
-              <div style={{ padding:"12px 16px",border:"1px solid "+evalResult.startRank.color+"44",background:evalResult.startRank.color+"11",marginBottom:24,fontSize:12,color:"#9fb8d8",lineHeight:1.7 }}>
-                Your physical evaluation has been processed. Your starting rank reflects your current capabilities. It can only be raised through earned effort — never purchased, never given.
-              </div>
-              <button onClick={finish} style={{ width:"100%",padding:"14px",background:evalResult.startRank.color,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,letterSpacing:"0.15em" }}>ENTER THE SYSTEM</button>
-            </div>
-          )}
-
-        </div>
-      </Win>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   QUEST CARD
-   =========================================================================== */
-function QuestCard({ quest, progress, isDone, onGoalTap, ac }) {
-  const color = ac || SYS_BLUE;
-  return (
-    <div className="sl-panel fade-in" style={{ border:"1px solid "+color+"55", boxShadow:"0 0 40px -10px "+color+"33, inset 0 0 30px rgba(0,0,0,0.4)" }}>
-      <div className="sl-corners" />
-
-      {/* QUEST INFO header bar — matches Image 1 exactly */}
-      <div style={{ display:"flex",alignItems:"center",gap:0,borderBottom:"1px solid "+color+"44",background:"linear-gradient(90deg,"+color+"0d,transparent)" }}>
-        <div style={{ width:52,display:"flex",alignItems:"center",justifyContent:"center",borderRight:"1px solid "+color+"33",padding:"11px 0" }}>
-          <Bang size={32} color={color} />
-        </div>
-        <div style={{ flex:1,padding:"11px 16px",background:"linear-gradient(90deg,"+color+"18,"+color+"06)" }}>
-          <span className="sl-header-title" style={{ color:"#e0f4ff",textShadow:"0 0 12px "+color+"aa,0 0 30px "+color+"44",fontSize:15,letterSpacing:"0.3em" }}>
-            QUEST INFO
-          </span>
-        </div>
-      </div>
-
-      <div style={{ padding:"20px 24px" }}>
-        {/* Quest arrival line */}
-        <p style={{ textAlign:"center",fontSize:13,color:"#9ab8d4",marginBottom:4,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
-          [Daily Quest: <strong style={{ color:"#d0eeff",textShadow:"0 0 8px "+color+"88" }}>{quest.label}</strong> has arrived.]
-          {quest.tier>0&&<span style={{ fontSize:10,color:color,marginLeft:6 }}>[TIER {quest.tier}]</span>}
-          {quest.dayType&&<span style={{ fontSize:9,color:quest.dayType==="rest"?"#f5b65d":quest.dayType==="recovery"?"#2ee88a":color,marginLeft:8,letterSpacing:"0.1em",fontFamily:"'Orbitron',sans-serif" }}>[{quest.dayType.toUpperCase()}]</span>}
-        </p>
-
-        {/* Cyan divider */}
-        <div style={{ height:1,margin:"14px 0",background:"linear-gradient(90deg,transparent,"+color+"99,transparent)" }} />
-
-        {/* GOALS header */}
-        <div style={{ textAlign:"center",marginBottom:16,fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.35em",color:"#c8eeff",textShadow:"0 0 10px "+color+"66" }}>GOALS</div>
-
-        {/* Goal rows */}
-        <div style={{ maxWidth:440,margin:"0 auto" }}>
-          {quest.goals.map(function(goal) {
-            const cur = Math.max(0, parseInt(progress[goal.id], 10) || 0);
-            const done = cur >= goal.target;
-            const canTap = !done && !isDone;
-            return (
-              <div key={goal.id}
-                onClick={function(){ if(canTap && typeof onGoalTap==="function") onGoalTap(goal.id); }}
-                className={"sl-goal-row" + (canTap?" tappable":"")}>
-                <span style={{ fontSize:15,fontFamily:"'Rajdhani',sans-serif",fontWeight:600,color:done?"#3a6a4a":"#d8eeff",letterSpacing:"0.05em" }}>{goal.name}</span>
-                <div style={{ display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
-                  <span style={{ fontSize:13,fontFamily:"'Rajdhani',sans-serif",fontWeight:700,color:done?"#2ee88a":"#7ab8d4",letterSpacing:"0.05em" }}>[{cur}/{goal.target}{goal.unit}]</span>
-                  <div style={{
-                    width:22, height:22,
-                    border:"1.5px solid "+(done?"#2ee88a":color+"66"),
-                    background:done?"rgba(46,232,138,0.12)":"transparent",
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    fontSize:12,color:"#2ee88a",
-                    boxShadow:done?"0 0 8px rgba(46,232,138,0.4)":"none",
-                    transition:"all 0.2s",
-                  }}>{done?"✓":""}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Bottom divider + warning */}
-        <div style={{ height:1,margin:"16px 0 12px",background:"linear-gradient(90deg,transparent,"+color+"44,transparent)" }} />
-        {isDone
-          ? <p style={{ textAlign:"center",fontSize:13,fontWeight:700,color:"#2ee88a",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em",textShadow:"0 0 10px rgba(46,232,138,0.5)" }}>◈ QUEST COMPLETE — Rewards granted.</p>
-          : <p className="sl-warning" style={{ textAlign:"center" }}>
-              WARNING: Failure to complete the daily quest will result in an appropriate <strong>penalty.</strong>
-            </p>
-        }
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   HIDDEN QUEST POPUP
-   =========================================================================== */
-function HiddenQuestPopup({ quest, onAccept, onDecline }) {
-  const rc = quest.rarity==="LEGENDARY"?"#f5b65d":quest.rarity==="RARE"?"#a05df5":"#4db8ff";
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:8600,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(3,5,12,0.9)",backdropFilter:"blur(8px)",padding:"24px 16px" }}>
-      <div className="fade-in-up" style={{ maxWidth:480,width:"100%",border:"1px solid "+rc+"88",background:"linear-gradient(160deg,rgba(10,14,26,0.99),rgba(5,8,18,0.99))",boxShadow:"0 0 60px "+rc+"33",position:"relative",overflow:"hidden" }}>
-        <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.012) 2px,rgba(255,255,255,0.012) 4px)" }} />
-        <div style={{ padding:"28px 26px",position:"relative" }}>
-          <div style={{ display:"flex",justifyContent:"flex-end",marginBottom:12 }}><span style={{ fontSize:10,padding:"2px 10px",border:"1px solid "+rc,color:rc,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em" }}>{quest.rarity}</span></div>
-          <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:16 }}><Bang size={36} color={rc} /><div style={{ padding:"6px 18px",border:"1.5px solid "+rc }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff" }}>HIDDEN QUEST</span></div></div>
-          <p style={{ textAlign:"center",fontSize:13,color:"#cfe0f5",marginBottom:6 }}>[Hidden Quest: <strong style={{ color:rc }}>{quest.label}</strong> has appeared.]</p>
-          <p style={{ textAlign:"center",fontSize:12,color:"#7e98ba",lineHeight:1.6,marginBottom:16 }}>{quest.flavor}</p>
-          <div style={{ height:1,margin:"14px 0",background:"linear-gradient(90deg,transparent,"+rc+"88,transparent)" }} />
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,textAlign:"center",marginBottom:12,color:"#eaf2ff",letterSpacing:"0.2em" }}>GOALS</div>
-          <div style={{ marginBottom:16 }}>
-            {quest.goals.map(function(g) { return (<div key={g.id} style={{ display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid rgba(77,184,255,0.08)" }}><span style={{ fontSize:13,color:"#dbe6ff" }}>{g.name}</span><span style={{ fontSize:12,color:"#9fb8d8" }}>[0/{g.target}{g.unit}]</span></div>); })}
-          </div>
-          <div style={{ padding:"8px 14px",marginBottom:16,border:"1px solid "+rc+"44",background:rc+"11",textAlign:"center",fontSize:13,fontWeight:700,color:rc }}>+{quest.xp} XP · {quest.statKey} +{quest.statGain}</div>
-          <p style={{ textAlign:"center",fontSize:11,color:"#5b7aa0",marginBottom:16 }}>This quest will not wait. Accept now or it disappears.</p>
-          <div style={{ display:"flex",gap:10 }}>
-            <button onClick={onAccept} style={{ flex:1,padding:"11px",background:rc,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.15em" }}>ACCEPT</button>
-            <button onClick={onDecline} style={{ flex:1,padding:"11px",background:"transparent",border:"1px solid "+rc+"55",color:rc+"99",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11 }}>DECLINE</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   ACTIVE HIDDEN QUEST CARD
-   =========================================================================== */
-function HiddenQuestCard({ quest, progress, onGoalTap, ac }) {
-  const rc = quest.rarity==="LEGENDARY"?"#f5b65d":quest.rarity==="RARE"?"#a05df5":"#4db8ff";
-  const allDone = quest.goals.every(function(g){return (progress[g.id]||0)>=g.target;});
-  return (
-    <Win ac={rc} style={{ marginBottom:16 }}>
-      <div style={{ padding:"16px 20px" }}>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:8 }}><Bang size={24} color={rc} /><div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:"#eaf2ff" }}>{quest.label}</div><div style={{ fontSize:10,color:rc }}>HIDDEN · {quest.rarity}</div></div></div>
-          {allDone&&<span style={{ fontSize:11,color:"#2ee88a",fontWeight:700 }}>COMPLETE ✓</span>}
-        </div>
-        <div style={{ height:1,background:rc+"33",marginBottom:10 }} />
-        {quest.goals.map(function(g){
-          const cur=progress[g.id]||0; const done=cur>=g.target; const canTap=!done&&!allDone;
-          return (<div key={g.id} onClick={function(){if(canTap&&typeof onGoalTap==="function")onGoalTap(quest.id,g.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(77,184,255,0.07)",cursor:canTap?"pointer":"default" }}><span style={{ fontSize:13,fontWeight:600,color:done?"#5a7a5a":"#dbe6ff" }}>{g.name}</span><div style={{ display:"flex",alignItems:"center",gap:6 }}><span style={{ fontSize:11,color:done?"#2ee88a":"#9fb8d8" }}>[{cur}/{g.target}{g.unit}]</span><div style={{ width:14,height:14,border:"1.5px solid "+(done?"#2ee88a":rc+"66"),background:done?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#2ee88a" }}>{done?"✓":""}</div></div></div>);
-        })}
-      </div>
-    </Win>
-  );
-}
-
-/* ===========================================================================
-   DUNGEON CHAIN
-   =========================================================================== */
-function DungeonChain({ gate, onComplete, onAbandon, sfx, modifier }) {
-  const [roomIndex, setRoomIndex]   = useState(0);
-  const [choices, setChoices]       = useState([]);
-  const [done, setDone]             = useState(false);
-  const [activeEvent, setActiveEvent] = useState(null); /* dungeon event between rooms */
-  const [collectedEvents, setCollectedEvents] = useState([]);
-  const rooms = gate.rooms || [];
-  const currentRoom = rooms[roomIndex] || null;
-  const mod = modifier || DUNGEON_MODIFIERS[0];
-
-  function handleChoice(choice) {
-    if (sfx && typeof sfx.sfxComplete==="function") sfx.sfxComplete();
-    const next = choices.concat([choice]);
-    setChoices(next);
-    if (roomIndex+1 < rooms.length) {
-      /* Roll dungeon event between rooms */
-      const event = rollDungeonEvent();
-      if (event) { setActiveEvent(event); }
-      else { setRoomIndex(function(r){return r+1;}); }
-    } else {
-      setDone(true);
-      setTimeout(function(){if(typeof onComplete==="function")onComplete(next, mod, collectedEvents);},1200);
-    }
-  }
-
-  function handleEventCollect() {
-    if (!activeEvent) return;
-    setCollectedEvents(function(prev){ return prev.concat([activeEvent]); });
-    setActiveEvent(null);
-    setRoomIndex(function(r){return r+1;});
-  }
-
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:8700,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(3,5,12,0.93)",backdropFilter:"blur(8px)",padding:"24px 16px" }}>
-      <div style={{ maxWidth:520,width:"100%",border:"1px solid "+gate.color+"88",background:"linear-gradient(160deg,rgba(8,14,26,0.99),rgba(4,8,18,0.99))",position:"relative",overflow:"hidden" }}>
-        <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.01) 2px,rgba(255,255,255,0.01) 4px)" }} />
-        <div style={{ padding:"28px 28px 24px",position:"relative" }}>
-          {/* Modifier badge */}
-          {mod.label && (
-            <div style={{ padding:"5px 12px", marginBottom:12, border:"1px solid "+mod.color+"88", background:mod.color+"0d", display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ fontFamily:"'Orbitron',sans-serif", fontSize:9, letterSpacing:"0.2em", color:mod.color, fontWeight:700 }}>⚠ {mod.label}</span>
-              <span style={{ fontSize:11, color:"#9fb8d8" }}>{mod.desc}</span>
-              {mod.xpMod > 1 && <span style={{ fontSize:9, color:"#2ee88a", marginLeft:"auto", whiteSpace:"nowrap" }}>XP ×{mod.xpMod}</span>}
-            </div>
-          )}
-
-          {/* Dungeon event interrupt */}
-          {activeEvent && (
-            <div className="fade-in" style={{ textAlign:"center" }}>
-              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:activeEvent.color,marginBottom:10 }} className="dng-warn">
-                ⚡ {activeEvent.label}
-              </div>
-              <p style={{ fontSize:13,color:"#9fb8d8",lineHeight:1.7,marginBottom:14 }}>{activeEvent.desc}</p>
-              <div style={{ padding:"8px 12px",border:"1px solid "+activeEvent.color+"44",background:activeEvent.color+"0a",fontSize:12,color:activeEvent.color,fontWeight:700,marginBottom:16 }}>{activeEvent.outcome}</div>
-              <button onClick={handleEventCollect} style={{ padding:"10px 28px",background:activeEvent.color,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
-                COLLECT & CONTINUE
-              </button>
-            </div>
-          )}
-
-          {/* Normal dungeon room content */}
-          {!activeEvent && (
-            <>
-              <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:16,paddingBottom:14,borderBottom:"1px solid "+gate.color+"44" }}>
-                <div style={{ padding:"3px 10px",border:"1px solid "+gate.color,fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:gate.color,letterSpacing:"0.15em" }}>{gate.rank}-RANK</div>
-                <div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff" }}>{gate.name}</div><div style={{ fontSize:11,color:"#5b7aa0" }}>Room {roomIndex+1} of {rooms.length}</div></div>
-              </div>
-              {!done&&currentRoom&&(
-                <div className="fade-in" key={roomIndex}>
-                  <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,fontWeight:700,color:gate.color,marginBottom:10 }}>{currentRoom.title}</div>
-                  <p style={{ fontSize:13,color:"#9fb8d8",lineHeight:1.7,marginBottom:20 }}>{currentRoom.desc}</p>
-                  <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-                    {currentRoom.choices.map(function(c){
-                      return (<button key={c.id} onClick={function(){handleChoice(c);}} style={{ textAlign:"left",padding:"14px 16px",background:"rgba(77,184,255,0.04)",border:"1px solid "+gate.color+"44",color:"#dbe6ff",cursor:"pointer",fontSize:13,lineHeight:1.5 }}><div>{c.text}</div><div style={{ fontSize:11,color:gate.color,marginTop:4 }}>→ {c.outcome}</div></button>);
-                    })}
-                  </div>
-                </div>
-              )}
-              {done&&<div className="fade-in" style={{ textAlign:"center",padding:"20px 0" }}><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,color:gate.color,marginBottom:8 }}>DUNGEON COMPLETE</div><p style={{ fontSize:13,color:"#9fb8d8" }}>Collecting rewards...</p></div>}
-              {!done&&<button onClick={onAbandon} style={{ marginTop:16,width:"100%",padding:"10px",background:"transparent",border:"1px solid #f53d3d33",color:"#f53d3d66",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.15em" }}>ABANDON DUNGEON</button>}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   BOSS DIALOGUE BOX
-   =========================================================================== */
-function BossDialogueBox({ boss, bossState }) {
-  const hpPct = bossState.currentHp / bossState.maxHp;
-  const line = bossState.currentHp<=0 ? boss.dialogue.defeat : hpPct<=0.34 ? pickRandom(boss.dialogue.low) : hpPct<=0.67 ? pickRandom(boss.dialogue.mid) : pickRandom(boss.dialogue.intro);
-  return (<div className="dialogue-in" style={{ padding:"10px 14px",marginBottom:12,border:"1px solid "+boss.color+"44",background:boss.color+"08",borderLeft:"3px solid "+boss.color,fontSize:13,color:"#c8d8f0",lineHeight:1.6,fontStyle:"italic" }}>{line}</div>);
-}
-
-/* ===========================================================================
-   MONARCH TRIAL
-   =========================================================================== */
-function MonarchTrialScreen({ progress, onGoalTap, onForfeit }) {
-  const completedCount = MONARCH_TRIAL_GOALS.filter(function(g){return (progress[g.id]||0)>=g.target;}).length;
-  const allDone = completedCount===MONARCH_TRIAL_GOALS.length;
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:9000,background:"radial-gradient(ellipse at center,"+MONARCH_DARK+" 0%,#000 100%)",overflow:"auto",padding:"20px 16px 60px" }}>
-      <div style={{ position:"fixed",inset:0,pointerEvents:"none",zIndex:1,background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(155,48,255,0.06) 2px,rgba(155,48,255,0.06) 4px)" }} />
-      <div style={{ position:"fixed",left:0,right:0,height:2,zIndex:2,background:"linear-gradient(90deg,transparent,"+MONARCH_PURP+"88,transparent)",animation:"scan-line 2s linear infinite" }} />
-      <div style={{ position:"relative",zIndex:3,maxWidth:600,margin:"0 auto" }}>
-        <div style={{ textAlign:"center",marginBottom:32,paddingTop:16 }}>
-          <div className="shake" style={{ display:"inline-block",fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.5em",color:GLITCH_RED,marginBottom:12 }}>⚠ EMERGENCY QUEST ⚠</div>
-          <div className="monarch-text" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:28,fontWeight:900,color:MONARCH_PURP,lineHeight:1.2,marginBottom:8 }}>MONARCH TRIAL</div>
-          <div style={{ fontSize:14,color:"#8a6ab0",lineHeight:1.7,maxWidth:400,margin:"0 auto" }}>You have met the minimum conditions.<br />A hidden path has revealed itself.<br />Complete all objectives within this session.</div>
-        </div>
-        <div style={{ border:"1px solid "+GLITCH_RED+"66",background:"rgba(255,34,68,0.06)",padding:"12px 16px",marginBottom:24 }}>
-          <p style={{ color:GLITCH_RED,fontSize:12,lineHeight:1.7 }}><strong>WARNING:</strong> One-day only. Failure removes this path. You will not know when — or if — it returns.</p>
-        </div>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,padding:"10px 16px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)" }}>
-          <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,color:MONARCH_DIM }}>TRIAL PROGRESS</span>
-          <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:MONARCH_PURP }}>{completedCount} / {MONARCH_TRIAL_GOALS.length}</span>
-        </div>
-        <div style={{ border:"1px solid "+MONARCH_PURP+"55",background:"linear-gradient(160deg,rgba(20,5,35,0.98),rgba(8,0,16,0.99))",marginBottom:20 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:12,padding:"14px 20px",borderBottom:"1px solid "+MONARCH_PURP+"44" }}><Bang size={34} color={MONARCH_PURP} /><div style={{ padding:"5px 18px",border:"1px solid "+MONARCH_PURP }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff" }}>QUEST INFO</span></div></div>
-          <div style={{ padding:"12px 20px 4px",textAlign:"center" }}><p style={{ color:"#c8a0e8",fontSize:13 }}>[Emergency Quest: <strong style={{ color:MONARCH_PURP }}>Monarch Trial</strong> has arrived.]</p></div>
-          <div style={{ height:1,margin:"12px 20px",background:"linear-gradient(90deg,transparent,"+MONARCH_PURP+"88,transparent)" }} />
-          <div style={{ textAlign:"center",padding:"0 20px 12px",fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,letterSpacing:"0.22em",color:"#eaf2ff" }}>GOALS</div>
-          <div style={{ padding:"0 20px 20px" }}>
-            {MONARCH_TRIAL_GOALS.map(function(goal){
-              const cur=progress[goal.id]||0; const done=cur>=goal.target; const canTap=!done&&!allDone;
-              return (<div key={goal.id} onClick={function(){if(canTap&&typeof onGoalTap==="function")onGoalTap(goal.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(155,48,255,0.12)",cursor:canTap?"pointer":"default" }}><span style={{ fontSize:14,fontWeight:600,color:done?"#5a3a7a":"#dbe6ff" }}>{goal.name}</span><div style={{ display:"flex",alignItems:"center",gap:8 }}><span style={{ fontSize:12,color:done?"#2ee88a":"#8a6ab0" }}>[{cur}/{goal.target}{goal.unit}]</span><div style={{ width:20,height:20,border:"1.5px solid "+(done?"#2ee88a":MONARCH_PURP+"77"),background:done?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#2ee88a" }}>{done?"✓":""}</div></div></div>);
-            })}
-          </div>
-          <div style={{ borderTop:"1px solid "+MONARCH_PURP+"33",padding:"12px 20px" }}>
-            {allDone?<p style={{ textAlign:"center",fontSize:13,fontWeight:700,color:MONARCH_PURP }}>◉ MONARCH TRIAL COMPLETE — You are ready.</p>:<p style={{ textAlign:"center",fontSize:11,color:GLITCH_RED+"cc",lineHeight:1.6 }}><strong>WARNING:</strong> Failure to complete all objectives will result in loss of the Monarch path.</p>}
-          </div>
-        </div>
-        {!allDone&&<button onClick={onForfeit} style={{ width:"100%",padding:"12px",background:"transparent",border:"1px solid "+GLITCH_RED+"55",color:GLITCH_RED+"88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.2em" }}>FORFEIT TRIAL — Accept defeat</button>}
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   REAWAKENING
-   =========================================================================== */
-function ReawakeningSequence({ playerName, onComplete }) {
-  const [step, setStep] = useState(0);
-  const t = useRef(null);
-  const phases = [{dur:2000,msg:null},{dur:2500,msg:"Something inside your body has changed."},{dur:2500,msg:"You have surpassed the limits of ordinary hunters."},{dur:3000,msg:"Monarch Authority Detected."},{dur:2000,msg:null}];
-  useEffect(function(){ if(step>=phases.length){if(typeof onComplete==="function")onComplete();return;} t.current=setTimeout(function(){setStep(function(s){return s+1;});},phases[step].dur); return function(){clearTimeout(t.current);}; },[step]);
-  return (
-    <div style={{ position:"fixed",inset:0,zIndex:10000,background:step<2?"radial-gradient(ellipse at center,#0d0010 0%,#000 100%)":"radial-gradient(ellipse at center,#1a0030 0%,#0a0015 60%,#000 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",transition:"background 1.5s ease",overflow:"hidden" }}>
-      <div style={{ position:"fixed",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(155,48,255,0.06) 2px,rgba(155,48,255,0.06) 4px)" }} />
-      {step>=2&&<div style={{ position:"absolute",width:500,height:500,borderRadius:"50%",border:"2px solid "+MONARCH_PURP+"33",animation:"aura-eruption 1s ease forwards, monarch-breathe 3s ease-in-out 1s infinite" }} />}
-      {step>=3&&<div style={{ position:"absolute",width:350,height:350,borderRadius:"50%",border:"1px solid "+MONARCH_PURP+"55",animation:"aura-ring-2 1.5s ease forwards" }} />}
-      <div className={step===1?"shake":""} style={{ position:"relative",textAlign:"center",padding:"0 32px" }}>
-        {step===0&&<div className="fade-in" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.5em",color:MONARCH_DIM }}><span className="blink">■</span> REAWAKENING...</div>}
-        {step>=1&&step<phases.length&&phases[step-1]&&phases[step-1].msg&&<p className="fade-in monarch-text" style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:18,color:"#d0a0ff",letterSpacing:"0.08em",lineHeight:1.8,marginBottom:24,maxWidth:420 }}>{phases[step-1].msg}</p>}
-        {step>=4&&<div className="fade-in"><div className="monarch-text" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:36,fontWeight:900,color:MONARCH_PURP,marginBottom:12 }}>MONARCH</div><div style={{ fontSize:16,color:"#c8a0e8" }}>{playerName} · Ruler of the Dead</div></div>}
-      </div>
-    </div>
-  );
-}
-
-/* ===========================================================================
-   TOP HUD + SIDEBAR
-   =========================================================================== */
-function TopHud({ player, rank, onMenuToggle, menuOpen, isMonarch }) {
-  const c = isMonarch ? MONARCH_PURP : rank.color;
-  const activeTitleData = HUNTER_TITLES.find(function(t){return t.id===(player.activeTitle||"awakened");}) || HUNTER_TITLES[0];
-  const titleColor = activeTitleData ? TITLE_RARITY_COLOR[activeTitleData.rarity] || c : c;
-  return (
-    <div
-      className={isMonarch ? "monarch-breathe" : ""}
-      style={{
-        position:"sticky", top:0, zIndex:100,
-        padding:"8px 16px",
-        display:"flex", alignItems:"center", justifyContent:"space-between", gap:12,
-        background: isMonarch
-          ? "linear-gradient(90deg,rgba(13,0,22,0.96),rgba(8,0,14,0.96))"
-          : "linear-gradient(90deg,rgba(2,6,18,0.95),rgba(3,8,22,0.95))",
-        borderBottom:"1px solid "+c+"44",
-        backdropFilter:"blur(16px)",
-        boxShadow:"0 2px 20px rgba(0,0,0,0.6), 0 1px 0 "+c+"22",
-      }}
-    >
-      {/* Rank badge + name */}
-      <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
-        <div className={isMonarch?"pulse-glow":""} style={{
-          width:34, height:34,
-          border:"1.5px solid "+c,
-          background: c+"0d",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontFamily:"'Orbitron',sans-serif", fontWeight:900, fontSize:12, color:c,
-          flexShrink:0,
-          boxShadow:"0 0 12px "+c+"44",
-          position:"relative",
-        }}>
-          <div style={{ position:"absolute",top:2,left:2,width:3,height:1,background:c,opacity:0.5 }} />
-          <div style={{ position:"absolute",bottom:2,right:2,width:3,height:1,background:c,opacity:0.5 }} />
-          {isMonarch?"◉":rank.name[0]}
-        </div>
-        <div style={{ minWidth:0 }}>
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:"#d0eeff",lineHeight:1.1,letterSpacing:"0.05em",textShadow:"0 0 10px "+c+"55" }}>{player.name}</div>
-          {activeTitleData && <div style={{ fontSize:8,color:titleColor,letterSpacing:"0.15em",marginBottom:1,opacity:0.85 }}>{activeTitleData.name}</div>}
-          <div style={{ fontSize:9,color:c+"cc",letterSpacing:"0.1em",fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
-            {isMonarch?"[SHADOW MONARCH]":"["+rank.name+"] LV "+player.level}
-          </div>
-        </div>
-      </div>
-
-      {/* XP bar */}
-      <div style={{ flex:1,maxWidth:360,display:"flex",alignItems:"center" }}>
-        <XpBar xp={player.xp} level={player.level} ac={c} />
-      </div>
-
-      {/* Streak + menu */}
-      <div style={{ display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
-        <div style={{ display:"flex",alignItems:"center",gap:5,padding:"3px 8px",border:"1px solid rgba(245,182,93,0.35)",background:"rgba(245,182,93,0.06)" }}>
-          <span style={{ fontSize:11 }}>🔥</span>
-          <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:"#f5b65d" }}>{player.streak}</span>
-        </div>
-        <button onClick={onMenuToggle} style={{
-          width:34, height:34,
-          border:"1px solid "+c+"66",
-          background: menuOpen ? c+"1a" : "transparent",
-          color:c, cursor:"pointer", fontSize:14,
-          display:"flex", alignItems:"center", justifyContent:"center",
-          boxShadow: menuOpen ? "0 0 10px "+c+"44" : "none",
-          transition:"all 0.15s",
-        }}>{menuOpen?"✕":"☰"}</button>
-      </div>
-    </div>
-  );
-}
-
-function Sidebar({ activeView, onSelect, onClose, ac, playerName, isMonarch }) {
-  const c = isMonarch?MONARCH_PURP:(ac||SYS_BLUE);
-  return (
-    <>
-      <div onClick={onClose} style={{ position:"fixed",inset:0,zIndex:200,background:"rgba(1,4,12,0.7)",backdropFilter:"blur(3px)" }} />
-      <div className="menu-slide sl-menu" style={{ paddingTop:20,paddingBottom:40 }}>
-        {/* Menu header */}
-        <div style={{ padding:"0 20px 16px",borderBottom:"1px solid "+c+"22",marginBottom:8 }}>
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.5em",color:c+"99",marginBottom:8 }}>SYSTEM MENU</div>
-          <div style={{ padding:"7px 12px",border:"1px solid "+c+"22",background:c+"0a",fontSize:11,color:"#8ab8d8",fontFamily:"'Rajdhani',sans-serif",fontWeight:600,letterSpacing:"0.1em" }}>
-            HUNTER: <span style={{ color:"#c8eeff" }}>{playerName}</span>
-          </div>
-        </div>
-
-        {MENU_ITEMS.map(function(item){
-          const active = item === activeView;
-          return (
-            <button key={item} onClick={function(){onSelect(item);onClose();}}
-              className={"sl-menu-item"+(active?" active":"")}>
-              <span>{item.toUpperCase()}</span>
-              {active&&<span style={{ color:c,marginLeft:"auto",fontSize:12 }}>›</span>}
-            </button>
-          );
-        })}
-
-        {isMonarch&&(
-          <div style={{ margin:"20px 16px 0",padding:"12px 14px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)" }}>
-            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.35em",color:MONARCH_DIM,marginBottom:8 }}>MONARCH REGISTRY</div>
-            <div style={{ fontSize:11,color:"#8a5ab0",lineHeight:2,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
-              Class: Shadow Monarch<br/>Authority: Confirmed<br/>Aura: Dominant
-            </div>
-          </div>
-        )}
-      </div>
-    </>
-  );
 }
 
 /* ===========================================================================
@@ -5540,6 +4491,120 @@ function ReevaluationModal({ onScoreChange, scores, onSubmit, onDismiss, result,
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ===========================================================================
+   RANKINGS VIEW
+   =========================================================================== */
+function RankingsView({ player, fame, rank, rivals, accentColor }) {
+  const c = accentColor || SYS_BLUE;
+  const rivalEntries = RIVALS_DATA.map(function(rd) {
+    const state = rivals.find(function(r){ return r.id===rd.id; }) || {};
+    return {
+      id:rd.id, name:rd.name, isPlayer:false,
+      level:state.level||rd.baseLevel, fame:state.fame||rd.baseFame,
+      combatRating:state.combatRating||rd.combatRating,
+      guild:rd.guild, specialty:rd.specialty, color:rd.color, icon:rd.icon,
+      rankName:getRankForLevel(state.level||rd.baseLevel).name,
+    };
+  });
+  const playerEntry = {
+    id:"player", name:player.name||"Hunter", isPlayer:true,
+    level:player.level, fame,
+    combatRating:Math.min(99,Math.round((player.level*2.2)+(fame*0.03))),
+    guild:"—", specialty:"Hunter", color:c, icon:"◈",
+    rankName:rank?rank.name:"E",
+  };
+  const allEntries = rivalEntries.concat([playerEntry]);
+  allEntries.sort(function(a,b){ return b.fame - a.fame; });
+  const playerPos = allEntries.findIndex(function(e){ return e.isPlayer; }) + 1;
+  const above = allEntries[playerPos-2];
+  const aboveData = above && !above.isPlayer ? RIVALS_DATA.find(function(r){return r.id===above.id;}) : null;
+
+  return (
+    <div className="fade-in">
+      <SL text="Hunter Rankings" ac={c} />
+      <div style={{ padding:"10px 16px",border:"1px solid "+c+"44",background:c+"08",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+        <span style={{ fontSize:11,color:"#9ab8d4",fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>YOUR POSITION</span>
+        <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:900,color:c,textShadow:"0 0 16px "+c+"88" }}>#{playerPos}</span>
+      </div>
+      <div style={{ border:"1px solid "+c+"22",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",marginBottom:16 }}>
+        <div style={{ display:"grid",gridTemplateColumns:"32px 1fr 56px 44px",gap:8,padding:"7px 14px",borderBottom:"1px solid "+c+"22",fontFamily:"'Orbitron',sans-serif",fontSize:7,letterSpacing:"0.2em",color:"#3a5a78" }}>
+          <span>#</span><span>HUNTER</span><span style={{ textAlign:"right" }}>FAME</span><span style={{ textAlign:"right" }}>CR</span>
+        </div>
+        {allEntries.map(function(entry,idx) {
+          const pos=idx+1;
+          const posColor=pos===1?"#f5b65d":pos===2?"#8a8f98":pos===3?"#cd7f32":entry.color;
+          const gd=GUILDS.find(function(g){return g.id===entry.guild;});
+          return (
+            <div key={entry.id} style={{ display:"grid",gridTemplateColumns:"32px 1fr 56px 44px",gap:8,padding:"11px 14px",borderBottom:"1px solid rgba(77,184,255,0.05)",background:entry.isPlayer?"linear-gradient(90deg,"+c+"0d,transparent)":"transparent",borderLeft:entry.isPlayer?"2px solid "+c:"2px solid transparent" }}>
+              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:pos<=3?13:10,fontWeight:pos<=3?900:600,color:posColor,alignSelf:"center" }}>{pos}</div>
+              <div style={{ minWidth:0 }}>
+                <div style={{ display:"flex",alignItems:"center",gap:6,marginBottom:2 }}>
+                  <span style={{ color:entry.color,fontSize:11,flexShrink:0 }}>{entry.icon}</span>
+                  <span style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:13,fontWeight:700,color:entry.isPlayer?"#e0f4ff":"#9ab8d4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis" }}>{entry.name}{entry.isPlayer?" (YOU)":""}</span>
+                </div>
+                <div style={{ fontSize:8,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em" }}>
+                  {entry.rankName} · {entry.specialty}{gd?<span style={{ color:gd.color+"77",marginLeft:5 }}>{gd.name}</span>:null}
+                </div>
+              </div>
+              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:"#f5b65d",textAlign:"right",alignSelf:"center" }}>{entry.fame}</div>
+              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:entry.color,textAlign:"right",alignSelf:"center" }}>{entry.combatRating}</div>
+            </div>
+          );
+        })}
+      </div>
+      {aboveData&&(
+        <div style={{ padding:"12px 16px",border:"1px solid "+above.color+"33",background:above.color+"06" }}>
+          <div style={{ fontSize:8,color:above.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",marginBottom:6 }}>[{aboveData.name.toUpperCase()}]</div>
+          <div style={{ fontSize:13,color:"#9ab8d4",fontFamily:"'Rajdhani',sans-serif",fontWeight:500,fontStyle:"italic" }}>"{aboveData.dialogue.ahead}"</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ===========================================================================
+   WORLD FEED VIEW
+   =========================================================================== */
+function WorldFeedView({ worldFeed, player, fame, accentColor }) {
+  const c = accentColor || SYS_BLUE;
+  const playerEvents = [
+    fame>100  &&{ ts:"—",msg:player.name+" entered the Hunter rankings.",       rivalId:"player",id:"pe1" },
+    fame>300  &&{ ts:"—",msg:player.name+" has been flagged by multiple guild observers.", rivalId:"player",id:"pe2" },
+    fame>600  &&{ ts:"—",msg:player.name+"'s combat rating has been reclassified.",       rivalId:"player",id:"pe3" },
+    fame>1000 &&{ ts:"—",msg:player.name+"'s growth rate has been marked as anomalous.",  rivalId:"player",id:"pe4" },
+  ].filter(Boolean);
+  const allFeed = playerEvents.concat(worldFeed).slice(0,50);
+
+  return (
+    <div className="fade-in">
+      <SL text="World Activity Feed" ac={c} />
+      <p style={{ fontSize:11,color:"#5b7aa0",marginBottom:16,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
+        Live hunter activity. Updates every few minutes as hunters clear gates, join guilds, and earn fame.
+      </p>
+      {allFeed.length===0?(
+        <div style={{ padding:"40px 24px",textAlign:"center",border:"1px solid "+c+"22",background:c+"06" }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,color:c+"44",letterSpacing:"0.3em",marginBottom:8 }}>AWAITING DATA</div>
+          <div style={{ fontSize:11,color:"#2a3a55" }}>The feed updates as hunters complete activity. Check back after training.</div>
+        </div>
+      ):(
+        <div style={{ border:"1px solid "+c+"22",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))" }}>
+          {allFeed.map(function(entry,i) {
+            const isPlayer=entry.rivalId==="player";
+            const rd=RIVALS_DATA.find(function(r){return r.id===entry.rivalId;});
+            const ec=isPlayer?c:(rd?rd.color:"#5b7aa0");
+            return (
+              <div key={entry.id||i} className="log-entry" style={{ padding:"10px 16px",borderBottom:"1px solid rgba(77,184,255,0.05)",display:"flex",alignItems:"flex-start",gap:12 }}>
+                <span style={{ fontFamily:"monospace",fontSize:9,color:"#2a3a55",whiteSpace:"nowrap",flexShrink:0,marginTop:2 }}>{entry.ts||"—"}</span>
+                <span style={{ fontSize:11,color:ec,lineHeight:1.6,fontFamily:"'Rajdhani',sans-serif",fontWeight:isPlayer?700:500 }}>{entry.msg}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -7935,6 +7000,15 @@ function App() {
   /* Post-raid results */
   const [lastRaidResult, setLastRaidResult] = useState(null);
 
+  /* Rival hunter system */
+  const [rivals, setRivals] = useState(function() {
+    return RIVALS_DATA.map(function(r) {
+      return { id:r.id, level:r.baseLevel, fame:r.baseFame, combatRating:r.combatRating, guild:r.guild, surpassed:false };
+    });
+  });
+  const [worldFeed, setWorldFeed] = useState([]);
+  const rivalTickRef = useRef(null);
+
   /* Derived */
   const rank        = getRankForLevel(player.level);
   const accentColor = isMonarch ? MONARCH_PURP : rank.color;
@@ -7946,6 +7020,66 @@ function App() {
 
   /* Sound toggle — safe, no implicit return */
   useEffect(function() { sfx.setEnabled(soundOn); }, [soundOn]);
+
+  /* ── Rival tick — runs every 4 minutes, rivals slowly progress ── */
+  useEffect(function() {
+    if (phase !== "app") return;
+    rivalTickRef.current = setInterval(function() {
+      setRivals(function(prev) {
+        return prev.map(function(r) {
+          const lvlGain  = Math.random() < 0.3 ? 1 : 0;
+          const fameGain = Math.floor(Math.random() * 18);
+          const crGain   = Math.random() < 0.2 ? 1 : 0;
+          return Object.assign({}, r, {
+            level:        r.level + lvlGain,
+            fame:         r.fame  + fameGain,
+            combatRating: Math.min(99, r.combatRating + crGain),
+          });
+        });
+      });
+      if (Math.random() < 0.55) {
+        const rd   = RIVALS_DATA[Math.floor(Math.random() * RIVALS_DATA.length)];
+        const evFn = RIVAL_WORLD_EVENTS[Math.floor(Math.random() * RIVAL_WORLD_EVENTS.length)];
+        const msg  = evFn(rd);
+        const now  = new Date();
+        const tstr = now.getHours().toString().padStart(2,"0")+":"+now.getMinutes().toString().padStart(2,"0");
+        setWorldFeed(function(prev) {
+          return [{ ts:tstr, msg, rivalId:rd.id, id:Date.now() }].concat(prev).slice(0, 40);
+        });
+      }
+    }, 4 * 60 * 1000);
+    return function() { clearInterval(rivalTickRef.current); };
+  }, [phase]);
+
+  /* ── Detect when player surpasses a rival by fame ── */
+  useEffect(function() {
+    if (phase !== "app") return;
+    setRivals(function(prev) {
+      return prev.map(function(r) {
+        const rData = RIVALS_DATA.find(function(rd){ return rd.id === r.id; });
+        if (!rData) return r;
+        const playerAhead = fame > r.fame;
+        if (playerAhead && !r.surpassed) {
+          setTimeout(function() {
+            showToast("You have surpassed " + rData.name + ".","evolve");
+            addLog("Ranking update: "+rData.name+" surpassed in fame.","evolve");
+            setTimeout(function(){
+              setTakeoverEvent({
+                title:"RANKING UPDATE",
+                message:"You have surpassed "+rData.name+". A former obstacle has become a stepping stone. Your growth exceeds System projections.",
+                sub:rData.dialogue.surpassed,
+                color:rData.color,
+                duration:4000,
+              });
+            }, 1500);
+          }, 400);
+          return Object.assign({}, r, { surpassed:true });
+        }
+        if (!playerAhead && r.surpassed) return Object.assign({}, r, { surpassed:false });
+        return r;
+      });
+    });
+  }, [fame, phase]);
 
   /* Check if 30-day re-evaluation is available */
   useEffect(function() {
@@ -9334,6 +8468,8 @@ function App() {
           {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
           {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} xpBoostCharges={xpBoostCharges} />}
           {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
+          {activeView==="Rankings"&&<RankingsView player={player} fame={fame} rank={rank} rivals={rivals} accentColor={accentColor} />}
+          {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
           {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
           {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
         </div>
