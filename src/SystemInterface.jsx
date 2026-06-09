@@ -147,8 +147,15 @@ const GOAL_TRAINING_MAP = {
   strength:    { training:["pushups","pullups","dips"],              running:"jog",           core:CORE_4, label:"Strength Protocol"     },
   aesthetics:  { training:["pushups","pullups","dips"],              running:"jog",           core:CORE_4, label:"Hypertrophy Protocol"   },
   calisthenics:{ training:["pushups","pullups","dips","squats"],     running:"jog",           core:CORE_4, label:"Calisthenics Protocol"  },
-  speed:       { training:["sprint_acc","sprint_interval","lunges"], running:"sprint_acc",    core:CORE_4, label:"Speed Protocol"         },
-  athleticism: { training:["sprint_acc","squats","lunges"],          running:"sprint_interval",core:CORE_4, label:"Athleticism Protocol"  },
+      training: ["sprint_acc","lunges"],
+    running:  "sprint_acc",
+    core:     CORE_4,
+    label:    "Speed Protocol",
+  },
+  athleticism: {
+    training: ["squats","lunges"],
+    running:  "sprint_interval",
+core:CORE_4, label:"Athleticism Protocol"  },
   endurance:   { training:["run","squats","lunges"],                 running:"run",           core:CORE_4, label:"Endurance Protocol"     },
   core:        { training:["pushups"],                               running:"jog",           core:CORE_4, label:"Core Protocol"          },
   weight_loss: { training:["squats","lunges"],                       running:"jog",           core:CORE_4, label:"Fat Loss Protocol"      },
@@ -365,11 +372,13 @@ function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon, 
     });
   });
 
-  /* 3. Pick running based on goals */
+    /* 3. Pick running based on goals — only one sprint type ever appears */
   const wantsSpeed  = activeGoals.includes("speed") || activeGoals.includes("athleticism");
   const wantsEndur  = activeGoals.includes("endurance") || activeGoals.includes("weight_loss");
-  const runKey      = wantsSpeed ? (dow % 2 === 0 ? "sprint_acc" : "sprint_interval")
+  const alreadyHasSprint = seenIds["sprint_acc"] || seenIds["sprint_interval"];
+  const runKey      = wantsSpeed && !alreadyHasSprint ? (dow % 2 === 0 ? "sprint_acc" : "sprint_interval")
                     : wantsEndur ? "run" : "jog";
+
   const alreadyHasRun = seenIds["run"] || seenIds["jog"] || seenIds["sprint_acc"] || seenIds["sprint_interval"];
   if (!alreadyHasRun) {
     const rg = makeGoal(runKey);
