@@ -2606,26 +2606,157 @@ function rollMonarchDrop(source) {
 }
 
 const SHOP_ITEMS = [
-  /* Weapons */
-  { id: "dagger",      name: "Shadow Dagger",    category: "weapon",   cost: 200,  icon: "◈", color: "#a05df5", effect: "Agility +3", effectKey: "Agility", effectGain: 3,  desc: "A blade forged from compressed shadow mana. Lightweight. Lethal." },
-  { id: "sword",       name: "Iron Greatsword",  category: "weapon",   cost: 350,  icon: "⚔", color: "#5d7cf5", effect: "Strength +5", effectKey: "Strength", effectGain: 5, desc: "Heavy. Unbalanced. Forces you to adapt." },
-  { id: "spear",       name: "Void Lance",       category: "weapon",   cost: 500,  icon: "➤", color: "#9b30ff", effect: "Agility +3 · Aura +2", effectKey: "Aura", effectGain: 3, desc: "Channels void energy through each thrust." },
-  /* Armor */
-  { id: "armor_light", name: "Hunter Coat",      category: "armor",    cost: 180,  icon: "❖", color: "#4db8ff", effect: "Endurance +2", effectKey: "Endurance", effectGain: 2, desc: "Standard-issue. Every hunter starts here." },
-  { id: "armor_heavy", name: "Reinforced Plate", category: "armor",    cost: 400,  icon: "❖", color: "#6fae6f", effect: "Endurance +4 · Recovery +2", effectKey: "Endurance", effectGain: 4, desc: "Slows you down. Makes you unbreakable." },
-  /* Relics */
-  { id: "relic_focus", name: "Focus Stone",      category: "relic",    cost: 150,  icon: "✦", color: "#f5b65d", effect: "Intelligence +3", effectKey: "Intelligence", effectGain: 3, desc: "Ancient. Resonates with disciplined minds." },
-  { id: "relic_aura",  name: "Aura Crystal",     category: "relic",    cost: 250,  icon: "✸", color: "#9b30ff", effect: "Aura +4", effectKey: "Aura", effectGain: 4, desc: "Pulses with raw mana potential." },
-  { id: "relic_rec",   name: "Recovery Talisman",category: "relic",    cost: 200,  icon: "✚", color: "#2ee88a", effect: "Recovery +3", effectKey: "Recovery", effectGain: 3, desc: "The system's way of saying: rest is not weakness." },
-  /* Keys */
-  { id: "key_n",       name: "Dungeon Key",      category: "key",      cost: 300,  icon: "🗝", color: "#4db8ff", effect: "Opens a standard gate", effectKey: null, effectGain: 0, keyType: "normal", desc: "Grants access to a standard-rank dungeon event." },
-  { id: "key_e",       name: "Elite Key",         category: "key",      cost: 700,  icon: "🗝", color: "#a05df5", effect: "Opens an elite event", effectKey: null, effectGain: 0, keyType: "elite", desc: "Opens elite-tier dungeons with enhanced rewards." },
-  /* Recovery */
-  { id: "energy_pot",  name: "Energy Vial",       category: "recovery", cost: 100,  icon: "⚗", color: "#2ee88a", effect: "+20 Energy Score", effectKey: "energy", effectGain: 20, desc: "Restores energy. Not a shortcut — a tool." },
-  { id: "rest_rune",   name: "Rest Rune",          category: "recovery", cost: 80,   icon: "✚", color: "#4db8ff", effect: "Removes Exhausted penalty", effectKey: "energy", effectGain: 30, desc: "Activates recovery protocols. Use wisely." },
-  /* Black Market (rotating, shown randomly) */
-  { id: "bm_frag",     name: "Monarch Fragment",  category: "blackmarket", cost: 2000, icon: "◉", color: "#9b30ff", effect: "+15 Monarch Interest", effectKey: "monarch", effectGain: 15, desc: "Something the system did not intend for you to have.", rotating: true },
-  { id: "bm_shadow",   name: "Corrupted Shadow",  category: "blackmarket", cost: 1500, icon: "✸", color: "#f53d3d", effect: "Shadow upgrade (unstable)", effectKey: "Aura", effectGain: 8, desc: "A shadow that hasn't fully submitted. Dangerous.", rotating: true },
+
+  /* ══════════════════════════════════════════
+     CATEGORY: TRAINING
+     Boost XP, energy, and workout performance
+  ══════════════════════════════════════════ */
+  { id:"recovery_meal",   name:"Recovery Meal",      category:"training",    cost:80,
+    icon:"🍖", color:"#2ee88a",
+    effect:"+10 Recovery Stat",       effectKey:"Recovery",  effectGain:10,
+    desc:"High-protein recovery meal. Accelerates muscle repair between sessions." },
+  { id:"energy_pack",     name:"Energy Pack",         category:"training",    cost:120,
+    icon:"⚡", color:"#f5b65d",
+    effect:"+25 Energy Score",        effectKey:"energy",    effectGain:25,
+    desc:"Restores energy reserves. Use before a heavy training day." },
+  { id:"training_manual", name:"Training Manual",     category:"training",    cost:200,
+    icon:"📘", color:SYS_BLUE,
+    effect:"Next quest: +50% XP",     effectKey:"xp_boost",  effectGain:1,
+    desc:"Condensed technique from S-Rank hunters. One session of accelerated learning." },
+  { id:"adv_manual",      name:"Advanced Manual",     category:"training",    cost:450,
+    icon:"📕", color:"#a05df5",
+    effect:"Next 3 quests: +50% XP",  effectKey:"xp_boost3", effectGain:3,
+    desc:"A full training cycle documented by a National Level hunter. Rare." },
+  { id:"stamina_crystal", name:"Stamina Crystal",     category:"training",    cost:300,
+    icon:"💎", color:"#4db8ff",
+    effect:"Endurance +5",            effectKey:"Endurance", effectGain:5,
+    desc:"Stores compressed physical output data. Absorbed by the body over time." },
+
+  /* ══════════════════════════════════════════
+     CATEGORY: DUNGEON
+     Gate access, raid probability, dungeon tools
+  ══════════════════════════════════════════ */
+  { id:"key_n",           name:"Dungeon Key",         category:"dungeon",     cost:300,
+    icon:"🗝", color:"#4db8ff",
+    effect:"Opens a standard gate",   effectKey:null,        effectGain:0, keyType:"normal",
+    desc:"Grants access to a standard-rank dungeon event." },
+  { id:"key_e",           name:"Elite Key",            category:"dungeon",     cost:700,
+    icon:"🗝", color:"#a05df5",
+    effect:"Opens an elite gate",     effectKey:null,        effectGain:0, keyType:"elite",
+    desc:"Opens elite-tier dungeons with enhanced rewards and higher risk." },
+  { id:"gate_scanner",    name:"Gate Scanner",         category:"dungeon",     cost:180,
+    icon:"◈", color:SYS_BLUE,
+    effect:"Reveals gate difficulty", effectKey:"scan",      effectGain:1,
+    desc:"Scans the next dungeon gate before entry. Knowledge is survival." },
+  { id:"raid_compass",    name:"Raid Compass",         category:"dungeon",     cost:350,
+    icon:"➤", color:"#f5b65d",
+    effect:"+Rare gate chance",       effectKey:"raid_compass", effectGain:1,
+    desc:"Increases the probability of rare and elite gate spawns for 24 hours." },
+  { id:"red_beacon",      name:"Red Gate Beacon",      category:"dungeon",     cost:600,
+    icon:"⚠", color:"#f53d3d",
+    effect:"Chance to trigger Red Gate", effectKey:"red_gate", effectGain:1,
+    desc:"A signal flare that may attract a Red Gate. High risk. High reward. No guarantees." },
+
+  /* ══════════════════════════════════════════
+     CATEGORY: SHADOW
+     Shadow army enhancement and lore
+  ══════════════════════════════════════════ */
+  { id:"shadow_essence",  name:"Shadow Essence",       category:"shadow",      cost:250,
+    icon:"◉", color:MONARCH_PURP,
+    effect:"Shadow loyalty +15",      effectKey:"shadow_loyalty", effectGain:15,
+    desc:"Raw mana extracted from the void. Accelerates shadow growth and bonding." },
+  { id:"shadow_core",     name:"Shadow Core",           category:"shadow",      cost:500,
+    icon:"✸", color:"#9b30ff",
+    effect:"Shadow power +20",        effectKey:"shadow_power",   effectGain:20,
+    desc:"A dense mana crystal harvested from defeated shadow-class entities." },
+  { id:"name_crystal",    name:"Name Crystal",          category:"shadow",      cost:150,
+    icon:"✦", color:"#c8a0e8",
+    effect:"Allows shadow renaming",  effectKey:"rename_token",   effectGain:1,
+    desc:"A crystallised identity imprint. Allows the holder to rename a bound shadow." },
+  { id:"shadow_archive",  name:"Shadow Archive",        category:"shadow",      cost:400,
+    icon:"📜", color:MONARCH_PURP,
+    effect:"Reveals hidden shadow lore", effectKey:"shadow_lore", effectGain:1,
+    desc:"Recovered records from the age of monarchs. Shadows have histories. This reveals them." },
+
+  /* ══════════════════════════════════════════
+     CATEGORY: STATS
+     Temporary and permanent stat tokens
+  ══════════════════════════════════════════ */
+  { id:"str_token",       name:"Strength Token",        category:"stats",       cost:200,
+    icon:"⚔", color:"#f53d3d",
+    effect:"Strength +4",             effectKey:"Strength",   effectGain:4,
+    desc:"Condensed physical output data. Applied directly to muscle memory." },
+  { id:"agi_token",       name:"Agility Token",         category:"stats",       cost:200,
+    icon:"➤", color:"#4db8ff",
+    effect:"Agility +4",              effectKey:"Agility",    effectGain:4,
+    desc:"Reaction-speed compound used by S-Rank hunters in training." },
+  { id:"sense_token",     name:"Sense Token",            category:"stats",       cost:200,
+    icon:"✦", color:"#f5b65d",
+    effect:"Intelligence +4",         effectKey:"Intelligence",effectGain:4,
+    desc:"Heightens pattern recognition and tactical awareness." },
+  { id:"stamina_token",   name:"Stamina Token",          category:"stats",       cost:200,
+    icon:"❖", color:"#6fae6f",
+    effect:"Endurance +4",            effectKey:"Endurance",  effectGain:4,
+    desc:"Increases aerobic threshold. Reduces performance drop under sustained output." },
+  { id:"aura_token",      name:"Aura Token",             category:"stats",       cost:350,
+    icon:"✸", color:"#9b30ff",
+    effect:"Aura +5",                 effectKey:"Aura",       effectGain:5,
+    desc:"Extracted from a high-density mana zone. Rare. Sought after." },
+  { id:"disc_token",      name:"Discipline Token",       category:"stats",       cost:200,
+    icon:"◈", color:SYS_BLUE,
+    effect:"Discipline +4",           effectKey:"Discipline", effectGain:4,
+    desc:"A record of perfect form. Absorbed as behavioral reinforcement." },
+
+  /* ══════════════════════════════════════════
+     CATEGORY: SYSTEM
+     Hidden quest reveals, lore, decoder items
+  ══════════════════════════════════════════ */
+  { id:"hunter_scanner",  name:"Hunter Scanner",         category:"system",      cost:300,
+    icon:"◈", color:SYS_BLUE,
+    effect:"Reveals hidden quest rewards", effectKey:"quest_scan", effectGain:1,
+    desc:"A system tool that decrypts reward metadata before quest completion." },
+  { id:"archive_frag",    name:"Archive Fragment",        category:"system",      cost:250,
+    icon:"📄", color:"#f5b65d",
+    effect:"Unlocks hidden lore entry", effectKey:"lore_unlock", effectGain:1,
+    desc:"A recovered data fragment. Contains partial records from the early gate events." },
+  { id:"sys_decoder",     name:"System Decoder",          category:"system",      cost:500,
+    icon:"⬡", color:"#4db8ff",
+    effect:"Reveals hidden system info", effectKey:"sys_decode",  effectGain:1,
+    desc:"A tool that bypasses standard read-permission on system files. The system has not authorized this." },
+  /* Existing functional items */
+  { id:"relic_focus",     name:"Focus Stone",             category:"system",      cost:150,
+    icon:"✦", color:"#f5b65d",
+    effect:"Intelligence +3",          effectKey:"Intelligence", effectGain:3,
+    desc:"Ancient. Resonates with disciplined minds." },
+  { id:"relic_rec",       name:"Recovery Talisman",       category:"system",      cost:200,
+    icon:"✚", color:"#2ee88a",
+    effect:"Recovery +3",              effectKey:"Recovery",    effectGain:3,
+    desc:"The system's way of saying: rest is not weakness." },
+
+  /* ══════════════════════════════════════════
+     CATEGORY: BLACK MARKET
+     Extremely rare. Mysterious. No explanation.
+  ══════════════════════════════════════════ */
+  { id:"bm_frag",         name:"Monarch Fragment",        category:"blackmarket", cost:2000,
+    icon:"◉", color:MONARCH_PURP,
+    effect:"[CLASSIFIED]",             effectKey:"monarch",    effectGain:15,
+    desc:"Something the system did not intend for you to have.", rotating:true },
+  { id:"bm_rune",         name:"Ancient Rune",            category:"blackmarket", cost:2500,
+    icon:"⬡", color:"#f5b65d",
+    effect:"[CLASSIFIED]",             effectKey:"monarch",    effectGain:8,
+    desc:"Pre-dates the System. Untranslatable. The System flagged its purchase.", rotating:true },
+  { id:"bm_heart",        name:"Black Heart Fragment",    category:"blackmarket", cost:3000,
+    icon:"✸", color:"#f53d3d",
+    effect:"[CLASSIFIED]",             effectKey:"Aura",       effectGain:12,
+    desc:"Origin: unknown. Classification: denied. Acquisition: not recommended.", rotating:true },
+  { id:"bm_relic",        name:"Shadow Relic",            category:"blackmarket", cost:1800,
+    icon:"◈", color:"#9b30ff",
+    effect:"[CLASSIFIED]",             effectKey:"shadow_power", effectGain:25,
+    desc:"A relic from the first monarch. How it ended up here is not recorded.", rotating:true },
+  { id:"bm_shadow",       name:"Corrupted Shadow",        category:"blackmarket", cost:1500,
+    icon:"✸", color:"#f53d3d",
+    effect:"Shadow upgrade (unstable)", effectKey:"Aura",      effectGain:8,
+    desc:"A shadow that hasn't fully submitted. Dangerous.", rotating:true },
 ];
 
 /* ---------------------------------------------------------------------------
@@ -6969,83 +7100,105 @@ function SecretBossesView({ player, clearedGates, streak, secretBosses, onAttack
   );
 }
 
-function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch }) {
+function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoostCharges }) {
   const [activeCategory, setActiveCategory] = useState("all");
-  const categories = ["all","weapon","armor","relic","key","recovery","blackmarket"];
+  const categories = [
+    { id:"all",          label:"ALL"           },
+    { id:"training",     label:"TRAINING"       },
+    { id:"dungeon",      label:"DUNGEON"        },
+    { id:"shadow",       label:"SHADOW"         },
+    { id:"stats",        label:"STATS"          },
+    { id:"system",       label:"SYSTEM"         },
+    { id:"blackmarket",  label:"★ BLACK MARKET" },
+  ];
 
   const visibleItems = SHOP_ITEMS.filter(function(item) {
     if (activeCategory === "all") return !item.rotating;
-    if (activeCategory === "blackmarket") return item.category === "blackmarket";
+    if (activeCategory === "blackmarket") return item.rotating;
     return item.category === activeCategory && !item.rotating;
   });
 
-  /* Black market: show 2 random rotating items */
-  const blackMarketItems = activeCategory === "blackmarket"
-    ? SHOP_ITEMS.filter(function(i){return i.rotating;})
-    : [];
+  const displayItems = visibleItems;
+  const isBM = activeCategory === "blackmarket";
 
-  const displayItems = activeCategory === "blackmarket" ? blackMarketItems : visibleItems;
+  /* Items that can be purchased multiple times (consumables) */
+  const consumableKeys = ["energy","xp_boost","xp_boost3","shadow_loyalty","shadow_power",
+                          "rename_token","lore_unlock","quest_scan","sys_decode","raid_compass",
+                          "red_gate","scan","monarch","shadow_lore"];
+  function isConsumable(item) { return consumableKeys.includes(item.effectKey) || item.keyType; }
 
   return (
     <div className="fade-in">
-      <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Hunter Shop</div>
-        <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8 }}>
-          <p style={{ fontSize:12,color:"#5b7aa0" }}>Earn coins by clearing quests and bosses.</p>
-          <div style={{ display:"flex",alignItems:"center",gap:6,padding:"4px 12px",border:"1px solid "+accentColor+"44" }}>
-            <span style={{ fontSize:16 }}>🪙</span>
-            <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,fontWeight:700,color:"#f5b65d" }}>{coins}</span>
+      <div style={{ marginBottom:16 }}>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e0f4ff" }}>Hunter Shop</div>
+        <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)",marginBottom:10 }} />
+        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
+          <p style={{ fontSize:11,color:"#5b7aa0" }}>Earn coins by clearing quests and defeating bosses.</p>
+          <div style={{ display:"flex",alignItems:"center",gap:6,padding:"4px 12px",border:"1px solid "+accentColor+"44",background:accentColor+"08" }}>
+            <span style={{ fontSize:14 }}>🪙</span>
+            <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:15,fontWeight:700,color:"#f5b65d" }}>{coins}</span>
           </div>
         </div>
+        {xpBoostCharges>0&&(
+          <div style={{ marginTop:8,padding:"6px 12px",border:"1px solid #f5b65d44",background:"rgba(245,182,93,0.07)",fontSize:11,color:"#f5b65d",fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
+            ◈ XP BOOST ACTIVE — {xpBoostCharges} quest{xpBoostCharges>1?"s":""}  remaining
+          </div>
+        )}
       </div>
 
       {/* Category tabs */}
-      <div style={{ display:"flex",gap:6,marginBottom:20,overflowX:"auto",paddingBottom:4 }}>
+      <div style={{ display:"flex",gap:5,marginBottom:16,overflowX:"auto",paddingBottom:4,flexWrap:"nowrap" }}>
         {categories.map(function(cat) {
-          const active = cat === activeCategory;
-          const isBM = cat === "blackmarket";
+          const active = cat.id === activeCategory;
+          const bm = cat.id === "blackmarket";
           return (
-            <button key={cat} onClick={function(){setActiveCategory(cat);}}
-              style={{ padding:"6px 14px",background:active?(isBM?MONARCH_PURP:accentColor)+(active?"":"14"):"transparent",border:"1px solid "+(isBM?MONARCH_PURP+"44":accentColor+"44"),color:active?"#03050c":isBM?MONARCH_PURP:"#9fb8d8",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.15em",whiteSpace:"nowrap",fontWeight:active?700:400 }}>
-              {isBM?"★ BLACK MARKET":cat.toUpperCase()}
+            <button key={cat.id} onClick={function(){setActiveCategory(cat.id);}}
+              style={{ padding:"5px 12px",background:active?(bm?MONARCH_PURP:accentColor):"transparent",border:"1px solid "+(bm?MONARCH_PURP+"66":accentColor+"33"),color:active?"#03050c":(bm?MONARCH_PURP:"#5b7aa0"),cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.12em",whiteSpace:"nowrap",fontWeight:active?700:400,flexShrink:0 }}>
+              {cat.label}
             </button>
           );
         })}
       </div>
 
       {/* Black market warning */}
-      {activeCategory === "blackmarket" && (
-        <div style={{ padding:"10px 14px",border:"1px solid "+MONARCH_PURP+"66",background:"rgba(155,48,255,0.06)",marginBottom:16,fontSize:12,color:MONARCH_PURP+"cc",lineHeight:1.6 }}>
-          ⚠ Corrupted market. Items here are unstable and potentially dangerous. The system does not endorse these transactions.
+      {isBM && (
+        <div style={{ padding:"10px 14px",border:"1px solid "+MONARCH_PURP+"55",background:"rgba(155,48,255,0.06)",marginBottom:14,fontSize:11,color:MONARCH_PURP+"bb",lineHeight:1.7,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
+          ⚠ Restricted market. Items here exist outside standard System authorization. Effects are real. Consequences are your own.
         </div>
       )}
 
       {/* Items grid */}
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:12 }}>
+      <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
         {displayItems.map(function(item) {
-          const owned = inventory.includes(item.id);
+          const owned     = !isConsumable(item) && inventory.includes(item.id);
           const canAfford = coins >= item.cost;
-          const ic = item.category === "blackmarket" ? MONARCH_PURP : item.color;
+          const ic        = isBM ? MONARCH_PURP : item.color;
           return (
-            <div key={item.id} style={{ border:"1px solid "+ic+"55",background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))",padding:"16px",opacity:owned?0.6:1 }}>
-              <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:10 }}>
-                <div style={{ width:36,height:36,border:"1.5px solid "+ic,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,background:ic+"11",flexShrink:0 }}>{item.icon}</div>
-                <div>
-                  <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:"#eaf2ff" }}>{item.name}</div>
-                  <div style={{ fontSize:10,color:ic }}>{item.effect}</div>
+            <div key={item.id} style={{ border:"1px solid "+ic+(owned?"22":"44"),background:"linear-gradient(135deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",padding:"14px 16px",opacity:owned?0.55:1,position:"relative",overflow:"hidden" }}>
+              {!owned&&<div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 0% 50%,"+ic+"0a,transparent 70%)",pointerEvents:"none" }} />}
+              <div style={{ display:"flex",alignItems:"center",gap:12,position:"relative" }}>
+                {/* Icon */}
+                <div style={{ width:40,height:40,border:"1.5px solid "+ic+(owned?"44":"88"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,background:ic+"0d",flexShrink:0,boxShadow:owned?"none":"0 0 8px "+ic+"33" }}>{item.icon}</div>
+                {/* Info */}
+                <div style={{ flex:1,minWidth:0 }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:2 }}>
+                    <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:owned?"#3a5a78":"#d0eeff" }}>{item.name}</span>
+                    {isConsumable(item)&&!owned&&<span style={{ fontSize:8,color:ic,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",border:"1px solid "+ic+"44",padding:"1px 5px" }}>CONSUMABLE</span>}
+                  </div>
+                  <div style={{ fontSize:10,color:ic,marginBottom:3,fontWeight:600 }}>{item.effect}</div>
+                  <div style={{ fontSize:11,color:"#4a6a88",lineHeight:1.5 }}>{item.desc}</div>
                 </div>
-              </div>
-              <p style={{ fontSize:11,color:"#5b7aa0",marginBottom:12,lineHeight:1.5 }}>{item.desc}</p>
-              <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-                <div style={{ display:"flex",alignItems:"center",gap:4 }}>
-                  <span style={{ fontSize:14 }}>🪙</span>
-                  <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:canAfford?"#f5b65d":"#f53d3d" }}>{item.cost}</span>
+                {/* Price + buy */}
+                <div style={{ display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6,flexShrink:0 }}>
+                  <div style={{ display:"flex",alignItems:"center",gap:4 }}>
+                    <span style={{ fontSize:12 }}>🪙</span>
+                    <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:canAfford?"#f5b65d":"#f53d3d" }}>{item.cost}</span>
+                  </div>
+                  <button disabled={owned||!canAfford} onClick={function(){ if(typeof onBuy==="function") onBuy(item); }}
+                    style={{ padding:"6px 14px",background:owned?"transparent":canAfford?ic+"cc":"rgba(10,16,32,0.8)",color:owned?"#2ee88a":canAfford?"#03050c":"#2a3a55",border:owned?"1px solid #2ee88a33":"1px solid "+(canAfford?ic+"00":"#2a3a5544"),cursor:(owned||!canAfford)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.12em" }}>
+                    {owned?"OWNED":canAfford?"BUY":"LOCKED"}
+                  </button>
                 </div>
-                <button disabled={owned||!canAfford} onClick={function(){if(typeof onBuy==="function")onBuy(item);}}
-                  style={{ padding:"7px 16px",background:owned?"transparent":canAfford?ic:"#0a1020",color:owned?"#2ee88a":canAfford?"#03050c":"#2a3a55",border:owned?"1px solid #2ee88a44":"none",cursor:(owned||!canAfford)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,letterSpacing:"0.1em" }}>
-                  {owned?"OWNED":canAfford?"BUY":"LOCKED"}
-                </button>
               </div>
             </div>
           );
@@ -7724,6 +7877,7 @@ function App() {
   const [cutsceneGate, setCutsceneGate]           = useState(null);
   const [shadowNames, setShadowNames]             = useState(sv ? (sv.shadowNames || {}) : {});
   const xpBoostRef = useRef(false);
+  const [xpBoostCharges, setXpBoostCharges] = useState(0);
   const [cinematic, setCinematic]   = useState(null);
   const [levelUpFx, setLevelUpFx]   = useState(null);
   const [rankUpFx, setRankUpFx]     = useState(null);
@@ -8085,26 +8239,100 @@ function App() {
   function handleBuyItem(item) {
     if (coins < item.cost) { showToast("Insufficient coins","warning"); return; }
     setCoins(function(prev) { return prev - item.cost; });
-    if (item.effectKey && item.effectGain && item.effectKey !== "energy" && item.effectKey !== "monarch") {
+
+    /* Stat gains — permanent */
+    const directStatKeys = ["Strength","Agility","Endurance","Discipline","Intelligence","Recovery","Aura"];
+    if (item.effectKey && directStatKeys.includes(item.effectKey)) {
       setPlayer(function(prev) {
         const stats = Object.assign({}, prev.stats);
         stats[item.effectKey] = (stats[item.effectKey]||0) + item.effectGain;
         return Object.assign({}, prev, { stats });
       });
+      showToast(item.name+" — "+item.effect,"evolve");
     }
+
+    /* Energy restore */
     if (item.effectKey === "energy") {
       setEnergyScore(function(prev) { return Math.min(100, prev + item.effectGain); });
+      showToast("Energy restored +"+item.effectGain,"evolve");
     }
+
+    /* XP boost — 1 quest */
+    if (item.effectKey === "xp_boost") {
+      xpBoostRef.current = true;
+      setXpBoostCharges(function(prev){ return prev + 1; });
+      showToast("XP Boost active — next quest +50%!","evolve");
+      addLog("Training Manual activated. XP boost applied to next quest.","xp");
+    }
+
+    /* XP boost — 3 quests */
+    if (item.effectKey === "xp_boost3") {
+      xpBoostRef.current = true;
+      setXpBoostCharges(function(prev){ return prev + 3; });
+      showToast("Advanced Manual — 3 quest XP boosts active!","evolve");
+      addLog("Advanced Manual activated. XP boost applied to next 3 quests.","xp");
+    }
+
+    /* Monarch interest */
     if (item.effectKey === "monarch") {
       addMonarchInterest(item.effectGain);
+      showToast(item.name+" acquired.","system");
     }
+
+    /* Shadow loyalty boost */
+    if (item.effectKey === "shadow_loyalty") {
+      setShadowArmy(function(prev) {
+        return prev.map(function(s){ return Object.assign({},s,{ loyalty:Math.min(100,(s.loyalty||50)+item.effectGain) }); });
+      });
+      showToast("Shadow Essence applied — loyalty increased.","evolve");
+    }
+
+    /* Shadow power boost */
+    if (item.effectKey === "shadow_power" || (item.effectKey === "Aura" && item.category === "shadow")) {
+      setShadowArmy(function(prev) {
+        return prev.map(function(s){ return Object.assign({},s,{ power:Math.min(999,(s.power||50)+item.effectGain) }); });
+      });
+      showToast("Shadow power amplified.","evolve");
+    }
+
+    /* Rename token */
+    if (item.effectKey === "rename_token") {
+      showToast("Name Crystal acquired — rename a shadow from Shadow Army.","ach");
+    }
+
+    /* Lore unlock */
+    if (item.effectKey === "lore_unlock" || item.effectKey === "shadow_lore") {
+      const locked = LORE_POOL.filter(function(l){ return !collectedLoreIds.includes(l.id); });
+      if (locked.length > 0) {
+        const pick = locked[Math.floor(Math.random()*locked.length)];
+        setLoreFragments(function(p){ return p+1; });
+        setCollectedLoreIds(function(p){ return p.concat([pick.id]); });
+        showToast("Archive Fragment — lore entry unlocked: "+pick.title,"ach");
+      } else {
+        showToast("Archive Fragment — all lore already recovered.","info");
+      }
+    }
+
+    /* Quest scan, sys decode, raid compass, red gate, gate scan — add to inventory as consumable */
+    if (["quest_scan","sys_decode","raid_compass","red_gate","scan"].includes(item.effectKey)) {
+      setInventory(function(prev){ return prev.concat([item.id+":"+Date.now()]); });
+      showToast(item.name+" acquired.","ach");
+    }
+
+    /* Dungeon key */
     if (item.keyType) {
       setDungeonKeys(function(prev) { return prev.concat([{ type:item.keyType, label:item.name, desc:item.desc||"" }]); });
       showToast("Key added to inventory!","ach");
-    } else {
-      setInventory(function(prev) { return prev.includes(item.id)?prev:prev.concat([item.id]); });
-      showToast(item.name+" purchased!","ach");
+      addLog("Purchased: "+item.name+" ("+item.cost+" coins). Key type: "+item.keyType+".","xp");
+      return;
     }
+
+    /* One-time items — add to inventory (skip consumables that are tracked separately) */
+    const oneTimeKeys = [...directStatKeys,"Intelligence"];
+    if (!item.effectKey || oneTimeKeys.includes(item.effectKey)) {
+      setInventory(function(prev) { return prev.includes(item.id)?prev:prev.concat([item.id]); });
+    }
+
     addLog("Purchased: "+item.name+" ("+item.cost+" coins).","xp");
   }
 
@@ -8425,8 +8653,19 @@ function App() {
     /* Never let a NaN amount corrupt player state */
     const safeAmount = (typeof amount === "number" && isFinite(amount) && amount > 0) ? Math.round(amount) : 0;
     if (safeAmount === 0 && !statKey) return;
+    /* Apply XP boost if charges remain */
+    let boostedAmount = safeAmount;
+    if (xpBoostRef.current && xpBoostCharges > 0) {
+      boostedAmount = Math.round(safeAmount * 1.5);
+      setXpBoostCharges(function(prev) {
+        const next = prev - 1;
+        if (next <= 0) { xpBoostRef.current = false; }
+        return Math.max(0, next);
+      });
+    }
+    const finalAmount = boostedAmount;
     setPlayer(function(prev){
-      let xp    = (prev.xp || 0) + safeAmount;
+      let xp    = (prev.xp || 0) + finalAmount;
       let level = (typeof prev.level === "number" && isFinite(prev.level)) ? prev.level : 1;
       const prevRank=getRankForLevel(level);
       while(xp>=xpForLevel(level)){xp-=xpForLevel(level);level++;}
@@ -9093,7 +9332,7 @@ function App() {
           {activeView==="Shadow Archive"&&<ShadowArchiveView bosses={bosses} bossData={BOSS_DATA} ac={accentColor} />}
           {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} />}
           {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
-          {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} />}
+          {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} xpBoostCharges={xpBoostCharges} />}
           {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
           {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
           {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
