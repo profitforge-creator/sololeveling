@@ -10267,3 +10267,167 @@ function App() {
       streak:      0,
       job:         data.hunterClass || "fighter",
       physique:    data.physique   || "hybrid",
+      goals:       Array.isArray(data.goals) ? data.goals : [],
+      activeTitle: "awakened",
+      stats:       safeStats,
+    });
+    sfx.sfxOpen();
+    addLog(
+      "Hunter " + (data.name||"Hunter") + " registered. Class: " + (data.hunterClass||"fighter") +
+      ". Starting rank: " + getRankForLevel(safeLevel).name + ".",
+      "system"
+    );
+    setPhase("app");
+    /* Save immediately after onboarding — don't wait for auto-save debounce */
+    setTimeout(function() {
+      try { saveGame({ phase:"app", player:{ name:data.name||"Hunter",level:safeLevel,xp:0,streak:0,job:data.hunterClass||"fighter",physique:data.physique||"hybrid",goals:Array.isArray(data.goals)?data.goals:[],activeTitle:"awakened",stats:safeStats }, coins:0, fame:0, inventory:[], shadowArmy:[], isDailyDone:false }); } catch(_) {}
+    }, 200);
+  }
+
+  /* ---- Visual evolution by rank (all declarations in dependency order) ---- */
+  const rankIdx         = rank ? (rank.minRankIndex || 0) : 0;
+  const gridAlpha       = isMonarch ? "0.06" : (0.02 + rankIdx * 0.005).toFixed(3);
+  const gridLineColor   = isMonarch
+    ? "rgba(155,48,255," + gridAlpha + ")"
+    : rankIdx >= 5 ? "rgba(245,182,93," + gridAlpha + ")"
+    : rankIdx >= 4 ? "rgba(160,93,245," + gridAlpha + ")"
+    : rankIdx >= 3 ? "rgba(93,124,245," + gridAlpha + ")"
+    : "rgba(77,184,255," + gridAlpha + ")";
+  const particleDensity = isMonarch ? 120 : 40 + rankIdx * 10;
+  const particleColor   = isMonarch
+    ? "rgba(155,48,255,0.75)"
+    : rankIdx >= 5 ? "rgba(245,182,93,0.6)"
+    : rankIdx >= 4 ? "rgba(160,93,245,0.6)"
+    : rankIdx >= 3 ? "rgba(93,124,245,0.55)"
+    : rankIdx >= 2 ? "rgba(77,184,255,0.5)"
+    : rank ? (rank.glow || "rgba(77,184,255,0.45)") : "rgba(77,184,255,0.45)";
+  const bgGrad          = isMonarch
+    ? "radial-gradient(ellipse at 50% 0%,#1a0030 0%," + MONARCH_DARK + " 55%,#000 100%)"
+    : rankIdx >= 5
+      ? "radial-gradient(ellipse at 50% 0%,#1a1000 0%,#080500 55%,#000 100%)"
+      : rankIdx >= 3
+        ? "radial-gradient(ellipse at 50% 0%,#0a0d28 0%,#050818 55%,#020410 100%)"
+        : "radial-gradient(ellipse at 50% 0%,#0a1428 0%,#050a16 55%,#02040a 100%)";
+
+  /* ---- System 5: Environmental theme overlay ---- */
+  /* Wave 4: Monarch corruption — computed from monarchInterest + rank */
+  const corruptionLevel = Math.min(1, ((monarchInterest||0)/100)*0.6 + (rankIdx>=5?0.3:rankIdx>=4?0.15:0));
+
+  const envTheme = (function() {
+    const safeEnergy = (typeof energyScore === "number" && isFinite(energyScore)) ? energyScore : 68;
+    if (isMonarch)              return { overlay:"rgba(155,48,255,0.06)", glow:MONARCH_PURP+"33" };
+    /* Wave 4: Monarch corruption overlay — gets more intense with interest */
+    if (corruptionLevel>0.7)    return { overlay:"rgba(155,48,255,0.05)", glow:MONARCH_PURP+"28" };
+    if (glitchIntensity>0.5)    return { overlay:"rgba(255,34,68,0.04)", glow:GLITCH_RED+"22" };
+    if (dungeonChainGate)       return { overlay:"rgba(245,61,61,0.03)", glow:"rgba(245,61,61,0.15)" };
+    if (awakeningDay)           return { overlay:"rgba(46,232,138,0.03)", glow:"rgba(46,232,138,0.10)" };
+    if (worldEvent && worldEvent.id==="we_corrupted") return { overlay:"rgba(255,34,68,0.03)", glow:GLITCH_RED+"18" };
+    if (worldEvent && worldEvent.id==="we_shadow_surge") return { overlay:"rgba(155,48,255,0.03)", glow:MONARCH_PURP+"18" };
+    if (worldEvent && worldEvent.id==="we_double_xp") return { overlay:"rgba(46,232,138,0.02)", glow:"rgba(46,232,138,0.08)" };
+    if (safeEnergy < 30)        return { overlay:"rgba(245,182,93,0.04)", glow:null };
+    if (rankIdx >= 5)           return { overlay:"rgba(245,182,93,0.02)", glow:"rgba(245,182,93,0.08)" };
+    if (rankIdx >= 4)           return { overlay:"rgba(160,93,245,0.02)", glow:null };
+    return null;
+  })();
+
+  /* ---- ONBOARDING ---- */
+  if(phase==="onboard"){
+    return (<div style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif" }}><AwakeningRegistration onComplete={handleOnboardComplete} /></div>);
+  }
+
+  /* ---- MAIN APP ---- */
+  return (
+    <div style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif",position:"relative",transition:"background 2.5s ease" }}>
+      <ParticleField color={particleColor} density={particleDensity} />
+      {isMonarch&&<div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:"radial-gradient(ellipse at center,transparent 40%,rgba(155,48,255,0.10) 100%)" }} />}
+      {/* Circuit-board grid — tighter, more SL-like */}
+      <div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",backgroundImage:"linear-gradient("+gridLineColor+" 1px,transparent 1px),linear-gradient(90deg,"+gridLineColor+" 1px,transparent 1px)",backgroundSize:"44px 44px" }} />
+      {/* Environmental theme overlay */}
+      {envTheme&&<div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:envTheme.overlay,boxShadow:envTheme.glow?"inset 0 0 120px "+envTheme.glow:"none",transition:"background 2s ease,box-shadow 2s ease" }} />}
+      <GlitchOverlay intensity={glitchIntensity} />
+      {levelUpFx&&<LevelUpOverlay key={levelUpFx.id} level={levelUpFx.level} accent={accentColor} onDone={function(){setLevelUpFx(null);}} />}
+      {rankUpFx&&<RankUpOverlay key={rankUpFx.id} rank={rankUpFx.rank} onDone={function(){setRankUpFx(null);}} />}
+
+      <div style={{ position:"relative",zIndex:1 }}>
+        <TopHud player={player} rank={rank} onMenuToggle={function(){setMenuOpen(function(m){return !m;});}} menuOpen={menuOpen} isMonarch={isMonarch} />
+        {menuOpen&&<Sidebar activeView={activeView} onSelect={setActiveView} onClose={function(){setMenuOpen(false);sfx.sfxClick();}} ac={rank.color} playerName={player.name} isMonarch={isMonarch} />}
+
+        <div style={{ maxWidth:860,margin:"0 auto",padding:"28px 16px 80px" }}>
+          {activeView==="Dashboard"&&<DashboardView player={player} rank={rank} dailyProgress={dailyProgress} isDailyDone={isDailyDone} onGoalTap={handleGoalTap} isMonarch={isMonarch} dailyQuest={dailyQuest} activeHiddenQuest={activeHiddenQuest} hiddenQuestProgress={hiddenQuestProgress} onHiddenGoalTap={handleHiddenGoalTap} energyScore={energyScore} onReset={handleDailyReset} fame={fame} worldEvent={worldEvent} awakeningDay={awakeningDay} />}
+          {activeView==="Daily Quest"&&(
+            <div className="fade-in">
+              <SL text="Daily Quest" ac={accentColor} />
+              {activeHiddenQuest&&<HiddenQuestCard quest={activeHiddenQuest} progress={hiddenQuestProgress} onGoalTap={handleHiddenGoalTap} ac={accentColor} />}
+              <QuestCard quest={dailyQuest} progress={dailyProgress} isDone={isDailyDone} onGoalTap={handleGoalTap} ac={accentColor} />
+            </div>
+          )}
+          {activeView==="Side Quests"&&<SideQuestsView rank={rank} sideProgress={sideProgress} sideDone={sideDone} onSideGoalTap={handleSideGoalTap} isMonarch={isMonarch} extSideProgress={extSideProgress} extSideDone={extSideDone} onExtGoalTap={handleExtSideGoalTap} player={player} energyScore={energyScore} fame={fame} guildId={guildId} anomalyDone={anomalyDone} onAnomalyComplete={handleAnomalyComplete} recentAnomalyIds={recentAnomalyIds} />}
+          {activeView==="Hunter Stats"&&<StatsView player={player} rank={rank} isMonarch={isMonarch} onSelectTitle={handleSetTitle} clearedGates={clearedGates} />}
+          {activeView==="Hunter Profile"&&<HunterIdentityView player={player} rank={rank} isMonarch={isMonarch} fame={fame} shadowArmy={shadowArmy} bosses={bosses} clearedGates={clearedGates} earnedAchievements={earnedAchievements} guildId={guildId} accentColor={accentColor} />}
+          {activeView==="Guild"&&<GuildView player={player} fame={fame} guildId={guildId} guildQuestProgress={guildQuestProgress} guildQuestDone={guildQuestDone} onGoalTap={handleGuildGoalTap} onLeave={handleLeaveGuild} accentColor={accentColor} />}
+          {activeView==="Specialization"&&<SpecializationView player={player} unlockedSpecs={unlockedSpecs} onUnlock={handleUnlockSpec} accentColor={accentColor} />}
+          {activeView==="Dungeon Gates"&&<DungeonGatesView rank={rank} isMonarch={isMonarch} clearedGates={clearedGates} onEnterGate={handleEnterGateWithCutscene} ac={accentColor} player={player} energyScore={energyScore} />}
+          {activeView==="Boss Raids"&&<BossRaidsView bosses={bosses} bossData={BOSS_DATA} onAttack={handleBossAttack} ac={accentColor} questGoalsCleared={totalQuestGoalsCleared} inventory={inventory} shadowArmy={shadowArmy} lastRaidResult={lastRaidResult} onDismissRaidResult={function(){setLastRaidResult(null);}} />}
+          {activeView==="Secret Encounters"&&<SecretBossesView player={player} clearedGates={clearedGates} streak={player.streak} secretBosses={secretBossStates} onAttack={handleSecretBossAttack} accentColor={accentColor} questGoalsCleared={totalQuestGoalsCleared} />}
+          {activeView==="Shadow Archive"&&<ShadowArchiveView bosses={bosses} bossData={BOSS_DATA} ac={accentColor} />}
+          {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} />}
+          {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
+          {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} xpBoostCharges={xpBoostCharges} />}
+          {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
+          {activeView==="Rankings"&&<RankingsView player={player} fame={fame} rank={rank} rivals={rivals} accentColor={accentColor} />}
+          {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
+          {activeView==="Gate Map"&&<GateMapView player={player} accentColor={accentColor} onEnterGate={handleEnterGateWithCutscene} />}
+          {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
+          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
+        </div>
+
+        {/* DEV: Monarch interest only — no free XP */}
+        <div style={{ position:"fixed",bottom:12,right:12,zIndex:8000,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4 }}>
+          {/* System 7: Notification history tray — last 3 */}
+          {notifHistory.slice(0,3).map(function(n,i){
+            const nc = n.kind==="evolve"?"#2ee88a":n.kind==="ach"?"#a05df5":n.kind==="warning"?"#f5b65d":n.kind==="xp"?"#f5b65d":"#5b7aa0";
+            return (
+              <div key={i} style={{ fontSize:9,padding:"2px 8px",border:"1px solid "+nc+"33",background:"rgba(5,10,20,0.85)",color:nc+"88",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:"monospace",pointerEvents:"none",opacity:Math.max(0.2,1-i*0.3) }}>
+                {n.message}
+              </div>
+            );
+          })}
+          <button onClick={function(){addMonarchInterest(10);maybeTriggerCryptic(monarchStage<1?1:monarchStage);}} style={{ background:"rgba(155,48,255,0.1)",border:"1px solid #9b30ff33",color:"#9b30ff55",fontSize:9,padding:"4px 8px",cursor:"pointer",fontFamily:"monospace" }} title="DEV: +interest">+mi</button>
+        </div>
+      </div>
+
+      {/* Overlays */}
+      {/* Phase 4 overlays */}
+      {cutsceneGate&&<DungeonCutscene gate={cutsceneGate} onEnter={function(){const g=cutsceneGate;setCutsceneGate(null);if(g.rooms&&g.rooms.length>0){setDungeonChainGate(g);}else{completeDungeon(g,[]);}}} onAbort={function(){setCutsceneGate(null);showToast("Gate entry withdrawn.","info");}} />}
+      {rewardChest&&pendingStatPoints===0&&<RewardChestModal rewards={rewardChest} onClaim={handleChestClaim} accentColor={accentColor} />}
+      {pendingStatPoints>0&&!rewardChest&&<StatPointDistributor points={pendingStatPoints} onConfirm={handleStatPointConfirm} accentColor={accentColor} />}
+      {/* Re-evaluation modal */}
+      {reevalOpen&&<ReevaluationModal onScoreChange={handleReevalScoreChange} scores={reevalScores} onSubmit={handleReevalSubmit} onDismiss={handleDismissReeval} result={reevalResult} accentColor={accentColor} />}
+      {/* Wave 4: Guild recruitment */}
+      {guildRecruitOffer&&<GuildRecruitmentPopup guild={guildRecruitOffer} onJoin={handleJoinGuild} onDecline={function(){setGuildRecruitOffer(null);showToast("Guild offer declined.","info");}} />}
+      {/* Wave 3: Breakthrough + Cinematic Achievement */}
+      {breakthroughPending&&<BreakthroughModal quest={breakthroughPending} onComplete={handleBreakthroughComplete} onDismiss={function(){}} />}
+      {cinematicAch&&<CinematicAchievementOverlay achievement={cinematicAch} onDone={function(){setCinematicAch(null);}} />}
+      {/* System 2: Streak protection */}
+      {streakProtectActive&&<StreakProtectionModal streak={player.streak} onPreserve={handleStreakPreserve} onDecline={handleStreakDecline} />}
+      {/* System 6: Takeover events */}
+      {takeoverEvent&&<SystemTakeoverOverlay event={takeoverEvent} onDone={function(){setTakeoverEvent(null);}} />}
+      {/* Phase 2: Random events */}
+      {randomEventPending&&<RandomEventPopup event={randomEventPending} onAccept={handleRandomEventAccept} onDismiss={handleRandomEventDismiss} />}
+      {cinematic&&<CinematicPopup data={cinematic} onClose={function(){setCinematic(null);}} sfx={sfx} />}
+      {hiddenQuestPending&&<HiddenQuestPopup quest={hiddenQuestPending} onAccept={handleHiddenAccept} onDecline={handleHiddenDecline} />}
+      {cutsceneGate&&<DungeonCutscene gate={cutsceneGate} onEnter={function(){const g=cutsceneGate; const mod=rollDungeonModifier(); setActiveModifier(mod); setCutsceneGate(null); if(mod.label){showToast("Modifier: "+mod.label,"warning");} if(g.rooms&&g.rooms.length>0){setDungeonChainGate(g);}else{completeDungeon(g,[],mod);}}} onAbort={function(){setCutsceneGate(null);setActiveModifier(null);showToast("Gate entry withdrawn.","info");}} />}
+      {dungeonChainGate&&<DungeonChain gate={dungeonChainGate} modifier={activeModifier} onComplete={function(choices,mod,events){setDungeonChainGate(null);completeDungeon(dungeonChainGate,choices,mod||activeModifier,events||[]);setActiveModifier(null);}} onAbandon={function(){setDungeonChainGate(null);setActiveModifier(null);showToast("Dungeon abandoned.","warning");}} sfx={sfx} />}
+      {accessDeniedBoss&&<AccessDeniedScreen boss={accessDeniedBoss} playerRank={rank} onClose={function(){setAccessDeniedBoss(null);}} />}
+      {ariseTarget&&<AriseScreen boss={ariseTarget.bossData} attemptNumber={ariseAttempt} onSuccess={handleAriseSuccess} onFail={handleAriseFail} onAbandon={handleAriseAbandon} sfx={sfx} extractionChance={arisePoolShadow?calcExtractionChance(arisePoolShadow,player,fame):undefined} />}
+      {crypticVisible&&<CrypticNote message={crypticMessage} onDismiss={handleCrypticDismiss} />}
+      {trialOpen&&<MonarchTrialScreen progress={trialProgress} onGoalTap={handleTrialGoalTap} onForfeit={handleTrialForfeit} />}
+      {reawakeningActive&&<ReawakeningSequence playerName={player.name} onComplete={handleReawakeningComplete} />}
+      {toast!==null&&<Toast message={toast.message} kind={toast.kind} ac={accentColor} isMonarch={toast.monarch} />}
+    </div>
+  );
+}
+
+export default function SystemInterface() {
+  return (<ErrorBoundary><StyleTag /><App /></ErrorBoundary>);
+}
