@@ -5088,21 +5088,19 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
           <div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,"+r.color+"18,transparent 70%)",pointerEvents:"none" }} />
           <div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,"+r.color+"06 3px,"+r.color+"06 4px)",pointerEvents:"none" }} />
           <div className="sl-corners" />
-          {/* Header */}
           <div style={{ padding:"20px 24px 0",position:"relative",zIndex:1 }}>
             <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.5em",color:r.color,marginBottom:8 }}>SYSTEM WINDOW</div>
             <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:900,color:"#e0f4ff",textShadow:"0 0 20px "+r.color+"88",marginBottom:4 }}>RAID COMPLETE</div>
             <div style={{ fontSize:12,color:r.color,fontWeight:700,letterSpacing:"0.2em",marginBottom:20 }}>◈ {r.rankLabel} PERFORMANCE</div>
           </div>
-          {/* Results grid */}
           <div style={{ padding:"0 24px 20px",position:"relative",zIndex:1 }}>
             {[
-              { label:"BOSS DEFEATED",    value:r.bossName,          color:"#e0f4ff" },
-              { label:"PERFORMANCE RANK", value:r.rankLabel,          color:r.color   },
-              { label:"XP EARNED",        value:"+" + r.xp,          color:"#f5b65d"  },
-              { label:"COINS EARNED",     value:"+" + r.coins,       color:"#f5b65d"  },
-              { label:"FAME GAINED",      value:"+" + r.fame,        color:"#2ee88a"  },
-              { label:"APPROACH",         value:r.approach,          color:SYS_BLUE   },
+              { label:"BOSS DEFEATED",    value:r.bossName,   color:"#e0f4ff" },
+              { label:"PERFORMANCE RANK", value:r.rankLabel,  color:r.color   },
+              { label:"XP EARNED",        value:"+"+r.xp,     color:"#f5b65d" },
+              { label:"COINS EARNED",     value:"+"+r.coins,  color:"#f5b65d" },
+              { label:"FAME GAINED",      value:"+"+r.fame,   color:"#2ee88a" },
+              { label:"APPROACH",         value:r.approach,   color:SYS_BLUE  },
             ].map(function(row){
               return (
                 <div key={row.label} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid rgba(77,184,255,0.07)" }}>
@@ -5111,10 +5109,20 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
                 </div>
               );
             })}
-            {r.shadowExtracted && (
-              <div style={{ marginTop:12,padding:"10px 14px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)" }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:MONARCH_PURP,marginBottom:4 }}>SHADOW EXTRACTED</div>
-                <div style={{ fontSize:13,color:"#c8a0e8",fontWeight:600 }}>◉ {r.shadowExtracted}</div>
+            {/* Shadow extraction opportunity */}
+            {r.shadowExtracted ? (
+              <div style={{ marginTop:12,padding:"12px 14px",border:"2px solid "+MONARCH_PURP+"88",background:"rgba(155,48,255,0.10)" }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:MONARCH_PURP,marginBottom:6 }}>◉ SHADOW EXTRACTED</div>
+                <div style={{ fontSize:14,color:"#c8a0e8",fontWeight:700 }}>{r.shadowExtracted}</div>
+              </div>
+            ) : r.shadowCandidate ? (
+              <div style={{ marginTop:12,padding:"12px 14px",border:"1px solid "+MONARCH_PURP+"55",background:"rgba(155,48,255,0.06)" }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:MONARCH_PURP,marginBottom:6 }}>SHADOW CANDIDATE AVAILABLE</div>
+                <div style={{ fontSize:12,color:"#8a6ab0" }}>An extraction attempt is available. Initiate ARISE to proceed.</div>
+              </div>
+            ) : (
+              <div style={{ marginTop:12,padding:"10px 14px",border:"1px solid rgba(77,184,255,0.1)",background:"rgba(77,184,255,0.04)" }}>
+                <div style={{ fontSize:11,color:"#3a5a78" }}>No extraction opportunity on this attempt.</div>
               </div>
             )}
             <button onClick={onDismissRaidResult} style={{ width:"100%",marginTop:16,padding:"12px",background:r.color,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.2em" }}>
@@ -5134,36 +5142,78 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
       </p>
       <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16 }}>
         {bosses.map(function(boss,i){
-          const data=bossData[i]; const hpPct=clamp((boss.currentHp/boss.maxHp)*100,0,100); const defeated=boss.currentHp<=0;
-          const threatColor = hpPct > 60 ? "#f53d3d" : hpPct > 30 ? "#f5b65d" : "#2ee88a";
+          const data=bossData[i];
+          const hpPct=clamp((boss.currentHp/boss.maxHp)*100,0,100);
+          const defeated=boss.currentHp<=0;
+          const threatColor = hpPct>60?"#f53d3d":hpPct>30?"#f5b65d":"#2ee88a";
+
+          /* Shadow silhouette data */
+          const hasShadow = !!(data && data.shadow);
+          const alreadyExtracted = hasShadow && shadowArmy.some(function(s){ return s.fromBoss===boss.id; });
+          const shadowLost = !!boss.shadowLost;
+
           return (
             <div key={boss.id} style={{ border:"1px solid "+(defeated?"#2ee88a44":boss.color+"88"),background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",padding:"20px",opacity:defeated?0.65:1,position:"relative",overflow:"hidden" }}>
-              {!defeated && <div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,"+boss.color+"0d,transparent 70%)",pointerEvents:"none" }} />}
+              {!defeated&&<div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,"+boss.color+"0d,transparent 70%)",pointerEvents:"none" }}/>}
+
+              {/* Boss header */}
               <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12,position:"relative" }}>
                 <div className={defeated?"":hpPct<40?"dng-warn":""} style={{ width:44,height:44,border:"2px solid "+(defeated?"#2ee88a":boss.color),display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:boss.color+"11",flexShrink:0,boxShadow:defeated?"none":"0 0 12px "+boss.color+"44" }}>{defeated?"☠":boss.icon}</div>
-                <div>
+                <div style={{ flex:1,minWidth:0 }}>
                   <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:defeated?"#2ee88a":"#e0f4ff" }}>{boss.name}</div>
                   <div style={{ fontSize:10,color:"#5b7aa0",letterSpacing:"0.1em" }}>{boss.title}</div>
                 </div>
-                {!defeated && (
-                  <div style={{ marginLeft:"auto",padding:"2px 8px",border:"1px solid "+threatColor+"66",fontSize:9,color:threatColor,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em" }}>
-                    {hpPct>60?"HIGH THREAT":hpPct>30?"MID THREAT":"WEAKENED"}
-                  </div>
-                )}
+                {!defeated&&<div style={{ padding:"2px 8px",border:"1px solid "+threatColor+"66",fontSize:9,color:threatColor,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",flexShrink:0 }}>{hpPct>60?"HIGH THREAT":hpPct>30?"MID THREAT":"WEAKENED"}</div>}
               </div>
-              {data&&!defeated&&<BossDialogueBox boss={data} bossState={boss} />}
+
+              {data&&!defeated&&<BossDialogueBox boss={data} bossState={boss}/>}
+
+              {/* HP bar */}
               <div style={{ marginBottom:10 }}>
                 <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,color:"#5b7aa0",marginBottom:4 }}><span>HP</span><span style={{ color:defeated?"#2ee88a":boss.color }}>{boss.currentHp}/{boss.maxHp}</span></div>
-                <div style={{ height:6,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}><div style={{ height:"100%",width:hpPct+"%",background:defeated?"#2ee88a":"linear-gradient(90deg,"+boss.color+",#fff8)",transition:"width 0.5s ease",boxShadow:"0 0 6px "+boss.color+"88" }} /></div>
+                <div style={{ height:6,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}><div style={{ height:"100%",width:hpPct+"%",background:defeated?"#2ee88a":"linear-gradient(90deg,"+boss.color+",#fff8)",transition:"width 0.5s ease",boxShadow:"0 0 6px "+boss.color+"88" }}/></div>
               </div>
-              <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:8 }}>Requires: <span style={{ color:boss.color }}>{boss.minRankName} (LV {boss.minLevel})</span></div>
-              {defeated&&boss.shadow&&(<div style={{ marginBottom:12,padding:"8px 12px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)",fontSize:11,color:MONARCH_PURP }}>◉ SHADOW EXTRACTED · {boss.shadow.name}</div>)}
+
+              <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:10 }}>Requires: <span style={{ color:boss.color }}>{boss.minRankName} (LV {boss.minLevel})</span></div>
+
+              {/* SHADOW SILHOUETTE PANEL */}
+              <div style={{ marginBottom:12,padding:"10px 12px",border:"1px solid "+(alreadyExtracted?"#2ee88a33":shadowLost?"#f53d3d22":MONARCH_PURP+"33"),background:alreadyExtracted?"rgba(46,232,138,0.04)":shadowLost?"rgba(245,61,61,0.04)":"rgba(155,48,255,0.05)",position:"relative",overflow:"hidden" }}>
+                {/* Subtle silhouette background */}
+                {!alreadyExtracted&&!shadowLost&&hasShadow&&(
+                  <div style={{ position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",fontSize:32,color:MONARCH_PURP,opacity:0.06,fontFamily:"'Orbitron',sans-serif",pointerEvents:"none",userSelect:"none" }}>◉</div>
+                )}
+                <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+                  <div style={{ fontSize:8,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",color:alreadyExtracted?"#2ee88a":shadowLost?"#f53d3d55":MONARCH_PURP+"88",marginBottom:4 }}>
+                    {alreadyExtracted?"◉ SHADOW EXTRACTED":shadowLost?"✕ SHADOW LOST":"◉ SHADOW CANDIDATE"}
+                  </div>
+                  {!alreadyExtracted&&!shadowLost&&hasShadow&&(
+                    <div style={{ fontSize:8,color:MONARCH_PURP+"66",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em" }}>CAN EXTRACT: YES</div>
+                  )}
+                  {!hasShadow&&<div style={{ fontSize:8,color:"#2a3a55",fontFamily:"'Orbitron',sans-serif" }}>CAN EXTRACT: NO</div>}
+                </div>
+                {alreadyExtracted&&data&&data.shadow&&(
+                  <div style={{ fontSize:12,color:"#2ee88a",fontWeight:600,fontFamily:"'Rajdhani',sans-serif" }}>◉ {data.shadow.name} — In your army</div>
+                )}
+                {!alreadyExtracted&&!shadowLost&&hasShadow&&data&&data.shadow&&(
+                  <div>
+                    <div style={{ fontSize:12,color:"#8a6ab0",fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
+                      A shadow stirs inside this enemy. If you can defeat it, a soul may remain.
+                    </div>
+                    <div style={{ display:"flex",gap:10,marginTop:6,flexWrap:"wrap" }}>
+                      <span style={{ fontSize:9,color:MONARCH_PURP+"88",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em" }}>RARITY: {data.shadow.rarity}</span>
+                      <span style={{ fontSize:9,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif" }}>3 ATTEMPTS MAX</span>
+                    </div>
+                  </div>
+                )}
+                {shadowLost&&<div style={{ fontSize:11,color:"#f53d3d44",fontFamily:"'Rajdhani',sans-serif" }}>Shadow dissipated. Extraction failed.</div>}
+                {!hasShadow&&<div style={{ fontSize:11,color:"#2a3a55",fontFamily:"'Rajdhani',sans-serif" }}>No shadow detected in this entity.</div>}
+              </div>
+
               <button disabled={defeated||questGoalsCleared<1} onClick={function(){
                 if(defeated||questGoalsCleared<1) return;
                 setPrepTarget({bossIdx:i,boss,data});
-              }}
-                style={{ width:"100%",padding:"10px",background:defeated?"transparent":questGoalsCleared<1?"rgba(10,16,32,0.8)":boss.color,color:defeated?"#2ee88a":questGoalsCleared<1?"#2a3a55":"#03050c",border:defeated?"1px solid #2ee88a44":questGoalsCleared<1?"1px solid #2a3a55":"none",cursor:(defeated||questGoalsCleared<1)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
-                {defeated?"☠ SHADOW EXTRACTED":questGoalsCleared<1?"COMPLETE QUESTS FIRST":"PREPARE RAID"}
+              }} style={{ width:"100%",padding:"10px",background:defeated?"transparent":questGoalsCleared<1?"rgba(10,16,32,0.8)":boss.color,color:defeated?"#2ee88a":questGoalsCleared<1?"#2a3a55":"#03050c",border:defeated?"1px solid #2ee88a44":questGoalsCleared<1?"1px solid #2a3a55":"none",cursor:(defeated||questGoalsCleared<1)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
+                {defeated?"☠ DEFEATED":questGoalsCleared<1?"COMPLETE QUESTS FIRST":"PREPARE RAID"}
               </button>
             </div>
           );
@@ -6063,8 +6113,39 @@ function GateMapView({ player, accentColor, onEnterGate }) {
   const [coords, setCoords]     = useState(null);
   const [gates, setGates]       = useState([]);
   const [selectedGate, setSelectedGate] = useState(null);
-  const watchIdRef = useRef(null);
+  const [arrivedGate, setArrivedGate]   = useState(null); /* gate player is standing at */
+  const watchIdRef   = useRef(null);
+  const prevCoordsRef= useRef(null);
+  const notifiedRef  = useRef({}); /* track which gates have fired arrival alert */
   const MAP_PX = 300;
+  const ARRIVAL_RADIUS_KM = 0.15; /* 150m = at gate */
+  const NEARBY_RADIUS_KM  = 0.5;
+  const CLOSE_RADIUS_KM   = 1.0;
+
+  function getProximityLabel(km) {
+    if (km <= ARRIVAL_RADIUS_KM) return { label:"AT GATE",    color:"#2ee88a", intensity:1.0 };
+    if (km <= NEARBY_RADIUS_KM)  return { label:"VERY CLOSE", color:"#f5b65d", intensity:0.75 };
+    if (km <= CLOSE_RADIUS_KM)   return { label:"NEARBY",     color:SYS_BLUE,  intensity:0.45 };
+    if (km <= 3.0)               return { label:"DETECTED",   color:"#5b7aa0", intensity:0.25 };
+    return                              { label:"FAR",        color:"#2a3a55", intensity:0.1  };
+  }
+
+  function updateGatesFromCoords(co) {
+    setCoords(co);
+    /* Regenerate gates only if moved >200m from last generation point */
+    var shouldRegen = !prevCoordsRef.current ||
+      distKm(prevCoordsRef.current.lat, prevCoordsRef.current.lng, co.lat, co.lng) > 0.2;
+    setGates(function(prev) {
+      var base = shouldRegen
+        ? generateNearbyGates(co.lat, co.lng, player.level||1)
+        : prev;
+      if (shouldRegen) prevCoordsRef.current = co;
+      return base.map(function(g) {
+        var d = distKm(co.lat, co.lng, g.lat, g.lng);
+        return Object.assign({}, g, { distKm: d });
+      }).sort(function(a,b){ return a.distKm-b.distKm; });
+    });
+  }
 
   function requestLocation() {
     if (!navigator.geolocation) { setLocState("error"); return; }
@@ -6072,18 +6153,29 @@ function GateMapView({ player, accentColor, onEnterGate }) {
     watchIdRef.current = navigator.geolocation.watchPosition(
       function(pos) {
         var co = { lat:pos.coords.latitude, lng:pos.coords.longitude };
-        setCoords(co);
         setLocState("granted");
-        var gen = generateNearbyGates(co.lat, co.lng, player.level||1).map(function(g){
-          return Object.assign({},g,{distKm:distKm(co.lat,co.lng,g.lat,g.lng)});
-        });
-        gen.sort(function(a,b){return a.distKm-b.distKm;});
-        setGates(gen);
+        updateGatesFromCoords(co);
       },
       function(err){ setLocState(err.code===1?"denied":"error"); },
-      {enableHighAccuracy:true,maximumAge:30000,timeout:15000}
+      { enableHighAccuracy:true, maximumAge:5000, timeout:15000 }
     );
   }
+
+  /* Arrival detection — fires once per gate */
+  useEffect(function() {
+    if (!coords || !gates.length) return;
+    gates.forEach(function(gate) {
+      if (gate.distKm <= ARRIVAL_RADIUS_KM && !notifiedRef.current[gate.id]) {
+        notifiedRef.current[gate.id] = true;
+        setArrivedGate(gate);
+        setSelectedGate(gate);
+      }
+      /* Reset if player walks away */
+      if (gate.distKm > ARRIVAL_RADIUS_KM * 2 && notifiedRef.current[gate.id]) {
+        notifiedRef.current[gate.id] = false;
+      }
+    });
+  }, [coords, gates]);
 
   useEffect(function(){
     return function(){
@@ -6102,11 +6194,18 @@ function GateMapView({ player, accentColor, onEnterGate }) {
     return {x:MAP_PX/2+px,y:MAP_PX/2+py};
   }
 
+  function fmtDist(km) {
+    if (km < 0.1)  return Math.round(km*1000)+"m";
+    if (km < 1.0)  return (km*1000).toFixed(0)+"m";
+    return km.toFixed(2)+"km";
+  }
+
+  /* ── IDLE / requesting ── */
   if(locState==="idle"||locState==="requesting") return (
     <div className="fade-in">
       <SL text="Gate Map" ac={c} />
       <div style={{padding:"40px 24px",textAlign:"center",border:"1px solid "+c+"33",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,"+c+"06 3px,"+c+"06 4px)",pointerEvents:"none"}} />
+        <div style={{position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,"+c+"06 3px,"+c+"06 4px)",pointerEvents:"none"}}/>
         <div className={locState==="requesting"?"arise-pulse":""} style={{width:64,height:64,borderRadius:"50%",border:"2px solid "+c,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",fontSize:24,color:c,background:c+"0d"}}>◉</div>
         <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:12,color:"#c8eeff",marginBottom:10,letterSpacing:"0.2em"}}>{locState==="requesting"?"SCANNING FOR GATES...":"GATE DETECTION OFFLINE"}</div>
         <p style={{fontSize:12,color:"#5b7aa0",lineHeight:1.7,marginBottom:20}}>{locState==="requesting"?"Acquiring GPS signal. Gates in your area are being detected.":"The System requires your location to detect nearby gates. No data is stored or transmitted."}</p>
@@ -6137,31 +6236,83 @@ function GateMapView({ player, accentColor, onEnterGate }) {
     </div>
   );
 
+  /* ── GRANTED ── */
+  var closestGate = gates.length ? gates[0] : null;
+
   return (
     <div className="fade-in">
       <SL text="Gate Map" ac={c} />
+
+      {/* GATE ARRIVAL ALERT */}
+      {arrivedGate && (
+        <div className="fade-in" style={{marginBottom:14,padding:"12px 16px",border:"2px solid #2ee88a",background:"rgba(46,232,138,0.08)",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 50%,rgba(46,232,138,0.12),transparent 70%)",animation:"pulse-glow 1.5s ease-in-out infinite",pointerEvents:"none"}}/>
+          <div style={{display:"flex",alignItems:"center",gap:10,position:"relative"}}>
+            <span className="blink" style={{fontSize:20,color:"#2ee88a"}}>◉</span>
+            <div>
+              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:"#2ee88a",letterSpacing:"0.25em",marginBottom:2}}>GATE DETECTED</div>
+              <div style={{fontSize:11,color:"#9ab8d4"}}>{arrivedGate.label} · {arrivedGate.type.rank}-RANK</div>
+            </div>
+            <button onClick={function(){setArrivedGate(null);}} style={{marginLeft:"auto",padding:"4px 10px",background:"transparent",border:"1px solid #2ee88a44",color:"#2ee88a88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.1em",flexShrink:0}}>DISMISS</button>
+          </div>
+        </div>
+      )}
+
+      {/* Closest gate status bar */}
+      {closestGate && (function(){
+        var prox = getProximityLabel(closestGate.distKm);
+        return (
+          <div style={{marginBottom:12,padding:"8px 14px",border:"1px solid "+prox.color+"44",background:prox.color+"07",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{fontSize:9,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",color:prox.color}}>{prox.label}</div>
+            <div style={{fontSize:11,color:"#9ab8d4",fontFamily:"'Rajdhani',sans-serif",fontWeight:600}}>
+              Nearest gate: <span style={{color:prox.color}}>{fmtDist(closestGate.distKm)}</span>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Radar map */}
       <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
         <div style={{position:"relative",width:MAP_PX,height:MAP_PX}}>
           <svg width={MAP_PX} height={MAP_PX} style={{display:"block"}}>
-            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={MAP_PX/2} fill="rgba(2,6,18,0.98)" />
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={MAP_PX/2} fill="rgba(2,6,18,0.98)"/>
             {[0.25,0.5,0.75,1].map(function(r,i){return <circle key={i} cx={MAP_PX/2} cy={MAP_PX/2} r={(MAP_PX/2)*r} fill="none" stroke="rgba(77,184,255,0.08)" strokeWidth="1"/>;}) }
             <line x1={MAP_PX/2} y1={0} x2={MAP_PX/2} y2={MAP_PX} stroke="rgba(77,184,255,0.06)" strokeWidth="1"/>
             <line x1={0} y1={MAP_PX/2} x2={MAP_PX} y2={MAP_PX/2} stroke="rgba(77,184,255,0.06)" strokeWidth="1"/>
+            {/* Proximity rings — arrival and nearby */}
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(ARRIVAL_RADIUS_KM/0.8)*(MAP_PX/2)} fill="none" stroke="rgba(46,232,138,0.2)" strokeWidth="1" strokeDasharray="3 3"/>
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(NEARBY_RADIUS_KM/0.8)*(MAP_PX/2)} fill="none" stroke="rgba(77,184,255,0.1)" strokeWidth="1" strokeDasharray="4 4"/>
+            {/* Rotating scan line */}
             <line x1={MAP_PX/2} y1={MAP_PX/2} x2={MAP_PX/2} y2={4} stroke="rgba(77,184,255,0.3)" strokeWidth="1.5">
               <animateTransform attributeName="transform" type="rotate" from={"0 "+(MAP_PX/2)+" "+(MAP_PX/2)} to={"360 "+(MAP_PX/2)+" "+(MAP_PX/2)} dur="4s" repeatCount="indefinite"/>
             </line>
+            {/* Gate markers with proximity-based glow */}
             {gates.map(function(gate){
-              var pos=toSvgXY(gate.lat,gate.lng); var gt=gate.type; var isSel=selectedGate&&selectedGate.id===gate.id;
+              var pos=toSvgXY(gate.lat,gate.lng);
+              var gt=gate.type;
+              var isSel=selectedGate&&selectedGate.id===gate.id;
+              var prox=getProximityLabel(gate.distKm);
+              var baseR=isSel?14:10;
+              var glowR=Math.round(baseR*(1+prox.intensity*0.8));
               return (
                 <g key={gate.id} onClick={function(){setSelectedGate(isSel?null:gate);}} style={{cursor:"pointer"}}>
-                  <circle cx={pos.x} cy={pos.y} r={isSel?14:10} fill={gt.color+"22"} stroke={gt.color} strokeWidth={isSel?2:1.5}>
-                    <animate attributeName="r" values={(isSel?14:10)+";"+(isSel?17:13)+";"+(isSel?14:10)} dur="2s" repeatCount="indefinite"/>
+                  {/* Proximity glow ring */}
+                  {prox.intensity>0.2&&<circle cx={pos.x} cy={pos.y} r={glowR+4} fill="none" stroke={prox.color} strokeWidth="1" opacity={prox.intensity*0.5}>
+                    <animate attributeName="opacity" values={prox.intensity*0.5+";0.05;"+prox.intensity*0.5} dur="1.8s" repeatCount="indefinite"/>
+                  </circle>}
+                  <circle cx={pos.x} cy={pos.y} r={baseR} fill={gt.color+"22"} stroke={gt.color} strokeWidth={isSel?2:1.5}>
+                    <animate attributeName="r" values={baseR+";"+(baseR+3)+";"+baseR} dur="2s" repeatCount="indefinite"/>
                     <animate attributeName="stroke-opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
                   </circle>
                   <text x={pos.x} y={pos.y+4} textAnchor="middle" fontSize="10" fill={gt.color} fontFamily="sans-serif">{gt.icon}</text>
                 </g>
               );
             })}
+            {/* Player pulsing dot */}
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r="10" fill={c+"22"} stroke={c} strokeWidth="1" opacity="0.4">
+              <animate attributeName="r" values="10;16;10" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite"/>
+            </circle>
             <circle cx={MAP_PX/2} cy={MAP_PX/2} r="8" fill={c+"44"} stroke={c} strokeWidth="2">
               <animate attributeName="r" values="8;11;8" dur="1.5s" repeatCount="indefinite"/>
             </circle>
@@ -6169,55 +6320,71 @@ function GateMapView({ player, accentColor, onEnterGate }) {
           </svg>
           <div style={{position:"absolute",inset:0,borderRadius:"50%",border:"2px solid "+c+"44",pointerEvents:"none",boxShadow:"0 0 30px "+c+"22"}}/>
           <div style={{position:"absolute",bottom:8,right:8,fontSize:8,color:c+"66",fontFamily:"'Orbitron',sans-serif"}}>800m</div>
-          <div style={{position:"absolute",top:8,left:0,right:0,textAlign:"center",fontSize:8,color:c+"44",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em"}}>N</div>
+          <div style={{position:"absolute",top:6,left:0,right:0,textAlign:"center",fontSize:8,color:c+"44",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em"}}>N</div>
         </div>
       </div>
 
-      {selectedGate&&(
-        <div className="fade-in" style={{marginBottom:16,border:"1px solid "+selectedGate.type.color+"66",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",position:"relative",overflow:"hidden"}}>
-          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,"+selectedGate.type.color+"0d,transparent 70%)",pointerEvents:"none"}}/>
-          <div style={{padding:"14px 18px",position:"relative"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-              <div style={{width:36,height:36,border:"1.5px solid "+selectedGate.type.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:selectedGate.type.color,background:selectedGate.type.color+"11",flexShrink:0,boxShadow:"0 0 10px "+selectedGate.type.color+"44"}}>{selectedGate.type.icon}</div>
-              <div>
-                <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:"#e0f4ff"}}>{selectedGate.label}</div>
-                <div style={{fontSize:9,color:selectedGate.type.color,letterSpacing:"0.2em",fontFamily:"'Orbitron',sans-serif"}}>{selectedGate.type.rank}-RANK · {selectedGate.distKm<1?Math.round(selectedGate.distKm*1000)+"m":selectedGate.distKm.toFixed(1)+"km"} AWAY</div>
+      {/* Selected gate detail */}
+      {selectedGate&&(function(){
+        var prox=getProximityLabel(selectedGate.distKm);
+        var canEnter=selectedGate.type.minLevel<=player.level;
+        var atGate=selectedGate.distKm<=ARRIVAL_RADIUS_KM;
+        return (
+          <div className="fade-in" style={{marginBottom:16,border:"1px solid "+selectedGate.type.color+(atGate?"cc":"66"),background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",position:"relative",overflow:"hidden"}}>
+            {atGate&&<div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 50%,"+selectedGate.type.color+"0d,transparent 70%)",animation:"pulse-glow 2s ease-in-out infinite",pointerEvents:"none"}}/>}
+            <div style={{padding:"14px 18px",position:"relative"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <div className={atGate?"pulse-glow":""} style={{width:38,height:38,border:"1.5px solid "+selectedGate.type.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:selectedGate.type.color,background:selectedGate.type.color+"11",flexShrink:0,boxShadow:"0 0 "+(atGate?20:10)+"px "+selectedGate.type.color+(atGate?"88":"44")}}>{selectedGate.type.icon}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:atGate?"#e0f4ff":"#c8eeff"}}>{selectedGate.label}</div>
+                  <div style={{fontSize:9,color:selectedGate.type.color,letterSpacing:"0.15em",fontFamily:"'Orbitron',sans-serif"}}>{selectedGate.type.rank}-RANK</div>
+                </div>
+                <div style={{padding:"3px 8px",border:"1px solid "+prox.color+"55",fontSize:8,color:prox.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em",flexShrink:0}}>{prox.label}</div>
               </div>
+              {/* Live distance */}
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderTop:"1px solid rgba(77,184,255,0.07)",borderBottom:"1px solid rgba(77,184,255,0.07)",marginBottom:10}}>
+                <span style={{fontSize:9,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em"}}>DISTANCE TO GATE</span>
+                <span style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:prox.color}}>{fmtDist(selectedGate.distKm)}</span>
+              </div>
+              <p style={{fontSize:11,color:"#5b7aa0",lineHeight:1.6,marginBottom:12}}>
+                {selectedGate.type.rank==="BOSS"?"A boss-class gate. Extreme danger. Shadow extraction possible."
+                :selectedGate.type.rank==="RED"?"A Red Gate. No exit until cleared. High casualty rate."
+                :"A "+selectedGate.type.rank+"-Rank gate. Travel to the location to enter."}
+              </p>
+              {!canEnter
+                ?<div style={{padding:"10px",border:"1px solid #f53d3d33",fontSize:11,color:"#f53d3d88",textAlign:"center",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>RANK INSUFFICIENT — MIN LEVEL {selectedGate.type.minLevel}</div>
+                :atGate
+                  ?<button onClick={function(){if(typeof onEnterGate==="function")onEnterGate(selectedGate);}} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,"+selectedGate.type.color+"44,"+selectedGate.type.color+"1a)",border:"2px solid "+selectedGate.type.color,color:"#e0f4ff",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.2em",boxShadow:"0 0 20px "+selectedGate.type.color+"66"}}>ENTER GATE</button>
+                  :<div style={{padding:"10px",border:"1px solid "+selectedGate.type.color+"33",fontSize:11,color:"#5b7aa0",textAlign:"center",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>TRAVEL TO GATE — {fmtDist(selectedGate.distKm)} REMAINING</div>
+              }
             </div>
-            <p style={{fontSize:11,color:"#5b7aa0",lineHeight:1.6,marginBottom:12}}>
-              {selectedGate.type.rank==="BOSS"?"A boss-class gate. Extreme danger. Shadow extraction possible."
-              :selectedGate.type.rank==="RED"?"A Red Gate. No exit until cleared."
-              :"A "+selectedGate.type.rank+"-Rank gate. Travel to the location to enter."}
-            </p>
-            {selectedGate.type.minLevel<=player.level
-              ?<button onClick={function(){if(typeof onEnterGate==="function")onEnterGate(selectedGate);}} style={{width:"100%",padding:"11px",background:"linear-gradient(135deg,"+selectedGate.type.color+"22,"+selectedGate.type.color+"0d)",border:"1px solid "+selectedGate.type.color+"cc",color:"#e0f4ff",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em"}}>ENTER GATE</button>
-              :<div style={{padding:"10px",border:"1px solid #f53d3d33",background:"rgba(245,61,61,0.04)",fontSize:11,color:"#f53d3d88",textAlign:"center",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>RANK INSUFFICIENT — MIN LEVEL {selectedGate.type.minLevel}</div>
-            }
           </div>
-        </div>
-      )}
+        );
+      })()}
 
+      {/* Gate list */}
       <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.35em",color:"#2a3a55",marginBottom:8}}>DETECTED GATES</div>
-      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+      <div style={{display:"flex",flexDirection:"column",gap:5}}>
         {gates.map(function(gate){
           var gt=gate.type; var isSel=selectedGate&&selectedGate.id===gate.id;
+          var prox=getProximityLabel(gate.distKm);
           return (
             <div key={gate.id} onClick={function(){setSelectedGate(isSel?null:gate);}}
-              style={{padding:"10px 14px",border:"1px solid "+(isSel?gt.color+"88":gt.color+"33"),background:isSel?gt.color+"0d":"transparent",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",transition:"all 0.15s"}}>
+              style={{padding:"9px 14px",border:"1px solid "+(isSel?gt.color+"88":gt.color+"22"),background:isSel?gt.color+"0d":"transparent",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",transition:"all 0.15s"}}>
               <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <span style={{color:gt.color,fontSize:14}}>{gt.icon}</span>
+                <span style={{color:gt.color,fontSize:13}}>{gt.icon}</span>
                 <div>
-                  <div style={{fontFamily:"'Rajdhani',sans-serif",fontSize:13,fontWeight:600,color:isSel?"#e0f4ff":"#9ab8d4"}}>{gate.label}</div>
-                  <div style={{fontSize:8,color:gt.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em"}}>{gt.rank}-RANK</div>
+                  <div style={{fontFamily:"'Rajdhani',sans-serif",fontSize:12,fontWeight:600,color:isSel?"#e0f4ff":"#9ab8d4"}}>{gate.label}</div>
+                  <div style={{fontSize:7,color:gt.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.12em"}}>{gt.rank}-RANK · {prox.label}</div>
                 </div>
               </div>
-              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:10,color:gt.color+"88"}}>{gate.distKm<1?Math.round(gate.distKm*1000)+"m":gate.distKm.toFixed(1)+"km"}</div>
+              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:600,color:prox.color}}>{fmtDist(gate.distKm)}</div>
             </div>
           );
         })}
       </div>
-      <div style={{marginTop:12,padding:"8px 14px",border:"1px solid rgba(77,184,255,0.1)",fontSize:10,color:"#2a3a55",lineHeight:1.6}}>
-        Gates refresh as you move. Travel to gate locations to enter them. Public areas only.
+      <div style={{marginTop:10,padding:"8px 14px",border:"1px solid rgba(77,184,255,0.08)",fontSize:10,color:"#2a3a55",lineHeight:1.6}}>
+        Map updates in real time as you move. Walk to a gate location to activate entry. Public areas only.
       </div>
     </div>
   );
@@ -9776,6 +9943,7 @@ function App() {
           fame: fameBonus,
           approach: safeApproach.label || "Balanced",
           shadowExtracted: data&&data.shadow ? data.shadow.name : null,
+          shadowCandidate: !!(data&&data.shadow),
           score,
         });
         setTimeout(function(){
@@ -10099,167 +10267,3 @@ function App() {
       streak:      0,
       job:         data.hunterClass || "fighter",
       physique:    data.physique   || "hybrid",
-      goals:       Array.isArray(data.goals) ? data.goals : [],
-      activeTitle: "awakened",
-      stats:       safeStats,
-    });
-    sfx.sfxOpen();
-    addLog(
-      "Hunter " + (data.name||"Hunter") + " registered. Class: " + (data.hunterClass||"fighter") +
-      ". Starting rank: " + getRankForLevel(safeLevel).name + ".",
-      "system"
-    );
-    setPhase("app");
-    /* Save immediately after onboarding — don't wait for auto-save debounce */
-    setTimeout(function() {
-      try { saveGame({ phase:"app", player:{ name:data.name||"Hunter",level:safeLevel,xp:0,streak:0,job:data.hunterClass||"fighter",physique:data.physique||"hybrid",goals:Array.isArray(data.goals)?data.goals:[],activeTitle:"awakened",stats:safeStats }, coins:0, fame:0, inventory:[], shadowArmy:[], isDailyDone:false }); } catch(_) {}
-    }, 200);
-  }
-
-  /* ---- Visual evolution by rank (all declarations in dependency order) ---- */
-  const rankIdx         = rank ? (rank.minRankIndex || 0) : 0;
-  const gridAlpha       = isMonarch ? "0.06" : (0.02 + rankIdx * 0.005).toFixed(3);
-  const gridLineColor   = isMonarch
-    ? "rgba(155,48,255," + gridAlpha + ")"
-    : rankIdx >= 5 ? "rgba(245,182,93," + gridAlpha + ")"
-    : rankIdx >= 4 ? "rgba(160,93,245," + gridAlpha + ")"
-    : rankIdx >= 3 ? "rgba(93,124,245," + gridAlpha + ")"
-    : "rgba(77,184,255," + gridAlpha + ")";
-  const particleDensity = isMonarch ? 120 : 40 + rankIdx * 10;
-  const particleColor   = isMonarch
-    ? "rgba(155,48,255,0.75)"
-    : rankIdx >= 5 ? "rgba(245,182,93,0.6)"
-    : rankIdx >= 4 ? "rgba(160,93,245,0.6)"
-    : rankIdx >= 3 ? "rgba(93,124,245,0.55)"
-    : rankIdx >= 2 ? "rgba(77,184,255,0.5)"
-    : rank ? (rank.glow || "rgba(77,184,255,0.45)") : "rgba(77,184,255,0.45)";
-  const bgGrad          = isMonarch
-    ? "radial-gradient(ellipse at 50% 0%,#1a0030 0%," + MONARCH_DARK + " 55%,#000 100%)"
-    : rankIdx >= 5
-      ? "radial-gradient(ellipse at 50% 0%,#1a1000 0%,#080500 55%,#000 100%)"
-      : rankIdx >= 3
-        ? "radial-gradient(ellipse at 50% 0%,#0a0d28 0%,#050818 55%,#020410 100%)"
-        : "radial-gradient(ellipse at 50% 0%,#0a1428 0%,#050a16 55%,#02040a 100%)";
-
-  /* ---- System 5: Environmental theme overlay ---- */
-  /* Wave 4: Monarch corruption — computed from monarchInterest + rank */
-  const corruptionLevel = Math.min(1, ((monarchInterest||0)/100)*0.6 + (rankIdx>=5?0.3:rankIdx>=4?0.15:0));
-
-  const envTheme = (function() {
-    const safeEnergy = (typeof energyScore === "number" && isFinite(energyScore)) ? energyScore : 68;
-    if (isMonarch)              return { overlay:"rgba(155,48,255,0.06)", glow:MONARCH_PURP+"33" };
-    /* Wave 4: Monarch corruption overlay — gets more intense with interest */
-    if (corruptionLevel>0.7)    return { overlay:"rgba(155,48,255,0.05)", glow:MONARCH_PURP+"28" };
-    if (glitchIntensity>0.5)    return { overlay:"rgba(255,34,68,0.04)", glow:GLITCH_RED+"22" };
-    if (dungeonChainGate)       return { overlay:"rgba(245,61,61,0.03)", glow:"rgba(245,61,61,0.15)" };
-    if (awakeningDay)           return { overlay:"rgba(46,232,138,0.03)", glow:"rgba(46,232,138,0.10)" };
-    if (worldEvent && worldEvent.id==="we_corrupted") return { overlay:"rgba(255,34,68,0.03)", glow:GLITCH_RED+"18" };
-    if (worldEvent && worldEvent.id==="we_shadow_surge") return { overlay:"rgba(155,48,255,0.03)", glow:MONARCH_PURP+"18" };
-    if (worldEvent && worldEvent.id==="we_double_xp") return { overlay:"rgba(46,232,138,0.02)", glow:"rgba(46,232,138,0.08)" };
-    if (safeEnergy < 30)        return { overlay:"rgba(245,182,93,0.04)", glow:null };
-    if (rankIdx >= 5)           return { overlay:"rgba(245,182,93,0.02)", glow:"rgba(245,182,93,0.08)" };
-    if (rankIdx >= 4)           return { overlay:"rgba(160,93,245,0.02)", glow:null };
-    return null;
-  })();
-
-  /* ---- ONBOARDING ---- */
-  if(phase==="onboard"){
-    return (<div style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif" }}><AwakeningRegistration onComplete={handleOnboardComplete} /></div>);
-  }
-
-  /* ---- MAIN APP ---- */
-  return (
-    <div style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif",position:"relative",transition:"background 2.5s ease" }}>
-      <ParticleField color={particleColor} density={particleDensity} />
-      {isMonarch&&<div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:"radial-gradient(ellipse at center,transparent 40%,rgba(155,48,255,0.10) 100%)" }} />}
-      {/* Circuit-board grid — tighter, more SL-like */}
-      <div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",backgroundImage:"linear-gradient("+gridLineColor+" 1px,transparent 1px),linear-gradient(90deg,"+gridLineColor+" 1px,transparent 1px)",backgroundSize:"44px 44px" }} />
-      {/* Environmental theme overlay */}
-      {envTheme&&<div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:envTheme.overlay,boxShadow:envTheme.glow?"inset 0 0 120px "+envTheme.glow:"none",transition:"background 2s ease,box-shadow 2s ease" }} />}
-      <GlitchOverlay intensity={glitchIntensity} />
-      {levelUpFx&&<LevelUpOverlay key={levelUpFx.id} level={levelUpFx.level} accent={accentColor} onDone={function(){setLevelUpFx(null);}} />}
-      {rankUpFx&&<RankUpOverlay key={rankUpFx.id} rank={rankUpFx.rank} onDone={function(){setRankUpFx(null);}} />}
-
-      <div style={{ position:"relative",zIndex:1 }}>
-        <TopHud player={player} rank={rank} onMenuToggle={function(){setMenuOpen(function(m){return !m;});}} menuOpen={menuOpen} isMonarch={isMonarch} />
-        {menuOpen&&<Sidebar activeView={activeView} onSelect={setActiveView} onClose={function(){setMenuOpen(false);sfx.sfxClick();}} ac={rank.color} playerName={player.name} isMonarch={isMonarch} />}
-
-        <div style={{ maxWidth:860,margin:"0 auto",padding:"28px 16px 80px" }}>
-          {activeView==="Dashboard"&&<DashboardView player={player} rank={rank} dailyProgress={dailyProgress} isDailyDone={isDailyDone} onGoalTap={handleGoalTap} isMonarch={isMonarch} dailyQuest={dailyQuest} activeHiddenQuest={activeHiddenQuest} hiddenQuestProgress={hiddenQuestProgress} onHiddenGoalTap={handleHiddenGoalTap} energyScore={energyScore} onReset={handleDailyReset} fame={fame} worldEvent={worldEvent} awakeningDay={awakeningDay} />}
-          {activeView==="Daily Quest"&&(
-            <div className="fade-in">
-              <SL text="Daily Quest" ac={accentColor} />
-              {activeHiddenQuest&&<HiddenQuestCard quest={activeHiddenQuest} progress={hiddenQuestProgress} onGoalTap={handleHiddenGoalTap} ac={accentColor} />}
-              <QuestCard quest={dailyQuest} progress={dailyProgress} isDone={isDailyDone} onGoalTap={handleGoalTap} ac={accentColor} />
-            </div>
-          )}
-          {activeView==="Side Quests"&&<SideQuestsView rank={rank} sideProgress={sideProgress} sideDone={sideDone} onSideGoalTap={handleSideGoalTap} isMonarch={isMonarch} extSideProgress={extSideProgress} extSideDone={extSideDone} onExtGoalTap={handleExtSideGoalTap} player={player} energyScore={energyScore} fame={fame} guildId={guildId} anomalyDone={anomalyDone} onAnomalyComplete={handleAnomalyComplete} recentAnomalyIds={recentAnomalyIds} />}
-          {activeView==="Hunter Stats"&&<StatsView player={player} rank={rank} isMonarch={isMonarch} onSelectTitle={handleSetTitle} clearedGates={clearedGates} />}
-          {activeView==="Hunter Profile"&&<HunterIdentityView player={player} rank={rank} isMonarch={isMonarch} fame={fame} shadowArmy={shadowArmy} bosses={bosses} clearedGates={clearedGates} earnedAchievements={earnedAchievements} guildId={guildId} accentColor={accentColor} />}
-          {activeView==="Guild"&&<GuildView player={player} fame={fame} guildId={guildId} guildQuestProgress={guildQuestProgress} guildQuestDone={guildQuestDone} onGoalTap={handleGuildGoalTap} onLeave={handleLeaveGuild} accentColor={accentColor} />}
-          {activeView==="Specialization"&&<SpecializationView player={player} unlockedSpecs={unlockedSpecs} onUnlock={handleUnlockSpec} accentColor={accentColor} />}
-          {activeView==="Dungeon Gates"&&<DungeonGatesView rank={rank} isMonarch={isMonarch} clearedGates={clearedGates} onEnterGate={handleEnterGateWithCutscene} ac={accentColor} player={player} energyScore={energyScore} />}
-          {activeView==="Boss Raids"&&<BossRaidsView bosses={bosses} bossData={BOSS_DATA} onAttack={handleBossAttack} ac={accentColor} questGoalsCleared={totalQuestGoalsCleared} inventory={inventory} shadowArmy={shadowArmy} lastRaidResult={lastRaidResult} onDismissRaidResult={function(){setLastRaidResult(null);}} />}
-          {activeView==="Secret Encounters"&&<SecretBossesView player={player} clearedGates={clearedGates} streak={player.streak} secretBosses={secretBossStates} onAttack={handleSecretBossAttack} accentColor={accentColor} questGoalsCleared={totalQuestGoalsCleared} />}
-          {activeView==="Shadow Archive"&&<ShadowArchiveView bosses={bosses} bossData={BOSS_DATA} ac={accentColor} />}
-          {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} />}
-          {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
-          {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} xpBoostCharges={xpBoostCharges} />}
-          {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
-          {activeView==="Rankings"&&<RankingsView player={player} fame={fame} rank={rank} rivals={rivals} accentColor={accentColor} />}
-          {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
-          {activeView==="Gate Map"&&<GateMapView player={player} accentColor={accentColor} onEnterGate={handleEnterGateWithCutscene} />}
-          {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
-          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
-        </div>
-
-        {/* DEV: Monarch interest only — no free XP */}
-        <div style={{ position:"fixed",bottom:12,right:12,zIndex:8000,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4 }}>
-          {/* System 7: Notification history tray — last 3 */}
-          {notifHistory.slice(0,3).map(function(n,i){
-            const nc = n.kind==="evolve"?"#2ee88a":n.kind==="ach"?"#a05df5":n.kind==="warning"?"#f5b65d":n.kind==="xp"?"#f5b65d":"#5b7aa0";
-            return (
-              <div key={i} style={{ fontSize:9,padding:"2px 8px",border:"1px solid "+nc+"33",background:"rgba(5,10,20,0.85)",color:nc+"88",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:"monospace",pointerEvents:"none",opacity:Math.max(0.2,1-i*0.3) }}>
-                {n.message}
-              </div>
-            );
-          })}
-          <button onClick={function(){addMonarchInterest(10);maybeTriggerCryptic(monarchStage<1?1:monarchStage);}} style={{ background:"rgba(155,48,255,0.1)",border:"1px solid #9b30ff33",color:"#9b30ff55",fontSize:9,padding:"4px 8px",cursor:"pointer",fontFamily:"monospace" }} title="DEV: +interest">+mi</button>
-        </div>
-      </div>
-
-      {/* Overlays */}
-      {/* Phase 4 overlays */}
-      {cutsceneGate&&<DungeonCutscene gate={cutsceneGate} onEnter={function(){const g=cutsceneGate;setCutsceneGate(null);if(g.rooms&&g.rooms.length>0){setDungeonChainGate(g);}else{completeDungeon(g,[]);}}} onAbort={function(){setCutsceneGate(null);showToast("Gate entry withdrawn.","info");}} />}
-      {rewardChest&&pendingStatPoints===0&&<RewardChestModal rewards={rewardChest} onClaim={handleChestClaim} accentColor={accentColor} />}
-      {pendingStatPoints>0&&!rewardChest&&<StatPointDistributor points={pendingStatPoints} onConfirm={handleStatPointConfirm} accentColor={accentColor} />}
-      {/* Re-evaluation modal */}
-      {reevalOpen&&<ReevaluationModal onScoreChange={handleReevalScoreChange} scores={reevalScores} onSubmit={handleReevalSubmit} onDismiss={handleDismissReeval} result={reevalResult} accentColor={accentColor} />}
-      {/* Wave 4: Guild recruitment */}
-      {guildRecruitOffer&&<GuildRecruitmentPopup guild={guildRecruitOffer} onJoin={handleJoinGuild} onDecline={function(){setGuildRecruitOffer(null);showToast("Guild offer declined.","info");}} />}
-      {/* Wave 3: Breakthrough + Cinematic Achievement */}
-      {breakthroughPending&&<BreakthroughModal quest={breakthroughPending} onComplete={handleBreakthroughComplete} onDismiss={function(){}} />}
-      {cinematicAch&&<CinematicAchievementOverlay achievement={cinematicAch} onDone={function(){setCinematicAch(null);}} />}
-      {/* System 2: Streak protection */}
-      {streakProtectActive&&<StreakProtectionModal streak={player.streak} onPreserve={handleStreakPreserve} onDecline={handleStreakDecline} />}
-      {/* System 6: Takeover events */}
-      {takeoverEvent&&<SystemTakeoverOverlay event={takeoverEvent} onDone={function(){setTakeoverEvent(null);}} />}
-      {/* Phase 2: Random events */}
-      {randomEventPending&&<RandomEventPopup event={randomEventPending} onAccept={handleRandomEventAccept} onDismiss={handleRandomEventDismiss} />}
-      {cinematic&&<CinematicPopup data={cinematic} onClose={function(){setCinematic(null);}} sfx={sfx} />}
-      {hiddenQuestPending&&<HiddenQuestPopup quest={hiddenQuestPending} onAccept={handleHiddenAccept} onDecline={handleHiddenDecline} />}
-      {cutsceneGate&&<DungeonCutscene gate={cutsceneGate} onEnter={function(){const g=cutsceneGate; const mod=rollDungeonModifier(); setActiveModifier(mod); setCutsceneGate(null); if(mod.label){showToast("Modifier: "+mod.label,"warning");} if(g.rooms&&g.rooms.length>0){setDungeonChainGate(g);}else{completeDungeon(g,[],mod);}}} onAbort={function(){setCutsceneGate(null);setActiveModifier(null);showToast("Gate entry withdrawn.","info");}} />}
-      {dungeonChainGate&&<DungeonChain gate={dungeonChainGate} modifier={activeModifier} onComplete={function(choices,mod,events){setDungeonChainGate(null);completeDungeon(dungeonChainGate,choices,mod||activeModifier,events||[]);setActiveModifier(null);}} onAbandon={function(){setDungeonChainGate(null);setActiveModifier(null);showToast("Dungeon abandoned.","warning");}} sfx={sfx} />}
-      {accessDeniedBoss&&<AccessDeniedScreen boss={accessDeniedBoss} playerRank={rank} onClose={function(){setAccessDeniedBoss(null);}} />}
-      {ariseTarget&&<AriseScreen boss={ariseTarget.bossData} attemptNumber={ariseAttempt} onSuccess={handleAriseSuccess} onFail={handleAriseFail} onAbandon={handleAriseAbandon} sfx={sfx} extractionChance={arisePoolShadow?calcExtractionChance(arisePoolShadow,player,fame):undefined} />}
-      {crypticVisible&&<CrypticNote message={crypticMessage} onDismiss={handleCrypticDismiss} />}
-      {trialOpen&&<MonarchTrialScreen progress={trialProgress} onGoalTap={handleTrialGoalTap} onForfeit={handleTrialForfeit} />}
-      {reawakeningActive&&<ReawakeningSequence playerName={player.name} onComplete={handleReawakeningComplete} />}
-      {toast!==null&&<Toast message={toast.message} kind={toast.kind} ac={accentColor} isMonarch={toast.monarch} />}
-    </div>
-  );
-}
-
-export default function SystemInterface() {
-  return (<ErrorBoundary><StyleTag /><App /></ErrorBoundary>);
-}
