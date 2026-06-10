@@ -6109,18 +6109,22 @@ function distKm(lat1,lng1,lat2,lng2) {
 
 function GateMapView({ player, accentColor, onEnterGate }) {
   const c = accentColor || SYS_BLUE;
-  const [locState, setLocState] = useState("idle");
-  const [coords, setCoords]     = useState(null);
-  const [gates, setGates]       = useState([]);
+  const [locState, setLocState]         = useState("idle");
+  const [coords, setCoords]             = useState(null);
+  const [heading, setHeading]           = useState(null); /* degrees, 0=north */
+  const [gates, setGates]               = useState([]);
   const [selectedGate, setSelectedGate] = useState(null);
-  const [arrivedGate, setArrivedGate]   = useState(null); /* gate player is standing at */
-  const watchIdRef   = useRef(null);
-  const prevCoordsRef= useRef(null);
-  const notifiedRef  = useRef({}); /* track which gates have fired arrival alert */
+  const [arrivedGate, setArrivedGate]   = useState(null);
+  const [navTarget, setNavTarget]       = useState(null); /* gate being navigated to */
+  const [followMode, setFollowMode]     = useState(true);
+  const watchIdRef    = useRef(null);
+  const prevCoordsRef = useRef(null);
+  const notifiedRef   = useRef({});
   const MAP_PX = 300;
-  const ARRIVAL_RADIUS_KM = 0.15; /* 150m = at gate */
+  const ARRIVAL_RADIUS_KM = 0.15;
   const NEARBY_RADIUS_KM  = 0.5;
   const CLOSE_RADIUS_KM   = 1.0;
+  const WALK_KMH = 5.0; /* avg walking speed for ETA */
 
   function getProximityLabel(km) {
     if (km <= ARRIVAL_RADIUS_KM) return { label:"AT GATE",    color:"#2ee88a", intensity:1.0 };
@@ -6130,38 +6134,67 @@ function GateMapView({ player, accentColor, onEnterGate }) {
     return                              { label:"FAR",        color:"#2a3a55", intensity:0.1  };
   }
 
+  function fmtDist(km) {
+    if (km == null || !isFinite(km)) return "—";
+    if (km < 0.1)  return Math.round(km*1000)+"m";
+    if (km < 1.0)  return (km*1000).toFixed(0)+"m";
+    return km.toFixed(2)+"km";
+  }
+
+  function fmtETA(km) {
+    if (km == null || !isFinite(km)) return "—";
+    var mins = (km / WALK_KMH) * 60;
+    if (mins < 1)  return "<1 min";
+    if (mins < 60) return Math.round(mins)+" min";
+    return (mins/60).toFixed(1)+" hr";
+  }
+
+  function fmtCoords(co) {
+    if (!co) return "—";
+    return co.lat.toFixed(5)+", "+co.lng.toFixed(5);
+  }
+
   function updateGatesFromCoords(co) {
     setCoords(co);
-    /* Regenerate gates only if moved >200m from last generation point */
     var shouldRegen = !prevCoordsRef.current ||
       distKm(prevCoordsRef.current.lat, prevCoordsRef.current.lng, co.lat, co.lng) > 0.2;
     setGates(function(prev) {
-      var base = shouldRegen
-        ? generateNearbyGates(co.lat, co.lng, player.level||1)
-        : prev;
+      var base = shouldRegen ? generateNearbyGates(co.lat, co.lng, player.level||1) : prev;
       if (shouldRegen) prevCoordsRef.current = co;
       return base.map(function(g) {
-        var d = distKm(co.lat, co.lng, g.lat, g.lng);
-        return Object.assign({}, g, { distKm: d });
-      }).sort(function(a,b){ return a.distKm-b.distKm; });
+        return Object.assign({}, g, { distKm: distKm(co.lat, co.lng, g.lat, g.lng) });
+      }).sort(function(a,b){ return a.distKm - b.distKm; });
     });
   }
 
   function requestLocation() {
     if (!navigator.geolocation) { setLocState("error"); return; }
     setLocState("requesting");
+    /* DeviceOrientation for heading — best-effort, not required */
+    if (window.DeviceOrientationEvent && typeof window.DeviceOrientationEvent.requestPermission === "function") {
+      window.DeviceOrientationEvent.requestPermission().then(function(perm) {
+        if (perm === "granted") window.addEventListener("deviceorientation", handleOrientation, true);
+      }).catch(function(){});
+    } else {
+      window.addEventListener("deviceorientation", handleOrientation, true);
+    }
     watchIdRef.current = navigator.geolocation.watchPosition(
       function(pos) {
         var co = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+        if (pos.coords.heading != null && isFinite(pos.coords.heading)) setHeading(pos.coords.heading);
         setLocState("granted");
         updateGatesFromCoords(co);
       },
       function(err){ setLocState(err.code===1?"denied":"error"); },
-      { enableHighAccuracy:true, maximumAge:5000, timeout:15000 }
+      { enableHighAccuracy:true, maximumAge:3000, timeout:15000 }
     );
   }
 
-  /* Arrival detection — fires once per gate */
+  function handleOrientation(e) {
+    if (e.alpha != null && isFinite(e.alpha)) setHeading(e.alpha);
+  }
+
+  /* Arrival detection */
   useEffect(function() {
     if (!coords || !gates.length) return;
     gates.forEach(function(gate) {
@@ -6170,38 +6203,36 @@ function GateMapView({ player, accentColor, onEnterGate }) {
         setArrivedGate(gate);
         setSelectedGate(gate);
       }
-      /* Reset if player walks away */
       if (gate.distKm > ARRIVAL_RADIUS_KM * 2 && notifiedRef.current[gate.id]) {
         notifiedRef.current[gate.id] = false;
       }
     });
   }, [coords, gates]);
 
+  /* Cleanup */
   useEffect(function(){
     return function(){
-      if(watchIdRef.current!=null) navigator.geolocation.clearWatch(watchIdRef.current);
+      if (watchIdRef.current != null) navigator.geolocation.clearWatch(watchIdRef.current);
+      window.removeEventListener("deviceorientation", handleOrientation, true);
     };
   },[]);
 
-  function toSvgXY(gLat,gLng) {
-    if(!coords) return {x:MAP_PX/2,y:MAP_PX/2};
-    var mLat=111320, mLng=111320*Math.cos(coords.lat*Math.PI/180);
-    var dy=(gLat-coords.lat)*mLat, dx=(gLng-coords.lng)*mLng;
-    var radiusM=800;
-    var px=(dx/radiusM)*(MAP_PX/2), py=-(dy/radiusM)*(MAP_PX/2);
-    var d=Math.sqrt(px*px+py*py), maxR=MAP_PX/2-14;
-    if(d>maxR){px=px/d*maxR;py=py/d*maxR;}
-    return {x:MAP_PX/2+px,y:MAP_PX/2+py};
-  }
-
-  function fmtDist(km) {
-    if (km < 0.1)  return Math.round(km*1000)+"m";
-    if (km < 1.0)  return (km*1000).toFixed(0)+"m";
-    return km.toFixed(2)+"km";
+  function toSvgXY(gLat, gLng) {
+    if (!coords) return { x:MAP_PX/2, y:MAP_PX/2 };
+    var mLat = 111320;
+    var mLng = 111320 * Math.cos(coords.lat * Math.PI / 180);
+    var dy = (gLat - coords.lat) * mLat;
+    var dx = (gLng - coords.lng) * mLng;
+    var radiusM = 800;
+    var px = (dx / radiusM) * (MAP_PX/2);
+    var py = -(dy / radiusM) * (MAP_PX/2);
+    var d = Math.sqrt(px*px + py*py), maxR = MAP_PX/2 - 14;
+    if (d > maxR) { px = px/d*maxR; py = py/d*maxR; }
+    return { x: MAP_PX/2 + px, y: MAP_PX/2 + py };
   }
 
   /* ── IDLE / requesting ── */
-  if(locState==="idle"||locState==="requesting") return (
+  if (locState==="idle"||locState==="requesting") return (
     <div className="fade-in">
       <SL text="Gate Map" ac={c} />
       <div style={{padding:"40px 24px",textAlign:"center",border:"1px solid "+c+"33",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",position:"relative",overflow:"hidden"}}>
@@ -6214,7 +6245,7 @@ function GateMapView({ player, accentColor, onEnterGate }) {
     </div>
   );
 
-  if(locState==="denied") return (
+  if (locState==="denied") return (
     <div className="fade-in">
       <SL text="Gate Map" ac={c} />
       <div style={{padding:"32px 24px",textAlign:"center",border:"1px solid #f53d3d44",background:"rgba(245,61,61,0.04)"}}>
@@ -6226,7 +6257,7 @@ function GateMapView({ player, accentColor, onEnterGate }) {
     </div>
   );
 
-  if(locState==="error") return (
+  if (locState==="error") return (
     <div className="fade-in">
       <SL text="Gate Map" ac={c} />
       <div style={{padding:"32px 24px",textAlign:"center",border:"1px solid #f53d3d44",background:"rgba(245,61,61,0.04)"}}>
@@ -6237,154 +6268,227 @@ function GateMapView({ player, accentColor, onEnterGate }) {
   );
 
   /* ── GRANTED ── */
-  var closestGate = gates.length ? gates[0] : null;
+  var closestGate  = gates.length ? gates[0] : null;
+  var navGate      = navTarget ? gates.find(function(g){return g.id===navTarget;}) : null;
+  var headingRad   = heading != null ? (heading * Math.PI / 180) : null;
+
+  /* Nav line endpoints (SVG space) */
+  var navLineEnd = navGate ? toSvgXY(navGate.lat, navGate.lng) : null;
 
   return (
     <div className="fade-in">
       <SL text="Gate Map" ac={c} />
 
       {/* GATE ARRIVAL ALERT */}
-      {arrivedGate && (
-        <div className="fade-in" style={{marginBottom:14,padding:"12px 16px",border:"2px solid #2ee88a",background:"rgba(46,232,138,0.08)",position:"relative",overflow:"hidden"}}>
-          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 50%,rgba(46,232,138,0.12),transparent 70%)",animation:"pulse-glow 1.5s ease-in-out infinite",pointerEvents:"none"}}/>
+      {arrivedGate&&(
+        <div className="fade-in" style={{marginBottom:12,padding:"10px 14px",border:"2px solid #2ee88a",background:"rgba(46,232,138,0.07)",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 50%,rgba(46,232,138,0.10),transparent 70%)",animation:"pulse-glow 1.5s ease-in-out infinite",pointerEvents:"none"}}/>
           <div style={{display:"flex",alignItems:"center",gap:10,position:"relative"}}>
-            <span className="blink" style={{fontSize:20,color:"#2ee88a"}}>◉</span>
-            <div>
-              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:"#2ee88a",letterSpacing:"0.25em",marginBottom:2}}>GATE DETECTED</div>
-              <div style={{fontSize:11,color:"#9ab8d4"}}>{arrivedGate.label} · {arrivedGate.type.rank}-RANK</div>
+            <span className="blink" style={{fontSize:18,color:"#2ee88a"}}>◉</span>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:"#2ee88a",letterSpacing:"0.25em"}}>GATE DETECTED</div>
+              <div style={{fontSize:10,color:"#9ab8d4"}}>{arrivedGate.label} · {arrivedGate.type.rank}-RANK</div>
             </div>
-            <button onClick={function(){setArrivedGate(null);}} style={{marginLeft:"auto",padding:"4px 10px",background:"transparent",border:"1px solid #2ee88a44",color:"#2ee88a88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.1em",flexShrink:0}}>DISMISS</button>
+            <button onClick={function(){setArrivedGate(null);}} style={{padding:"3px 8px",background:"transparent",border:"1px solid #2ee88a33",color:"#2ee88a66",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:7,flexShrink:0}}>DISMISS</button>
           </div>
         </div>
       )}
 
-      {/* Closest gate status bar */}
-      {closestGate && (function(){
-        var prox = getProximityLabel(closestGate.distKm);
+      {/* NAV MODE bar */}
+      {navGate&&(
+        <div style={{marginBottom:12,padding:"10px 14px",border:"1px solid "+navGate.type.color+"66",background:navGate.type.color+"08",display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+          <span style={{fontSize:16,color:navGate.type.color,flexShrink:0}}>➤</span>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:navGate.type.color,marginBottom:2}}>NAVIGATING TO GATE</div>
+            <div style={{fontFamily:"'Rajdhani',sans-serif",fontSize:12,fontWeight:600,color:"#c8eeff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{navGate.label}</div>
+          </div>
+          <div style={{textAlign:"right",flexShrink:0}}>
+            <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:navGate.type.color}}>{fmtDist(navGate.distKm)}</div>
+            <div style={{fontSize:9,color:"#5b7aa0"}}>{fmtETA(navGate.distKm)} walking</div>
+          </div>
+          <button onClick={function(){setNavTarget(null);}} style={{padding:"4px 10px",background:"transparent",border:"1px solid #f53d3d44",color:"#f53d3d88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:8,flexShrink:0}}>CANCEL</button>
+        </div>
+      )}
+
+      {/* Closest gate status */}
+      {closestGate&&!navGate&&(function(){
+        var prox=getProximityLabel(closestGate.distKm);
         return (
-          <div style={{marginBottom:12,padding:"8px 14px",border:"1px solid "+prox.color+"44",background:prox.color+"07",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{fontSize:9,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",color:prox.color}}>{prox.label}</div>
+          <div style={{marginBottom:10,padding:"7px 12px",border:"1px solid "+prox.color+"33",background:prox.color+"06",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <div style={{fontSize:8,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",color:prox.color}}>{prox.label}</div>
             <div style={{fontSize:11,color:"#9ab8d4",fontFamily:"'Rajdhani',sans-serif",fontWeight:600}}>
-              Nearest gate: <span style={{color:prox.color}}>{fmtDist(closestGate.distKm)}</span>
+              Nearest: <span style={{color:prox.color}}>{fmtDist(closestGate.distKm)}</span>
             </div>
           </div>
         );
       })()}
 
+      {/* Coordinates + follow toggle */}
+      <div style={{marginBottom:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+        <div style={{fontSize:9,color:"#2a3a55",fontFamily:"monospace"}}>{fmtCoords(coords)}</div>
+        <button onClick={function(){setFollowMode(function(f){return !f;});}} style={{padding:"4px 10px",background:followMode?c+"22":"transparent",border:"1px solid "+c+(followMode?"88":"33"),color:followMode?c:"#3a5a78",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.15em",flexShrink:0}}>
+          {followMode?"◉ FOLLOW":"◎ FOLLOW"}
+        </button>
+      </div>
+
       {/* Radar map */}
-      <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
+      <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
         <div style={{position:"relative",width:MAP_PX,height:MAP_PX}}>
           <svg width={MAP_PX} height={MAP_PX} style={{display:"block"}}>
             <circle cx={MAP_PX/2} cy={MAP_PX/2} r={MAP_PX/2} fill="rgba(2,6,18,0.98)"/>
-            {[0.25,0.5,0.75,1].map(function(r,i){return <circle key={i} cx={MAP_PX/2} cy={MAP_PX/2} r={(MAP_PX/2)*r} fill="none" stroke="rgba(77,184,255,0.08)" strokeWidth="1"/>;}) }
-            <line x1={MAP_PX/2} y1={0} x2={MAP_PX/2} y2={MAP_PX} stroke="rgba(77,184,255,0.06)" strokeWidth="1"/>
-            <line x1={0} y1={MAP_PX/2} x2={MAP_PX} y2={MAP_PX/2} stroke="rgba(77,184,255,0.06)" strokeWidth="1"/>
-            {/* Proximity rings — arrival and nearby */}
-            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(ARRIVAL_RADIUS_KM/0.8)*(MAP_PX/2)} fill="none" stroke="rgba(46,232,138,0.2)" strokeWidth="1" strokeDasharray="3 3"/>
-            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(NEARBY_RADIUS_KM/0.8)*(MAP_PX/2)} fill="none" stroke="rgba(77,184,255,0.1)" strokeWidth="1" strokeDasharray="4 4"/>
-            {/* Rotating scan line */}
-            <line x1={MAP_PX/2} y1={MAP_PX/2} x2={MAP_PX/2} y2={4} stroke="rgba(77,184,255,0.3)" strokeWidth="1.5">
+            {[0.25,0.5,0.75,1].map(function(r,i){
+              return <circle key={i} cx={MAP_PX/2} cy={MAP_PX/2} r={(MAP_PX/2)*r} fill="none" stroke="rgba(77,184,255,0.07)" strokeWidth="1"/>;
+            })}
+            <line x1={MAP_PX/2} y1={0} x2={MAP_PX/2} y2={MAP_PX} stroke="rgba(77,184,255,0.05)" strokeWidth="1"/>
+            <line x1={0} y1={MAP_PX/2} x2={MAP_PX} y2={MAP_PX/2} stroke="rgba(77,184,255,0.05)" strokeWidth="1"/>
+            {/* Arrival + nearby rings */}
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(ARRIVAL_RADIUS_KM/0.8)*(MAP_PX/2)} fill="none" stroke="rgba(46,232,138,0.18)" strokeWidth="1" strokeDasharray="3 3"/>
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(NEARBY_RADIUS_KM/0.8)*(MAP_PX/2)}  fill="none" stroke="rgba(77,184,255,0.09)" strokeWidth="1" strokeDasharray="4 4"/>
+            {/* Scan line */}
+            <line x1={MAP_PX/2} y1={MAP_PX/2} x2={MAP_PX/2} y2={4} stroke="rgba(77,184,255,0.28)" strokeWidth="1.5">
               <animateTransform attributeName="transform" type="rotate" from={"0 "+(MAP_PX/2)+" "+(MAP_PX/2)} to={"360 "+(MAP_PX/2)+" "+(MAP_PX/2)} dur="4s" repeatCount="indefinite"/>
             </line>
-            {/* Gate markers with proximity-based glow */}
+            {/* Nav path line */}
+            {navLineEnd&&(
+              <line x1={MAP_PX/2} y1={MAP_PX/2} x2={navLineEnd.x} y2={navLineEnd.y}
+                stroke={navGate.type.color} strokeWidth="1.5" strokeDasharray="6 4" opacity="0.6">
+                <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="1s" repeatCount="indefinite"/>
+              </line>
+            )}
+            {/* Gate markers */}
             {gates.map(function(gate){
-              var pos=toSvgXY(gate.lat,gate.lng);
-              var gt=gate.type;
-              var isSel=selectedGate&&selectedGate.id===gate.id;
-              var prox=getProximityLabel(gate.distKm);
-              var baseR=isSel?14:10;
-              var glowR=Math.round(baseR*(1+prox.intensity*0.8));
+              var pos  = toSvgXY(gate.lat, gate.lng);
+              var gt   = gate.type;
+              var isSel= selectedGate&&selectedGate.id===gate.id;
+              var isNav= navTarget===gate.id;
+              var prox = getProximityLabel(gate.distKm);
+              var baseR= isSel?14:10;
               return (
                 <g key={gate.id} onClick={function(){setSelectedGate(isSel?null:gate);}} style={{cursor:"pointer"}}>
-                  {/* Proximity glow ring */}
-                  {prox.intensity>0.2&&<circle cx={pos.x} cy={pos.y} r={glowR+4} fill="none" stroke={prox.color} strokeWidth="1" opacity={prox.intensity*0.5}>
-                    <animate attributeName="opacity" values={prox.intensity*0.5+";0.05;"+prox.intensity*0.5} dur="1.8s" repeatCount="indefinite"/>
-                  </circle>}
-                  <circle cx={pos.x} cy={pos.y} r={baseR} fill={gt.color+"22"} stroke={gt.color} strokeWidth={isSel?2:1.5}>
+                  {prox.intensity>0.2&&(
+                    <circle cx={pos.x} cy={pos.y} r={baseR+5} fill="none" stroke={prox.color} strokeWidth="1" opacity={prox.intensity*0.45}>
+                      <animate attributeName="opacity" values={prox.intensity*0.45+";0.04;"+prox.intensity*0.45} dur="1.8s" repeatCount="indefinite"/>
+                    </circle>
+                  )}
+                  <circle cx={pos.x} cy={pos.y} r={baseR} fill={gt.color+"22"} stroke={isNav?gt.color:gt.color+"cc"} strokeWidth={isSel||isNav?2:1.5}>
                     <animate attributeName="r" values={baseR+";"+(baseR+3)+";"+baseR} dur="2s" repeatCount="indefinite"/>
                     <animate attributeName="stroke-opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
                   </circle>
                   <text x={pos.x} y={pos.y+4} textAnchor="middle" fontSize="10" fill={gt.color} fontFamily="sans-serif">{gt.icon}</text>
+                  {isNav&&<circle cx={pos.x} cy={pos.y} r={baseR+8} fill="none" stroke={gt.color} strokeWidth="1" strokeDasharray="3 3" opacity="0.5"/>}
                 </g>
               );
             })}
-            {/* Player pulsing dot */}
-            <circle cx={MAP_PX/2} cy={MAP_PX/2} r="10" fill={c+"22"} stroke={c} strokeWidth="1" opacity="0.4">
-              <animate attributeName="r" values="10;16;10" dur="2s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite"/>
+            {/* Player — direction triangle if heading known */}
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r="11" fill={c+"18"} stroke={c} strokeWidth="1" opacity="0.35">
+              <animate attributeName="r" values="11;16;11" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.35;0.08;0.35" dur="2s" repeatCount="indefinite"/>
             </circle>
-            <circle cx={MAP_PX/2} cy={MAP_PX/2} r="8" fill={c+"44"} stroke={c} strokeWidth="2">
-              <animate attributeName="r" values="8;11;8" dur="1.5s" repeatCount="indefinite"/>
-            </circle>
+            {headingRad!=null?(
+              /* Direction arrow */
+              <polygon
+                points={[
+                  (MAP_PX/2 + Math.sin(headingRad)*12)+","+(MAP_PX/2 - Math.cos(headingRad)*12),
+                  (MAP_PX/2 + Math.sin(headingRad+2.3)*5)+","+(MAP_PX/2 - Math.cos(headingRad+2.3)*5),
+                  (MAP_PX/2 + Math.sin(headingRad-2.3)*5)+","+(MAP_PX/2 - Math.cos(headingRad-2.3)*5),
+                ].join(" ")}
+                fill={c} opacity="0.95"
+              />
+            ):(
+              <circle cx={MAP_PX/2} cy={MAP_PX/2} r="6" fill={c+"88"} stroke={c} strokeWidth="1.5"/>
+            )}
             <circle cx={MAP_PX/2} cy={MAP_PX/2} r="3" fill={c}/>
           </svg>
-          <div style={{position:"absolute",inset:0,borderRadius:"50%",border:"2px solid "+c+"44",pointerEvents:"none",boxShadow:"0 0 30px "+c+"22"}}/>
-          <div style={{position:"absolute",bottom:8,right:8,fontSize:8,color:c+"66",fontFamily:"'Orbitron',sans-serif"}}>800m</div>
-          <div style={{position:"absolute",top:6,left:0,right:0,textAlign:"center",fontSize:8,color:c+"44",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em"}}>N</div>
+          <div style={{position:"absolute",inset:0,borderRadius:"50%",border:"2px solid "+c+"33",pointerEvents:"none",boxShadow:"0 0 24px "+c+"18"}}/>
+          <div style={{position:"absolute",bottom:8,right:10,fontSize:8,color:c+"55",fontFamily:"'Orbitron',sans-serif"}}>800m</div>
+          <div style={{position:"absolute",top:6,left:0,right:0,textAlign:"center",fontSize:8,color:c+"33",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em"}}>N</div>
         </div>
       </div>
 
       {/* Selected gate detail */}
       {selectedGate&&(function(){
-        var prox=getProximityLabel(selectedGate.distKm);
-        var canEnter=selectedGate.type.minLevel<=player.level;
-        var atGate=selectedGate.distKm<=ARRIVAL_RADIUS_KM;
+        var prox   = getProximityLabel(selectedGate.distKm);
+        var canEnter= selectedGate.type.minLevel<=player.level;
+        var atGate  = selectedGate.distKm<=ARRIVAL_RADIUS_KM;
+        var isNav   = navTarget===selectedGate.id;
         return (
-          <div className="fade-in" style={{marginBottom:16,border:"1px solid "+selectedGate.type.color+(atGate?"cc":"66"),background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",position:"relative",overflow:"hidden"}}>
+          <div className="fade-in" style={{marginBottom:14,border:"1px solid "+selectedGate.type.color+(atGate?"cc":"55"),background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",position:"relative",overflow:"hidden"}}>
             {atGate&&<div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 50%,"+selectedGate.type.color+"0d,transparent 70%)",animation:"pulse-glow 2s ease-in-out infinite",pointerEvents:"none"}}/>}
-            <div style={{padding:"14px 18px",position:"relative"}}>
+            <div style={{padding:"13px 16px",position:"relative"}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                <div className={atGate?"pulse-glow":""} style={{width:38,height:38,border:"1.5px solid "+selectedGate.type.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:selectedGate.type.color,background:selectedGate.type.color+"11",flexShrink:0,boxShadow:"0 0 "+(atGate?20:10)+"px "+selectedGate.type.color+(atGate?"88":"44")}}>{selectedGate.type.icon}</div>
+                <div className={atGate?"pulse-glow":""} style={{width:36,height:36,border:"1.5px solid "+selectedGate.type.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:selectedGate.type.color,background:selectedGate.type.color+"11",flexShrink:0,boxShadow:"0 0 "+(atGate?18:8)+"px "+selectedGate.type.color+(atGate?"88":"33")}}>{selectedGate.type.icon}</div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:atGate?"#e0f4ff":"#c8eeff"}}>{selectedGate.label}</div>
-                  <div style={{fontSize:9,color:selectedGate.type.color,letterSpacing:"0.15em",fontFamily:"'Orbitron',sans-serif"}}>{selectedGate.type.rank}-RANK</div>
+                  <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:atGate?"#e0f4ff":"#c8eeff"}}>{selectedGate.label}</div>
+                  <div style={{fontSize:8,color:selectedGate.type.color,letterSpacing:"0.15em",fontFamily:"'Orbitron',sans-serif"}}>{selectedGate.type.rank}-RANK</div>
                 </div>
-                <div style={{padding:"3px 8px",border:"1px solid "+prox.color+"55",fontSize:8,color:prox.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em",flexShrink:0}}>{prox.label}</div>
+                <div style={{padding:"2px 7px",border:"1px solid "+prox.color+"44",fontSize:8,color:prox.color,fontFamily:"'Orbitron',sans-serif",flexShrink:0}}>{prox.label}</div>
               </div>
-              {/* Live distance */}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderTop:"1px solid rgba(77,184,255,0.07)",borderBottom:"1px solid rgba(77,184,255,0.07)",marginBottom:10}}>
-                <span style={{fontSize:9,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em"}}>DISTANCE TO GATE</span>
-                <span style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:prox.color}}>{fmtDist(selectedGate.distKm)}</span>
+              {/* Distance + ETA */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+                <div style={{padding:"6px 10px",border:"1px solid rgba(77,184,255,0.1)",background:"rgba(77,184,255,0.04)"}}>
+                  <div style={{fontSize:7,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",marginBottom:2}}>DISTANCE</div>
+                  <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:prox.color}}>{fmtDist(selectedGate.distKm)}</div>
+                </div>
+                <div style={{padding:"6px 10px",border:"1px solid rgba(77,184,255,0.1)",background:"rgba(77,184,255,0.04)"}}>
+                  <div style={{fontSize:7,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",marginBottom:2}}>ETA WALKING</div>
+                  <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:"#9ab8d4"}}>{fmtETA(selectedGate.distKm)}</div>
+                </div>
               </div>
-              <p style={{fontSize:11,color:"#5b7aa0",lineHeight:1.6,marginBottom:12}}>
-                {selectedGate.type.rank==="BOSS"?"A boss-class gate. Extreme danger. Shadow extraction possible."
-                :selectedGate.type.rank==="RED"?"A Red Gate. No exit until cleared. High casualty rate."
-                :"A "+selectedGate.type.rank+"-Rank gate. Travel to the location to enter."}
-              </p>
-              {!canEnter
-                ?<div style={{padding:"10px",border:"1px solid #f53d3d33",fontSize:11,color:"#f53d3d88",textAlign:"center",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>RANK INSUFFICIENT — MIN LEVEL {selectedGate.type.minLevel}</div>
-                :atGate
-                  ?<button onClick={function(){if(typeof onEnterGate==="function")onEnterGate(selectedGate);}} style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,"+selectedGate.type.color+"44,"+selectedGate.type.color+"1a)",border:"2px solid "+selectedGate.type.color,color:"#e0f4ff",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.2em",boxShadow:"0 0 20px "+selectedGate.type.color+"66"}}>ENTER GATE</button>
-                  :<div style={{padding:"10px",border:"1px solid "+selectedGate.type.color+"33",fontSize:11,color:"#5b7aa0",textAlign:"center",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>TRAVEL TO GATE — {fmtDist(selectedGate.distKm)} REMAINING</div>
-              }
+              {/* Action buttons */}
+              <div style={{display:"flex",gap:8,flexDirection:"column"}}>
+                {!atGate&&canEnter&&(
+                  <button onClick={function(){setNavTarget(isNav?null:selectedGate.id);}}
+                    style={{width:"100%",padding:"9px",background:isNav?c+"22":"transparent",border:"1px solid "+c+(isNav?"88":"44"),color:isNav?c:"#9ab8d4",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,letterSpacing:"0.15em"}}>
+                    {isNav?"✓ NAVIGATING":"➤ NAVIGATE TO GATE"}
+                  </button>
+                )}
+                {!canEnter&&(
+                  <div style={{padding:"9px",border:"1px solid #f53d3d22",fontSize:10,color:"#f53d3d66",textAlign:"center",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>MIN LEVEL {selectedGate.type.minLevel} REQUIRED</div>
+                )}
+                {atGate&&canEnter&&(
+                  <button onClick={function(){if(typeof onEnterGate==="function")onEnterGate(selectedGate);}}
+                    style={{width:"100%",padding:"12px",background:"linear-gradient(135deg,"+selectedGate.type.color+"44,"+selectedGate.type.color+"18)",border:"2px solid "+selectedGate.type.color,color:"#e0f4ff",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.2em",boxShadow:"0 0 18px "+selectedGate.type.color+"55"}}>
+                    ENTER GATE
+                  </button>
+                )}
+                {!atGate&&canEnter&&(
+                  <div style={{padding:"7px",border:"1px solid "+selectedGate.type.color+"22",fontSize:10,color:"#3a5a78",textAlign:"center",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>
+                    TRAVEL TO GATE — {fmtDist(selectedGate.distKm)} REMAINING
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
       })()}
 
-      {/* Gate list */}
-      <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.35em",color:"#2a3a55",marginBottom:8}}>DETECTED GATES</div>
+      {/* Nearby gates list */}
+      <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.35em",color:"#2a3a55",marginBottom:7}}>NEARBY GATES</div>
       <div style={{display:"flex",flexDirection:"column",gap:5}}>
         {gates.map(function(gate){
-          var gt=gate.type; var isSel=selectedGate&&selectedGate.id===gate.id;
-          var prox=getProximityLabel(gate.distKm);
+          var gt  = gate.type;
+          var isSel = selectedGate&&selectedGate.id===gate.id;
+          var isNav = navTarget===gate.id;
+          var prox= getProximityLabel(gate.distKm);
           return (
             <div key={gate.id} onClick={function(){setSelectedGate(isSel?null:gate);}}
-              style={{padding:"9px 14px",border:"1px solid "+(isSel?gt.color+"88":gt.color+"22"),background:isSel?gt.color+"0d":"transparent",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",transition:"all 0.15s"}}>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <span style={{color:gt.color,fontSize:13}}>{gt.icon}</span>
-                <div>
-                  <div style={{fontFamily:"'Rajdhani',sans-serif",fontSize:12,fontWeight:600,color:isSel?"#e0f4ff":"#9ab8d4"}}>{gate.label}</div>
-                  <div style={{fontSize:7,color:gt.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.12em"}}>{gt.rank}-RANK · {prox.label}</div>
-                </div>
+              style={{padding:"9px 13px",border:"1px solid "+(isSel?gt.color+"77":isNav?gt.color+"44":gt.color+"1a"),background:isSel?gt.color+"0d":isNav?gt.color+"06":"transparent",display:"flex",alignItems:"center",gap:10,cursor:"pointer",transition:"all 0.12s"}}>
+              <span style={{color:gt.color,fontSize:13,flexShrink:0}}>{gt.icon}</span>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontFamily:"'Rajdhani',sans-serif",fontSize:12,fontWeight:600,color:isSel?"#e0f4ff":"#9ab8d4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{gate.label}</div>
+                <div style={{fontSize:7,color:gt.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>{gt.rank}-RANK{isNav?" · NAVIGATING":""}</div>
               </div>
-              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:600,color:prox.color}}>{fmtDist(gate.distKm)}</div>
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:600,color:prox.color}}>{fmtDist(gate.distKm)}</div>
+                <div style={{fontSize:8,color:"#2a3a55"}}>{fmtETA(gate.distKm)}</div>
+              </div>
             </div>
           );
         })}
       </div>
-      <div style={{marginTop:10,padding:"8px 14px",border:"1px solid rgba(77,184,255,0.08)",fontSize:10,color:"#2a3a55",lineHeight:1.6}}>
-        Map updates in real time as you move. Walk to a gate location to activate entry. Public areas only.
+
+      <div style={{marginTop:10,padding:"7px 12px",border:"1px solid rgba(77,184,255,0.07)",fontSize:9,color:"#2a3a55",lineHeight:1.6}}>
+        Map tracks your position in real time. Tap a gate to view details or navigate. Walk to the gate location to activate entry. Public areas only.
       </div>
     </div>
   );
