@@ -2959,7 +2959,7 @@ function getUnlockedSpecNodes(playerStats, unlockedIds) {
 const MENU_ITEMS = [
   "Dashboard","Daily Quest","Side Quests","Hunter Profile","Hunter Stats","Specialization",
   "Dungeon Gates","Boss Raids","Secret Encounters","Shadow Army","Guild","Inventory",
-  "Hunter Shop","Energy","Rankings","World Feed","System Log","Settings",
+  "Hunter Shop","Energy","Rankings","World Feed","Gate Map","System Log","Settings",
 ];
 
 /* ---------------------------------------------------------------------------
@@ -5993,6 +5993,232 @@ function WorldFeedView({ worldFeed, player, fame, accentColor }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ===========================================================================
+   GATE MAP VIEW — Real-world gate detection using GPS
+   =========================================================================== */
+var GATE_MAP_TYPES = [
+  { rank:"E",    color:"#6fae6f",  glow:"rgba(111,174,111,0.6)", icon:"◈", minLevel:0  },
+  { rank:"D",    color:"#4db8ff",  glow:"rgba(77,184,255,0.6)",  icon:"◈", minLevel:5  },
+  { rank:"C",    color:"#a05df5",  glow:"rgba(160,93,245,0.6)",  icon:"◈", minLevel:12 },
+  { rank:"B",    color:"#f5b65d",  glow:"rgba(245,182,93,0.6)",  icon:"❖", minLevel:22 },
+  { rank:"A",    color:"#f53d3d",  glow:"rgba(245,61,61,0.6)",   icon:"❖", minLevel:34 },
+  { rank:"S",    color:"#9b30ff",  glow:"rgba(155,48,255,0.6)",  icon:"✦", minLevel:48 },
+  { rank:"RED",  color:"#ff0000",  glow:"rgba(255,0,0,0.8)",     icon:"⚠", minLevel:34 },
+  { rank:"BOSS", color:"#2a0a0a",  glow:"rgba(155,48,255,0.9)",  icon:"◉", minLevel:22 },
+];
+
+var GATE_MAP_LABELS = [
+  "City Park","Riverside Trail","Forest Path","Recreation Area","Sports Field",
+  "Mountain Trail","Coastal Path","Lakeside Area","Urban Plaza","Botanical Garden",
+  "Nature Reserve","Historic District","Waterfront","Community Park","Hilltop",
+  "Valley Path","Industrial District","Ancient Ruins","Abandoned Station","The Void Rift",
+];
+
+function generateNearbyGates(lat, lng, playerLevel) {
+  var offsets = [
+    [0.006,0.004],[-0.005,0.007],[0.008,-0.003],[-0.007,-0.006],
+    [0.003,0.010],[-0.010,0.002],[0.009,-0.008],[-0.004,-0.009],
+  ];
+  var seedLat = Math.round(lat*100)/100;
+  var seedLng = Math.round(lng*100)/100;
+  var seed = Math.abs(Math.round((seedLat+seedLng)*10000)) % 0x7fffffff;
+  var rng = seededRand(seed||12345);
+  var eligible = GATE_MAP_TYPES.filter(function(t){ return t.minLevel<=playerLevel; });
+  if (!eligible.length) eligible = [GATE_MAP_TYPES[0]];
+
+  var gates = offsets.map(function(off, i) {
+    var gLat = lat + off[0]*(0.7+rng()*0.6);
+    var gLng = lng + off[1]*(0.7+rng()*0.6);
+    var roll = rng();
+    var gt = roll<0.30?eligible[0]
+            :roll<0.55?eligible[Math.min(1,eligible.length-1)]
+            :roll<0.72?eligible[Math.min(2,eligible.length-1)]
+            :roll<0.84?eligible[Math.min(3,eligible.length-1)]
+            :roll<0.92?eligible[Math.min(4,eligible.length-1)]
+            :roll<0.97?eligible[Math.min(5,eligible.length-1)]
+            :roll<0.99?GATE_MAP_TYPES[6]
+            :GATE_MAP_TYPES[7];
+    var label = GATE_MAP_LABELS[Math.floor(rng()*GATE_MAP_LABELS.length)];
+    return { id:"gm_"+i, lat:gLat, lng:gLng, type:gt, label:label+" Gate", distKm:null };
+  });
+  if (!gates.some(function(g){return g.type.rank==="BOSS";})) {
+    gates[0] = Object.assign({},gates[0],{type:GATE_MAP_TYPES[7],label:"Boss Gate"});
+  }
+  return gates;
+}
+
+function distKm(lat1,lng1,lat2,lng2) {
+  var R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function GateMapView({ player, accentColor, onEnterGate }) {
+  const c = accentColor || SYS_BLUE;
+  const [locState, setLocState] = useState("idle");
+  const [coords, setCoords]     = useState(null);
+  const [gates, setGates]       = useState([]);
+  const [selectedGate, setSelectedGate] = useState(null);
+  const watchIdRef = useRef(null);
+  const MAP_PX = 300;
+
+  function requestLocation() {
+    if (!navigator.geolocation) { setLocState("error"); return; }
+    setLocState("requesting");
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      function(pos) {
+        var co = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+        setCoords(co);
+        setLocState("granted");
+        var gen = generateNearbyGates(co.lat, co.lng, player.level||1).map(function(g){
+          return Object.assign({},g,{distKm:distKm(co.lat,co.lng,g.lat,g.lng)});
+        });
+        gen.sort(function(a,b){return a.distKm-b.distKm;});
+        setGates(gen);
+      },
+      function(err){ setLocState(err.code===1?"denied":"error"); },
+      {enableHighAccuracy:true,maximumAge:30000,timeout:15000}
+    );
+  }
+
+  useEffect(function(){
+    return function(){
+      if(watchIdRef.current!=null) navigator.geolocation.clearWatch(watchIdRef.current);
+    };
+  },[]);
+
+  function toSvgXY(gLat,gLng) {
+    if(!coords) return {x:MAP_PX/2,y:MAP_PX/2};
+    var mLat=111320, mLng=111320*Math.cos(coords.lat*Math.PI/180);
+    var dy=(gLat-coords.lat)*mLat, dx=(gLng-coords.lng)*mLng;
+    var radiusM=800;
+    var px=(dx/radiusM)*(MAP_PX/2), py=-(dy/radiusM)*(MAP_PX/2);
+    var d=Math.sqrt(px*px+py*py), maxR=MAP_PX/2-14;
+    if(d>maxR){px=px/d*maxR;py=py/d*maxR;}
+    return {x:MAP_PX/2+px,y:MAP_PX/2+py};
+  }
+
+  if(locState==="idle"||locState==="requesting") return (
+    <div className="fade-in">
+      <SL text="Gate Map" ac={c} />
+      <div style={{padding:"40px 24px",textAlign:"center",border:"1px solid "+c+"33",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,"+c+"06 3px,"+c+"06 4px)",pointerEvents:"none"}} />
+        <div className={locState==="requesting"?"arise-pulse":""} style={{width:64,height:64,borderRadius:"50%",border:"2px solid "+c,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",fontSize:24,color:c,background:c+"0d"}}>◉</div>
+        <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:12,color:"#c8eeff",marginBottom:10,letterSpacing:"0.2em"}}>{locState==="requesting"?"SCANNING FOR GATES...":"GATE DETECTION OFFLINE"}</div>
+        <p style={{fontSize:12,color:"#5b7aa0",lineHeight:1.7,marginBottom:20}}>{locState==="requesting"?"Acquiring GPS signal. Gates in your area are being detected.":"The System requires your location to detect nearby gates. No data is stored or transmitted."}</p>
+        {locState==="idle"&&<button onClick={requestLocation} style={{padding:"12px 28px",background:c,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.2em"}}>SCAN FOR GATES</button>}
+      </div>
+    </div>
+  );
+
+  if(locState==="denied") return (
+    <div className="fade-in">
+      <SL text="Gate Map" ac={c} />
+      <div style={{padding:"32px 24px",textAlign:"center",border:"1px solid #f53d3d44",background:"rgba(245,61,61,0.04)"}}>
+        <div style={{fontSize:28,marginBottom:12}}>⚠</div>
+        <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:11,color:"#f53d3d",letterSpacing:"0.25em",marginBottom:12}}>ACCESS DENIED</div>
+        <p style={{fontSize:12,color:"#9ab8d4",lineHeight:1.7}}>Location access is required to detect nearby gates. Enable location permissions in your device settings and try again.</p>
+        <button onClick={function(){setLocState("idle");}} style={{marginTop:16,padding:"10px 20px",background:"transparent",border:"1px solid "+c+"66",color:c,cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.15em"}}>RETRY</button>
+      </div>
+    </div>
+  );
+
+  if(locState==="error") return (
+    <div className="fade-in">
+      <SL text="Gate Map" ac={c} />
+      <div style={{padding:"32px 24px",textAlign:"center",border:"1px solid #f53d3d44",background:"rgba(245,61,61,0.04)"}}>
+        <p style={{fontSize:12,color:"#9ab8d4",lineHeight:1.7,marginBottom:16}}>GPS unavailable. This device may not support geolocation, or the signal is blocked.</p>
+        <button onClick={function(){setLocState("idle");}} style={{padding:"10px 20px",background:"transparent",border:"1px solid "+c+"66",color:c,cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.15em"}}>RETRY</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="fade-in">
+      <SL text="Gate Map" ac={c} />
+      <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
+        <div style={{position:"relative",width:MAP_PX,height:MAP_PX}}>
+          <svg width={MAP_PX} height={MAP_PX} style={{display:"block"}}>
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={MAP_PX/2} fill="rgba(2,6,18,0.98)" />
+            {[0.25,0.5,0.75,1].map(function(r,i){return <circle key={i} cx={MAP_PX/2} cy={MAP_PX/2} r={(MAP_PX/2)*r} fill="none" stroke="rgba(77,184,255,0.08)" strokeWidth="1"/>;}) }
+            <line x1={MAP_PX/2} y1={0} x2={MAP_PX/2} y2={MAP_PX} stroke="rgba(77,184,255,0.06)" strokeWidth="1"/>
+            <line x1={0} y1={MAP_PX/2} x2={MAP_PX} y2={MAP_PX/2} stroke="rgba(77,184,255,0.06)" strokeWidth="1"/>
+            <line x1={MAP_PX/2} y1={MAP_PX/2} x2={MAP_PX/2} y2={4} stroke="rgba(77,184,255,0.3)" strokeWidth="1.5">
+              <animateTransform attributeName="transform" type="rotate" from={"0 "+(MAP_PX/2)+" "+(MAP_PX/2)} to={"360 "+(MAP_PX/2)+" "+(MAP_PX/2)} dur="4s" repeatCount="indefinite"/>
+            </line>
+            {gates.map(function(gate){
+              var pos=toSvgXY(gate.lat,gate.lng); var gt=gate.type; var isSel=selectedGate&&selectedGate.id===gate.id;
+              return (
+                <g key={gate.id} onClick={function(){setSelectedGate(isSel?null:gate);}} style={{cursor:"pointer"}}>
+                  <circle cx={pos.x} cy={pos.y} r={isSel?14:10} fill={gt.color+"22"} stroke={gt.color} strokeWidth={isSel?2:1.5}>
+                    <animate attributeName="r" values={(isSel?14:10)+";"+(isSel?17:13)+";"+(isSel?14:10)} dur="2s" repeatCount="indefinite"/>
+                    <animate attributeName="stroke-opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/>
+                  </circle>
+                  <text x={pos.x} y={pos.y+4} textAnchor="middle" fontSize="10" fill={gt.color} fontFamily="sans-serif">{gt.icon}</text>
+                </g>
+              );
+            })}
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r="8" fill={c+"44"} stroke={c} strokeWidth="2">
+              <animate attributeName="r" values="8;11;8" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r="3" fill={c}/>
+          </svg>
+          <div style={{position:"absolute",inset:0,borderRadius:"50%",border:"2px solid "+c+"44",pointerEvents:"none",boxShadow:"0 0 30px "+c+"22"}}/>
+          <div style={{position:"absolute",bottom:8,right:8,fontSize:8,color:c+"66",fontFamily:"'Orbitron',sans-serif"}}>800m</div>
+          <div style={{position:"absolute",top:8,left:0,right:0,textAlign:"center",fontSize:8,color:c+"44",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em"}}>N</div>
+        </div>
+      </div>
+
+      {selectedGate&&(
+        <div className="fade-in" style={{marginBottom:16,border:"1px solid "+selectedGate.type.color+"66",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,"+selectedGate.type.color+"0d,transparent 70%)",pointerEvents:"none"}}/>
+          <div style={{padding:"14px 18px",position:"relative"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+              <div style={{width:36,height:36,border:"1.5px solid "+selectedGate.type.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:selectedGate.type.color,background:selectedGate.type.color+"11",flexShrink:0,boxShadow:"0 0 10px "+selectedGate.type.color+"44"}}>{selectedGate.type.icon}</div>
+              <div>
+                <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:"#e0f4ff"}}>{selectedGate.label}</div>
+                <div style={{fontSize:9,color:selectedGate.type.color,letterSpacing:"0.2em",fontFamily:"'Orbitron',sans-serif"}}>{selectedGate.type.rank}-RANK · {selectedGate.distKm<1?Math.round(selectedGate.distKm*1000)+"m":selectedGate.distKm.toFixed(1)+"km"} AWAY</div>
+              </div>
+            </div>
+            <p style={{fontSize:11,color:"#5b7aa0",lineHeight:1.6,marginBottom:12}}>
+              {selectedGate.type.rank==="BOSS"?"A boss-class gate. Extreme danger. Shadow extraction possible."
+              :selectedGate.type.rank==="RED"?"A Red Gate. No exit until cleared."
+              :"A "+selectedGate.type.rank+"-Rank gate. Travel to the location to enter."}
+            </p>
+            {selectedGate.type.minLevel<=player.level
+              ?<button onClick={function(){if(typeof onEnterGate==="function")onEnterGate(selectedGate);}} style={{width:"100%",padding:"11px",background:"linear-gradient(135deg,"+selectedGate.type.color+"22,"+selectedGate.type.color+"0d)",border:"1px solid "+selectedGate.type.color+"cc",color:"#e0f4ff",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em"}}>ENTER GATE</button>
+              :<div style={{padding:"10px",border:"1px solid #f53d3d33",background:"rgba(245,61,61,0.04)",fontSize:11,color:"#f53d3d88",textAlign:"center",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em"}}>RANK INSUFFICIENT — MIN LEVEL {selectedGate.type.minLevel}</div>
+            }
+          </div>
+        </div>
+      )}
+
+      <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.35em",color:"#2a3a55",marginBottom:8}}>DETECTED GATES</div>
+      <div style={{display:"flex",flexDirection:"column",gap:6}}>
+        {gates.map(function(gate){
+          var gt=gate.type; var isSel=selectedGate&&selectedGate.id===gate.id;
+          return (
+            <div key={gate.id} onClick={function(){setSelectedGate(isSel?null:gate);}}
+              style={{padding:"10px 14px",border:"1px solid "+(isSel?gt.color+"88":gt.color+"33"),background:isSel?gt.color+"0d":"transparent",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",transition:"all 0.15s"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <span style={{color:gt.color,fontSize:14}}>{gt.icon}</span>
+                <div>
+                  <div style={{fontFamily:"'Rajdhani',sans-serif",fontSize:13,fontWeight:600,color:isSel?"#e0f4ff":"#9ab8d4"}}>{gate.label}</div>
+                  <div style={{fontSize:8,color:gt.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em"}}>{gt.rank}-RANK</div>
+                </div>
+              </div>
+              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:10,color:gt.color+"88"}}>{gate.distKm<1?Math.round(gate.distKm*1000)+"m":gate.distKm.toFixed(1)+"km"}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{marginTop:12,padding:"8px 14px",border:"1px solid rgba(77,184,255,0.1)",fontSize:10,color:"#2a3a55",lineHeight:1.6}}>
+        Gates refresh as you move. Travel to gate locations to enter them. Public areas only.
+      </div>
     </div>
   );
 }
@@ -9982,6 +10208,7 @@ function App() {
           {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
           {activeView==="Rankings"&&<RankingsView player={player} fame={fame} rank={rank} rivals={rivals} accentColor={accentColor} />}
           {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
+          {activeView==="Gate Map"&&<GateMapView player={player} accentColor={accentColor} onEnterGate={handleEnterGateWithCutscene} />}
           {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
           {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
         </div>
