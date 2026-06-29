@@ -3020,17 +3020,38 @@ const GLOBAL_CSS = `
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  html { background: #01040b; }
   body {
-    background: #020810;
+    background:
+      radial-gradient(125% 80% at 50% -12%, rgba(77,184,255,0.11) 0%, transparent 46%),
+      radial-gradient(100% 100% at 50% 118%, rgba(22,44,96,0.20) 0%, transparent 56%),
+      linear-gradient(180deg, #02080f 0%, #010610 58%, #01040b 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
     overflow-x: hidden;
     font-family: 'Oxanium', 'Rajdhani', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+  /* Cinematic vignette over page content (app modals/overlays sit above this) */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 60;
+    background: radial-gradient(135% 130% at 50% 42%, transparent 54%, rgba(0,2,8,0.6) 100%);
+  }
+  ::selection { background: rgba(77,184,255,0.32); color: #eaf8ff; }
 
   /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #1a3a5c; border-radius: 0; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: rgba(0,8,20,0.45); }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(77,184,255,0.6), rgba(77,184,255,0.18));
+    border-radius: 0;
+    box-shadow: 0 0 8px rgba(77,184,255,0.5);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(120,210,255,0.8); }
 
   /* ── Input ── */
   input[type=number]::-webkit-outer-spin-button,
@@ -3109,9 +3130,16 @@ const GLOBAL_CSS = `
   ═══════════════════════════════════════════════════ */
   .sl-panel {
     position: relative;
-    background: linear-gradient(160deg, rgba(4,12,28,0.97) 0%, rgba(2,8,18,0.99) 100%);
+    background:
+      radial-gradient(120% 65% at 50% 0%, rgba(77,184,255,0.08) 0%, transparent 60%),
+      linear-gradient(160deg, rgba(5,14,32,0.97) 0%, rgba(2,8,18,0.99) 100%);
     border: 1px solid rgba(77,184,255,0.35);
-    box-shadow: 0 0 0 1px rgba(77,184,255,0.08), inset 0 0 30px rgba(77,184,255,0.03);
+    box-shadow:
+      0 0 0 1px rgba(77,184,255,0.08),
+      0 0 24px rgba(77,184,255,0.10),
+      0 16px 44px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(120,200,255,0.18),
+      inset 0 0 30px rgba(77,184,255,0.03);
     overflow: hidden;
   }
   .sl-panel::before {
@@ -3156,9 +3184,11 @@ const GLOBAL_CSS = `
   .sl-corners::before, .sl-corners::after {
     content: '';
     position: absolute;
-    width: 14px; height: 14px;
-    border-color: rgba(77,184,255,0.7);
+    width: 16px; height: 16px;
+    border-color: rgba(120,210,255,0.9);
     border-style: solid;
+    filter: drop-shadow(0 0 4px rgba(77,184,255,0.85));
+    animation: corner-blink 3.5s ease-in-out infinite;
   }
   .sl-corners::before { top: 0; left: 0; border-width: 2px 0 0 2px; }
   .sl-corners::after  { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
@@ -3171,9 +3201,22 @@ const GLOBAL_CSS = `
     display: flex;
     align-items: center;
     gap: 10px;
-    background: linear-gradient(90deg, rgba(77,184,255,0.12), rgba(77,184,255,0.04));
+    position: relative;
+    background: linear-gradient(90deg, rgba(77,184,255,0.18), rgba(77,184,255,0.03) 72%, transparent);
     border-bottom: 1px solid rgba(77,184,255,0.3);
+    border-left: 2px solid rgba(77,184,255,0.85);
     padding: 8px 14px;
+    box-shadow: inset 0 0 18px rgba(77,184,255,0.05);
+  }
+  .sl-header-bar::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(120,210,255,0.9), transparent);
+    background-size: 200% 100%;
+    animation: holo-shimmer 4s linear infinite;
+    pointer-events: none;
   }
   .sl-header-title {
     font-family: 'Orbitron', sans-serif;
@@ -3181,7 +3224,7 @@ const GLOBAL_CSS = `
     font-weight: 700;
     letter-spacing: 0.25em;
     color: #c8eeff;
-    text-shadow: 0 0 12px rgba(77,184,255,0.7), 0 0 24px rgba(77,184,255,0.3);
+    text-shadow: 0 0 14px rgba(77,184,255,0.85), 0 0 30px rgba(77,184,255,0.4);
     text-transform: uppercase;
   }
 
@@ -3228,6 +3271,23 @@ const GLOBAL_CSS = `
   }
   .sl-btn:active::before { background: rgba(77,184,255,0.12); }
   .sl-btn:active { box-shadow: 0 0 14px rgba(77,184,255,0.4); }
+  .sl-btn:hover {
+    color: #d8f2ff;
+    border-color: rgba(120,210,255,0.95);
+    box-shadow: 0 0 16px rgba(77,184,255,0.35), inset 0 0 12px rgba(77,184,255,0.06);
+  }
+  /* Diagonal light sweep on hover */
+  .sl-btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -60%;
+    width: 40%; height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(180,230,255,0.28), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.55s ease;
+    pointer-events: none;
+  }
+  .sl-btn:hover::after { left: 130%; }
   .sl-btn.primary {
     background: linear-gradient(135deg, rgba(77,184,255,0.18), rgba(77,184,255,0.06));
     border-color: rgba(77,184,255,0.9);
@@ -3294,8 +3354,9 @@ const GLOBAL_CSS = `
      PROGRESS BAR — .sl-bar
   ═══════════════════════════════════════════════════ */
   .sl-bar-track {
-    height: 5px;
-    background: rgba(255,255,255,0.06);
+    height: 6px;
+    background: rgba(0,10,24,0.7);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(77,184,255,0.08);
     overflow: hidden;
     position: relative;
   }
@@ -3308,9 +3369,10 @@ const GLOBAL_CSS = `
     content: '';
     position: absolute;
     top: 0; right: 0;
-    width: 4px; height: 100%;
-    background: rgba(255,255,255,0.6);
-    filter: blur(2px);
+    width: 6px; height: 100%;
+    background: rgba(255,255,255,0.85);
+    filter: blur(3px);
+    animation: pulse-glow 1.6s ease-in-out infinite;
   }
 
   /* ═══════════════════════════════════════════════════
@@ -3382,8 +3444,8 @@ const GLOBAL_CSS = `
   .sl-level-badge {
     font-family: 'Orbitron', sans-serif;
     font-weight: 900;
-    color: #c8eeff;
-    text-shadow: 0 0 20px rgba(77,184,255,0.8), 0 0 50px rgba(77,184,255,0.4);
+    color: #eaf8ff;
+    text-shadow: 0 0 24px rgba(77,184,255,0.9), 0 0 60px rgba(77,184,255,0.45), 0 0 2px rgba(255,255,255,0.6);
     line-height: 1;
   }
 
