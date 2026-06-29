@@ -84,6 +84,7 @@ export function defaultSave() {
     monarchInterest: 0, monarchStage: 0, isMonarch: false, ascensionCount: 0,
     soundOn: true,
     energyState: { sleep:7, soreness:3, fatigue:3, hydration:7, stress:3 },
+    energyHistory: [],
     discipline: { startTs: null, bestDays: 0, lastResetTs: null, motivation: "", urgeLog: [], hidden: false },
     bossHpSnapshot: null, secretUnlockedIds: [],
   };
@@ -156,6 +157,7 @@ export function loadGame() {
       ascensionCount: Number.isFinite(Number(parsed.ascensionCount)) ? Math.max(0, Math.floor(Number(parsed.ascensionCount))) : 0,
       soundOn: typeof parsed.soundOn === "boolean" ? parsed.soundOn : true,
       energyState: typeof parsed.energyState === "object" && parsed.energyState ? parsed.energyState : def.energyState,
+      energyHistory: Array.isArray(parsed.energyHistory) ? parsed.energyHistory.slice(-60) : [],
       discipline: sanitiseDiscipline(parsed.discipline, def.discipline),
       bossHpSnapshot: Array.isArray(parsed.bossHpSnapshot) ? parsed.bossHpSnapshot : null,
       secretUnlockedIds: Array.isArray(parsed.secretUnlockedIds) ? parsed.secretUnlockedIds : [],

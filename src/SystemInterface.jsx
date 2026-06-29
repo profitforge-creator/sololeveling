@@ -3083,6 +3083,9 @@ const GLOBAL_CSS = `
   @keyframes log-entry-in     { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
   @keyframes dialogue-in      { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
   @keyframes shadow-appear    { from{opacity:0;transform:scale(.8) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  @keyframes shadow-rise      { 0%{opacity:0;transform:translateY(70px) scale(.55)} 55%{opacity:1} 100%{opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes shadow-aura-pulse{ 0%,100%{box-shadow:0 0 30px #9b30ff55,0 0 80px #9b30ff22} 50%{box-shadow:0 0 52px #9b30ffaa,0 0 120px #9b30ff44} }
+  @keyframes shadow-eye       { 0%,100%{opacity:.5} 50%{opacity:1} }
   @keyframes arise-pulse      { 0%,100%{box-shadow:0 0 0 0 rgba(155,48,255,0.7)} 50%{box-shadow:0 0 0 18px rgba(155,48,255,0)} }
   @keyframes eval-progress    { from{width:0} to{width:100%} }
   @keyframes chest-reveal     { 0%{opacity:0;transform:scale(0.5) translateY(18px)} 60%{transform:scale(1.08) translateY(-3px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
@@ -3119,6 +3122,7 @@ const GLOBAL_CSS = `
   .log-entry        { animation:log-entry-in .22s ease forwards }
   .dialogue-in      { animation:dialogue-in .28s ease forwards }
   .shadow-appear    { animation:shadow-appear .38s ease forwards }
+  .shadow-rise      { animation:shadow-rise 1s cubic-bezier(.2,.8,.2,1) forwards }
   .arise-pulse      { animation:arise-pulse 1.5s ease-in-out infinite }
   .cyan-glow-text   { animation:cyan-text-glow 3s ease-in-out infinite }
   .panel-in         { animation:panel-in .3s ease forwards }
@@ -3863,6 +3867,11 @@ function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx, e
   const [progress, setProgress] = useState({});
   const [done, setDone] = useState(false);
   const challenge = boss.ariseChallenge;
+  const asText = function(v){ return typeof v === "string" && v.trim() ? v : null; };
+  const shadowObj  = (boss.shadow && typeof boss.shadow === "object") ? boss.shadow : null;
+  const shadowName = (shadowObj && asText(shadowObj.name)) || asText(boss.shadow) || asText(boss.shadowName) || ("Shadow of " + (boss.name || "the Fallen"));
+  const shadowBuff = (shadowObj && asText(shadowObj.passiveBoost)) || asText(boss.shadowBuff) || asText(boss.passive) || asText(boss.buff) || null;
+  const shadowTier = (shadowObj && (asText(shadowObj.rarity) || asText(shadowObj.title))) || asText(boss.shadowRank) || (asText(boss.rank) ? boss.rank + "-RANK" : null);
 
   const allDone = challenge.goals.every(function(g) { return (progress[g.id]||0) >= g.target; });
 
@@ -3875,7 +3884,7 @@ function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx, e
     if (challenge.goals.every(function(g) { return (next[g.id]||0) >= g.target; })) {
       setDone(true);
       if (sfx && typeof sfx.sfxArise === "function") sfx.sfxArise();
-      setTimeout(function() { if (typeof onSuccess === "function") onSuccess(); }, 2200);
+      setTimeout(function() { if (typeof onSuccess === "function") onSuccess(); }, 3200);
     }
   }
 
@@ -3929,10 +3938,29 @@ function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx, e
           </div>
         </div>
 
-        {/* Success state */}
+        {/* Success state — cinematic shadow rise + acquired card */}
         {done && (
-          <div className="fade-in" style={{ textAlign:"center",padding:"20px 0" }}>
-            <div className="monarch-text" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,color:MONARCH_PURP }}>Shadow extraction successful...</div>
+          <div className="fade-in" style={{ textAlign:"center",padding:"6px 0 24px",position:"relative" }}>
+            {/* Rising shadow figure */}
+            <div className="shadow-rise" style={{ position:"relative",width:118,height:118,margin:"0 auto 16px" }}>
+              <div style={{ position:"absolute",inset:0,borderRadius:"50% 50% 46% 46%",background:"radial-gradient(circle at 50% 32%,"+MONARCH_PURP+"cc,#1a0030 68%)",animation:"shadow-aura-pulse 2s ease-in-out infinite" }} />
+              {/* eyes */}
+              <div style={{ position:"absolute",top:"40%",left:"36%",width:9,height:9,borderRadius:"50%",background:"#e0b0ff",boxShadow:"0 0 10px "+MONARCH_PURP,animation:"shadow-eye 1.6s ease-in-out infinite" }} />
+              <div style={{ position:"absolute",top:"40%",right:"36%",width:9,height:9,borderRadius:"50%",background:"#e0b0ff",boxShadow:"0 0 10px "+MONARCH_PURP,animation:"shadow-eye 1.6s ease-in-out infinite" }} />
+            </div>
+            <div className="monarch-text" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:900,color:MONARCH_PURP,letterSpacing:"0.25em",marginBottom:10 }}>SHADOW EXTRACTED</div>
+            {/* Acquired card */}
+            <div style={{ display:"inline-block",minWidth:240,border:"1px solid "+MONARCH_PURP+"66",background:"linear-gradient(160deg,rgba(15,5,30,0.99),rgba(8,0,18,0.99))",padding:"14px 22px",textAlign:"left" }}>
+              <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:shadowBuff?8:0 }}>
+                <span style={{ fontSize:22,color:MONARCH_PURP,textShadow:"0 0 12px "+MONARCH_PURP }}>◉</span>
+                <div>
+                  <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#e0c0ff" }}>{shadowName}</div>
+                  {shadowTier&&<div style={{ fontSize:10,color:"#8a6ab0",letterSpacing:"0.1em" }}>{String(shadowTier).toUpperCase()} SHADOW</div>}
+                </div>
+              </div>
+              {shadowBuff&&<div style={{ fontSize:11,color:"#8a6ab0",borderTop:"1px solid "+MONARCH_PURP+"22",paddingTop:8 }}>Passive: <span style={{ color:"#d0a0ff" }}>{shadowBuff}</span></div>}
+            </div>
+            <div style={{ fontSize:11,color:"#5a3a7a",marginTop:12 }}>The shadow rises. It serves you now.</div>
           </div>
         )}
 
@@ -8321,7 +8349,7 @@ function DisciplineCounter({ data, onChange, accentColor }) {
   );
 }
 
-function EnergyView({ energyState, onUpdate, accentColor, discipline, onDiscipline }) {
+function EnergyView({ energyState, onUpdate, accentColor, discipline, onDiscipline, history }) {
   const [local, setLocal] = useState(energyState);
 
   const METRICS = [
@@ -8363,6 +8391,25 @@ function EnergyView({ energyState, onUpdate, accentColor, discipline, onDiscipli
     : score>=40 ? { diff:"Standard gates only.", advise:"Adequate. Don't force a peak day.", warn:false }
     : score>=20 ? { diff:"Light or recovery quests.", advise:"Below optimal. Prioritise recovery actions.", warn:true }
     : { diff:"Recovery only — do not train hard.", advise:"Critical fatigue. Rest is the correct move today.", warn:true };
+
+  /* ── Trend analytics from logged history ── */
+  const hist  = Array.isArray(history) ? history.slice().sort(function(a,b){return a.day-b.day;}) : [];
+  const nowMs = Date.now();
+  const dayMs = 24*60*60*1000;
+  function avgOf(a){ return a.length ? Math.round(a.reduce(function(s,e){return s+e.score;},0)/a.length) : null; }
+  const avg7  = avgOf(hist.filter(function(e){ return nowMs - e.day <= 7*dayMs; }));
+  const avg30 = avgOf(hist.filter(function(e){ return nowMs - e.day <= 30*dayMs; }));
+  const bestScore  = hist.length ? Math.max.apply(null, hist.map(function(e){return e.score;})) : null;
+  const worstScore = hist.length ? Math.min.apply(null, hist.map(function(e){return e.score;})) : null;
+  const daySet = {}; hist.forEach(function(e){ daySet[e.day] = true; });
+  let logStreak = 0;
+  (function(){ const d=new Date(); d.setHours(0,0,0,0); let cur=d.getTime(); if(!daySet[cur]) cur-=dayMs; while(daySet[cur]){ logStreak++; cur-=dayMs; } })();
+  const spark = hist.slice(-14);
+  const sparkPts = spark.map(function(e,i){
+    const x = spark.length>1 ? (i/(spark.length-1))*280 : 140;
+    const y = 48 - (Math.max(0,Math.min(100,e.score))/100)*44;
+    return x.toFixed(1)+","+y.toFixed(1);
+  }).join(" ");
 
   function setMetric(id, val) {
     setLocal(function(prev) { return Object.assign({}, prev, { [id]: val }); });
@@ -8412,6 +8459,42 @@ function EnergyView({ energyState, onUpdate, accentColor, discipline, onDiscipli
           <div style={{ marginTop:4,padding:"10px 12px",border:"1px solid "+(recommendation.warn?"#f5b65d55":accentColor+"33"),background:recommendation.warn?"rgba(245,182,93,0.06)":accentColor+"08",fontSize:12,color:recommendation.warn?"#f5b65d":"#9fb8d8",lineHeight:1.6 }}>
             {recommendation.warn?"⚠ ":"◈ "}{recommendation.advise} The System does not reward overtraining — recovery is part of progression.
           </div>
+        </div>
+      </div>
+
+      {/* Performance trend */}
+      <div className="sl-panel" style={{ marginBottom:20, border:"1px solid "+accentColor+"44" }}>
+        <div className="sl-corners" />
+        <div className="sl-header-bar"><span className="sl-header-title" style={{ fontSize:12 }}>HUNTER EVALUATION · TREND</span></div>
+        <div style={{ padding:"14px 18px" }}>
+          {hist.length===0 ? (
+            <div style={{ fontSize:12,color:"#5b7aa0",lineHeight:1.6 }}>No history yet. Log your energy daily — the System charts your recovery curve here: 7-day &amp; 30-day averages, best/worst days, and your logging streak.</div>
+          ) : (
+            <div>
+              <svg viewBox="0 0 280 50" preserveAspectRatio="none" style={{ width:"100%",height:56,marginBottom:14,display:"block" }}>
+                {[12,24,36].map(function(y,i){ return <line key={i} x1="0" y1={y} x2="280" y2={y} stroke="rgba(77,184,255,0.06)" strokeWidth="1" />; })}
+                {spark.length>1&&<polyline points={sparkPts} fill="none" stroke={accentColor} strokeWidth="1.6" style={{ filter:"drop-shadow(0 0 4px "+accentColor+"88)" }} />}
+                {spark.map(function(e,i){ const x = spark.length>1 ? (i/(spark.length-1))*280 : 140; const y = 48 - (Math.max(0,Math.min(100,e.score))/100)*44; return <circle key={i} cx={x} cy={y} r="2.4" fill={getEnergyLevel(e.score).color} />; })}
+              </svg>
+              <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:8 }}>
+                {[
+                  ["7-DAY AVG", avg7==null?"—":avg7, avg7!=null?getEnergyLevel(avg7).color:"#5b7aa0"],
+                  ["30-DAY AVG", avg30==null?"—":avg30, avg30!=null?getEnergyLevel(avg30).color:"#5b7aa0"],
+                  ["LOG STREAK", logStreak+"d", logStreak>=3?"#2ee88a":accentColor],
+                ].map(function(s){ return (
+                  <div key={s[0]} style={{ border:"1px solid "+accentColor+"22",padding:"9px 6px",textAlign:"center" }}>
+                    <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:900,color:s[2] }}>{s[1]}</div>
+                    <div style={{ fontSize:8,color:"#5b7aa0",letterSpacing:"0.12em",marginTop:2 }}>{s[0]}</div>
+                  </div>
+                ); })}
+              </div>
+              <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,color:"#5b7aa0",padding:"0 2px" }}>
+                <span>BEST <span style={{ color:"#2ee88a",fontWeight:700 }}>{bestScore==null?"—":bestScore}</span></span>
+                <span>WORST <span style={{ color:"#f5b65d",fontWeight:700 }}>{worstScore==null?"—":worstScore}</span></span>
+                <span>LOGS <span style={{ color:accentColor,fontWeight:700 }}>{hist.length}</span></span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -8920,8 +9003,30 @@ function SecretBossesView({ player, clearedGates, streak, secretBosses, onAttack
   );
 }
 
+/* Cinematic item-reveal shown when a shop item is purchased. */
+function ShopPurchaseFx({ item, onDone }) {
+  const c = item.color || SYS_BLUE;
+  useEffect(function(){ const t=setTimeout(function(){ if(typeof onDone==="function") onDone(); }, 1900); return function(){ clearTimeout(t); }; }, []);
+  return (
+    <div onClick={onDone} style={{ position:"fixed",inset:0,zIndex:8800,display:"flex",alignItems:"center",justifyContent:"center",background:"radial-gradient(circle at center,"+c+"1a 0%,rgba(2,4,10,0.88) 60%)",backdropFilter:"blur(5px)",cursor:"pointer" }}>
+      <div style={{ position:"absolute",width:300,height:300,borderRadius:"50%",border:"1px solid "+c+"44",animation:"aura-ring-2 1.4s ease forwards" }} />
+      {Array.from({length:10}).map(function(_,i){ return <div key={i} style={{ position:"absolute",width:2,height:90,background:"linear-gradient(to bottom,"+c+",transparent)",transformOrigin:"center bottom",transform:"rotate("+(i*36)+"deg) translateY(-120px)",animation:"level-up-ray 1s ease forwards",animationDelay:(i*20)+"ms",opacity:0.6 }} />; })}
+      <div style={{ position:"relative",textAlign:"center",animation:"chest-reveal 0.6s ease forwards" }}>
+        <div style={{ position:"relative",margin:"0 auto 16px",width:96,height:96,border:"2px solid "+c,display:"flex",alignItems:"center",justifyContent:"center",fontSize:44,background:c+"11",boxShadow:"0 0 40px "+c+"66, inset 0 0 24px "+c+"22" }}>
+          {item.icon}
+          <AvatarBrackets color={c} />
+        </div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.5em",color:c,marginBottom:6,textShadow:"0 0 12px "+c }}>ITEM ACQUIRED</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:900,color:"#eaf6ff" }}>{item.name}</div>
+        <div style={{ fontSize:13,color:c,marginTop:4 }}>{item.effect}</div>
+      </div>
+    </div>
+  );
+}
+
 function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoostCharges }) {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [purchaseFx, setPurchaseFx] = useState(null);
   const categories = [
     { id:"all",          label:"ALL"           },
     { id:"training",     label:"TRAINING"       },
@@ -9014,7 +9119,7 @@ function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoo
                     <span style={{ fontSize:12 }}>🪙</span>
                     <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:canAfford?"#f5b65d":"#f53d3d" }}>{item.cost}</span>
                   </div>
-                  <button disabled={owned||!canAfford} onClick={function(){ if(typeof onBuy==="function") onBuy(item); }}
+                  <button disabled={owned||!canAfford} onClick={function(){ if(typeof onBuy==="function") onBuy(item); setPurchaseFx(item); }}
                     style={{ padding:"6px 14px",background:owned?"transparent":canAfford?ic+"cc":"rgba(10,16,32,0.8)",color:owned?"#2ee88a":canAfford?"#03050c":"#2a3a55",border:owned?"1px solid #2ee88a33":"1px solid "+(canAfford?ic+"00":"#2a3a5544"),cursor:(owned||!canAfford)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.12em" }}>
                     {owned?"OWNED":canAfford?"BUY":"LOCKED"}
                   </button>
@@ -9024,6 +9129,8 @@ function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoo
           );
         })}
       </div>
+
+      {purchaseFx && <ShopPurchaseFx item={purchaseFx} onDone={function(){ setPurchaseFx(null); }} />}
     </div>
   );
 }
@@ -9692,6 +9799,7 @@ function App() {
   const [energyState, setEnergyState] = useState(sv ? (sv.energyState || { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 }) : { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 });
   const [energyScore, setEnergyScore] = useState(68);
   const [discipline, setDiscipline]   = useState(sv && sv.discipline ? sv.discipline : { startTs:null, bestDays:0, lastResetTs:null, motivation:"", urgeLog:[], hidden:false });
+  const [energyHistory, setEnergyHistory] = useState(sv && Array.isArray(sv.energyHistory) ? sv.energyHistory : []);
 
   /* UI-only transient state — never persisted */
   const [rewardChest, setRewardChest]             = useState(null);
@@ -9959,6 +10067,7 @@ function App() {
           ascensionCount,
           soundOn,
           energyState,
+          energyHistory,
           discipline,
           innerDemonActive,
           lastEvalStats,
@@ -9987,7 +10096,7 @@ function App() {
     loreFragments, collectedLoreIds, earnedAchievements, unlockedSpecs,
     completedBTs, guildId, guildQuestProgress, guildQuestDone,
     monarchInterest, monarchStage, isMonarch, ascensionCount,
-    soundOn, energyState, discipline, bosses, secretAchievements,
+    soundOn, energyState, energyHistory, discipline, bosses, secretAchievements,
     innerDemonActive, lastEvalStats,
   ]);
 
@@ -10155,6 +10264,14 @@ function App() {
   function handleEnergyUpdate(state, score) {
     setEnergyState(state);
     setEnergyScore(score);
+    setEnergyHistory(function(prev){
+      const arr = Array.isArray(prev) ? prev.slice() : [];
+      const d = new Date(); d.setHours(0,0,0,0);
+      const dayKey = d.getTime();
+      const filtered = arr.filter(function(e){ return e.day !== dayKey; });
+      filtered.push({ day: dayKey, ts: Date.now(), score: score });
+      return filtered.slice(-60);
+    });
     showToast("Energy logged: " + getEnergyLevel(score).label, "xp");
     addLog("Energy status updated: " + getEnergyLevel(score).label + " (score: " + score + ").","info");
   }
@@ -11367,7 +11484,7 @@ function App() {
           {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} />}
           {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
           {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} xpBoostCharges={xpBoostCharges} />}
-          {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} discipline={discipline} onDiscipline={handleDisciplineChange} />}
+          {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} discipline={discipline} onDiscipline={handleDisciplineChange} history={energyHistory} />}
           {activeView==="Rankings"&&<RankingsView player={player} fame={fame} rank={rank} rivals={rivals} accentColor={accentColor} />}
           {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
           {activeView==="Gate Map"&&<GateMapView player={player} accentColor={accentColor} onEnterGate={handleEnterGateWithCutscene} />}
