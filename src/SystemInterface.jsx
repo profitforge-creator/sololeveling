@@ -4611,6 +4611,8 @@ function HiddenQuestCard({ quest, progress, onGoalTap, ac }) {
 /* ===========================================================================
    DUNGEON CHAIN
    =========================================================================== */
+const DUNGEON_ENEMIES = ["Lesser Wraith","Stone Sentinel","Mana Hound","Shade Stalker","Iron Golem","Frost Imp","Void Crawler","Ashen Knight"];
+
 function DungeonChain({ gate, onComplete, onAbandon, sfx, modifier }) {
   const [roomIndex, setRoomIndex]   = useState(0);
   const [choices, setChoices]       = useState([]);
@@ -4620,6 +4622,11 @@ function DungeonChain({ gate, onComplete, onAbandon, sfx, modifier }) {
   const rooms = gate.rooms || [];
   const currentRoom = rooms[roomIndex] || null;
   const mod = modifier || DUNGEON_MODIFIERS[0];
+  const isBossRoom = rooms.length > 0 && roomIndex === rooms.length - 1;
+  const roomAccent = isBossRoom ? "#f53d3d" : gate.color;
+  const roomEnemy  = isBossRoom
+    ? ((gate.name || "Gate") + " Guardian")
+    : DUNGEON_ENEMIES[(roomIndex + (gate.name ? gate.name.length : 0)) % DUNGEON_ENEMIES.length];
 
   function handleChoice(choice) {
     if (sfx && typeof sfx.sfxComplete==="function") sfx.sfxComplete();
@@ -4678,9 +4685,28 @@ function DungeonChain({ gate, onComplete, onAbandon, sfx, modifier }) {
                 <div style={{ padding:"3px 10px",border:"1px solid "+gate.color,fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:gate.color,letterSpacing:"0.15em" }}>{gate.rank}-RANK</div>
                 <div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff" }}>{gate.name}</div><div style={{ fontSize:11,color:"#5b7aa0" }}>Room {roomIndex+1} of {rooms.length}</div></div>
               </div>
+
+              {/* Room-clear progress stepper */}
+              <div style={{ display:"flex",alignItems:"flex-end",gap:6,marginBottom:18 }}>
+                {rooms.map(function(_,i){
+                  const isCur = i===roomIndex; const cleared = i<roomIndex; const last = i===rooms.length-1;
+                  const col = last ? "#f53d3d" : gate.color;
+                  return (
+                    <div key={i} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4 }}>
+                      <div style={{ width:"100%",height:4,background: cleared?col : isCur?col+"aa":"rgba(77,184,255,0.1)", boxShadow:isCur?"0 0 8px "+col:"none",transition:"background 0.3s" }} />
+                      <span style={{ fontSize:9,color: cleared?col : isCur?"#dbe6ff":"#3a5a78",fontFamily:"'Orbitron',sans-serif" }}>{last?"◈":cleared?"✓":(i+1)}</span>
+                    </div>
+                  );
+                })}
+              </div>
               {!done&&currentRoom&&(
                 <div className="fade-in" key={roomIndex}>
-                  <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,fontWeight:700,color:gate.color,marginBottom:10 }}>{currentRoom.title}</div>
+                  {isBossRoom && <div className="dng-warn" style={{ display:"inline-block",marginBottom:8,padding:"3px 10px",border:"1px solid #f53d3d",background:"rgba(245,61,61,0.1)",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.2em",color:"#f53d3d" }}>◈ BOSS ROOM — FINAL</div>}
+                  <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,fontWeight:700,color:roomAccent,marginBottom:6 }}>{currentRoom.title}</div>
+                  <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:12 }}>
+                    <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.15em",color:roomAccent }}>⚔ THREAT</span>
+                    <span style={{ fontSize:12,color:"#cfe0f5",fontWeight:600 }}>{roomEnemy}</span>
+                  </div>
                   <p style={{ fontSize:13,color:"#9fb8d8",lineHeight:1.7,marginBottom:20 }}>{currentRoom.desc}</p>
                   <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
                     {currentRoom.choices.map(function(c){
@@ -9300,7 +9326,7 @@ function ShadowMissionsPanel({ shadowArmy, activeMissions, onDispatch, onComplet
   );
 }
 
-function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, onFavorite, activeMissions, onDispatchMission, onCompleteMission, squads, onAddToSquad }) {
+function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, onFavorite, activeMissions, onDispatchMission, onCompleteMission, squads, onAddToSquad, coins, onUpgrade }) {
   const [renaming, setRenaming] = useState(null);
   const [renameVal, setRenameVal] = useState("");
   const [filter, setFilter] = useState("all");
@@ -9326,7 +9352,10 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
       });
     });
 
-  const allShadows = extractedFromBosses.concat(shadowArmy);
+  /* Dedupe: a stored (upgradeable) shadow supersedes its boss-derived twin */
+  const armyIds = {}; (shadowArmy||[]).forEach(function(s){ if(s&&s.id) armyIds[s.id]=true; });
+  const dedupedDerived = extractedFromBosses.filter(function(s){ return !armyIds[s.id]; });
+  const allShadows = dedupedDerived.concat(shadowArmy);
   const filtered = filter==="all"?allShadows:allShadows.filter(function(s){return s.rank===filter;});
   const rankCounts = {};
   allShadows.forEach(function(s){rankCounts[s.rank]=(rankCounts[s.rank]||0)+1;});
@@ -9431,6 +9460,28 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
                 {shadow.evolutionTo && (
                   <div style={{ marginTop:10,fontSize:10,color:"#5b7aa0" }}>Evolves → <span style={{ color:MONARCH_PURP }}>{shadow.evolutionTo.replace("sh_","").charAt(0).toUpperCase()+shadow.evolutionTo.replace("sh_","").slice(1)}</span></div>
                 )}
+                {/* Power + upgrade */}
+                {(function(){
+                  const evo = shadow.evolutionLevel || 0;
+                  const pow = shadow.power || 50;
+                  const cost = 120 * (evo + 1);
+                  const afford = (coins||0) >= cost;
+                  return (
+                    <div style={{ marginTop:12,borderTop:"1px solid "+MONARCH_PURP+"22",paddingTop:10 }}>
+                      <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,marginBottom:4 }}>
+                        <span style={{ color:"#5b7aa0",letterSpacing:"0.1em" }}>POWER · EVO LV {evo}</span>
+                        <span style={{ color:MONARCH_PURP,fontWeight:700 }}>{pow}</span>
+                      </div>
+                      <div style={{ height:4,background:"rgba(255,255,255,0.06)",overflow:"hidden",marginBottom:8 }}>
+                        <div style={{ height:"100%",width:Math.min(100,(pow/200)*100)+"%",background:"linear-gradient(90deg,"+MONARCH_PURP+",#e0b0ff)",transition:"width 0.5s ease" }} />
+                      </div>
+                      <button onClick={function(){ if(typeof onUpgrade==="function") onUpgrade(shadow); }} disabled={!afford}
+                        style={{ width:"100%",padding:"7px",background:afford?"rgba(155,48,255,0.15)":"transparent",border:"1px solid "+MONARCH_PURP+(afford?"":"44"),color:afford?"#e0b0ff":"#5b7aa0",cursor:afford?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.12em" }}>
+                        ⬆ UPGRADE · 🪙{cost}
+                      </button>
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
@@ -10677,6 +10728,26 @@ function App() {
     setShadowNames(function(prev){return Object.assign({},prev,{[shadowId]:newName});});
   }
 
+  function handleUpgradeShadow(shadow) {
+    if (!shadow || !shadow.id) return;
+    const id  = shadow.id;
+    const cur = shadowArmy.find(function(s){ return s.id === id; });
+    const lvl = cur ? (cur.evolutionLevel||0) : (shadow.evolutionLevel||0);
+    const cost = 120 * (lvl + 1);
+    if (coins < cost) { showToast("Insufficient coins to upgrade (need "+cost+").","warning"); return; }
+    setCoins(function(c){ return Math.max(0, c - cost); });
+    setShadowArmy(function(prev){
+      if (prev.some(function(s){ return s.id === id; })) {
+        return prev.map(function(s){ return s.id===id ? Object.assign({},s,{ evolutionLevel:(s.evolutionLevel||0)+1, power:Math.min(999,(s.power||50)+15) }) : s; });
+      }
+      /* Boss-derived shadow upgraded for the first time — persist it as a real army member */
+      return prev.concat([ Object.assign({}, shadow, { fromBoss:false, favorite:false, evolutionLevel:(shadow.evolutionLevel||0)+1, power:Math.min(999,(shadow.power||50)+15) }) ]);
+    });
+    sfx.sfxComplete();
+    showToast((shadow.displayName||shadow.name||"Shadow")+" upgraded — Evolution Lv "+(lvl+1)+".","evolve");
+    addLog("Shadow upgraded: "+(shadow.displayName||shadow.name||"shadow")+" to Evolution Lv "+(lvl+1)+".","evolve");
+  }
+
   /* ---- System 6: Squad management ---- */
   function handleToggleShadowFavorite(shadowId) {
     setShadowArmy(function(prev){
@@ -11481,7 +11552,7 @@ function App() {
           {activeView==="Boss Raids"&&<BossRaidsView bosses={bosses} bossData={BOSS_DATA} onAttack={handleBossAttack} ac={accentColor} questGoalsCleared={totalQuestGoalsCleared} inventory={inventory} shadowArmy={shadowArmy} lastRaidResult={lastRaidResult} onDismissRaidResult={function(){setLastRaidResult(null);}} />}
           {activeView==="Secret Encounters"&&<SecretBossesView player={player} clearedGates={clearedGates} streak={player.streak} secretBosses={secretBossStates} onAttack={handleSecretBossAttack} accentColor={accentColor} questGoalsCleared={totalQuestGoalsCleared} />}
           {activeView==="Shadow Archive"&&<ShadowArchiveView bosses={bosses} bossData={BOSS_DATA} ac={accentColor} />}
-          {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} />}
+          {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} coins={coins} onUpgrade={handleUpgradeShadow} />}
           {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
           {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} xpBoostCharges={xpBoostCharges} />}
           {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} discipline={discipline} onDiscipline={handleDisciplineChange} history={energyHistory} />}
