@@ -3096,6 +3096,7 @@ const GLOBAL_CSS = `
   @keyframes rank-text-surge  { 0%{letter-spacing:0.05em;opacity:0} 50%{letter-spacing:0.4em;opacity:1} 100%{letter-spacing:0.2em;opacity:1} }
   @keyframes aura-surge       { 0%{opacity:0;transform:scale(0.6)} 40%{opacity:0.8;transform:scale(1.1)} 100%{opacity:1;transform:scale(1)} }
   @keyframes notification-slide { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+  @keyframes notif-life { 0%{transform:translateX(100%);opacity:0} 6%{transform:translateX(0);opacity:1} 84%{transform:translateX(0);opacity:1} 100%{transform:translateX(12%);opacity:0} }
   @keyframes corner-blink     { 0%,100%{opacity:.5} 50%{opacity:1} }
   @keyframes holo-shimmer     { 0%,100%{background-position:200% 0} 50%{background-position:-200% 0} }
   @keyframes panel-in         { from{opacity:0;transform:translateY(10px) scaleY(0.97)} to{opacity:1;transform:translateY(0) scaleY(1)} }
@@ -3106,6 +3107,7 @@ const GLOBAL_CSS = `
   .rank-text-surge  { animation:rank-text-surge 0.9s ease forwards }
   .aura-surge       { animation:aura-surge 0.7s ease forwards }
   .notif-slide      { animation:notification-slide 0.3s ease forwards }
+  .notif-life       { animation:notif-life 3s ease forwards }
   .energy-pulse     { animation:energy-pulse 2.5s ease-in-out infinite }
   .shadow-float     { animation:shadow-float 3s ease-in-out infinite }
   .dng-warn         { animation:dungeon-warning 0.8s step-end infinite }
@@ -4106,7 +4108,7 @@ function SystemNotificationCard({ message, kind, index }) {
   const c = meta.color;
   const op = Math.max(0.4, 1 - (index || 0) * 0.22);
   return (
-    <div className="sl-notif-card notif-slide" style={{ borderColor:c+"66", boxShadow:"0 0 18px "+c+"33, inset 0 0 22px "+c+"0d", opacity:op }}>
+    <div className="sl-notif-card notif-life" style={{ borderColor:c+"66", boxShadow:"0 0 18px "+c+"33, inset 0 0 22px "+c+"0d" }}>
       <div className="scan" />
       <span className="sl-notif-corner tl" style={{ borderColor:c }} />
       <span className="sl-notif-corner br" style={{ borderColor:c }} />
@@ -4949,7 +4951,7 @@ function EvaluationStatusPanel({ rank, isMonarch, available, daysLeft, onOpen, a
   );
 }
 
-function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, isMonarch, dailyQuest, activeHiddenQuest, hiddenQuestProgress, onHiddenGoalTap, energyScore, onReset, fame, worldEvent, awakeningDay, reevalAvailable, reevalDaysLeft, onOpenReeval }) {
+function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, isMonarch, dailyQuest, activeHiddenQuest, hiddenQuestProgress, onHiddenGoalTap, energyScore, onReset, fame, worldEvent, awakeningDay, reevalAvailable, reevalDaysLeft, onOpenReeval, deployedShadow, xpBoostCharges }) {
   const c = isMonarch?MONARCH_PURP:rank.color;
   const safeLevel = (typeof player.level === "number" && isFinite(player.level)) ? player.level : 1;
   const doneCount = dailyQuest.goals.filter(function(g){return (dailyProgress[g.id]||0)>=g.target;}).length;
@@ -4962,6 +4964,30 @@ function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, is
 
       {/* Hunter evaluation status + 30-day re-evaluation window */}
       <EvaluationStatusPanel rank={rank} isMonarch={isMonarch} available={reevalAvailable} daysLeft={reevalDaysLeft} onOpen={onOpenReeval} accentColor={c} />
+
+      {/* Active buffs strip */}
+      {(deployedShadow || (xpBoostCharges||0) > 0) && (
+        <div style={{ marginBottom:14,display:"flex",gap:8,flexWrap:"wrap" }}>
+          {deployedShadow && (
+            <div style={{ display:"flex",alignItems:"center",gap:8,padding:"7px 12px",border:"1px solid "+MONARCH_PURP+"55",background:"rgba(155,48,255,0.08)" }}>
+              <span className="shadow-float" style={{ color:MONARCH_PURP,fontSize:14 }}>◉</span>
+              <div>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.2em",color:MONARCH_PURP }}>SHADOW DEPLOYED</div>
+                <div style={{ fontSize:11,color:"#d0a0ff",fontWeight:600 }}>{deployedShadow.displayName||deployedShadow.name} · +{Math.round(getShadowXpBonus(deployedShadow)*100)}% XP</div>
+              </div>
+            </div>
+          )}
+          {(xpBoostCharges||0) > 0 && (
+            <div style={{ display:"flex",alignItems:"center",gap:8,padding:"7px 12px",border:"1px solid #f5b65d55",background:"rgba(245,182,93,0.08)" }}>
+              <span className="pulse-glow" style={{ color:"#f5b65d",fontSize:14 }}>◈</span>
+              <div>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.2em",color:"#f5b65d" }}>XP BOOST</div>
+                <div style={{ fontSize:11,color:"#f5d8a0",fontWeight:600 }}>+50% · {xpBoostCharges} quest{xpBoostCharges>1?"s":""}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Daily reset countdown */}
       <ResetCountdownBanner accentColor={c} isMonarch={isMonarch} onReset={onReset} />
@@ -10874,10 +10900,14 @@ function App() {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToast({message,kind:kind||"info",monarch:!!monarch});
     toastTimerRef.current=setTimeout(function(){setToast(null);},3200);
-    /* System 7: push to notification history (keep last 5) */
+    /* System 7: push to notification history; each card auto-clears after 3s */
+    const nid = Date.now() + "-" + Math.random().toString(36).slice(2,7);
     setNotifHistory(function(prev){
-      return [{message,kind:kind||"info",time:ts()}].concat(prev).slice(0,5);
+      return [{message,kind:kind||"info",time:ts(),id:nid}].concat(prev).slice(0,5);
     });
+    setTimeout(function(){
+      setNotifHistory(function(prev){ return prev.filter(function(n){ return n.id !== nid; }); });
+    }, 3000);
   }
 
   function unlockSecret(condition) {
@@ -11612,7 +11642,7 @@ function App() {
         {menuOpen&&<Sidebar activeView={activeView} onSelect={setActiveView} onClose={function(){setMenuOpen(false);sfx.sfxClick();}} ac={rank.color} playerName={player.name} isMonarch={isMonarch} />}
 
         <div style={{ maxWidth:860,margin:"0 auto",padding:"28px 16px 80px" }}>
-          {activeView==="Dashboard"&&<DashboardView player={player} rank={rank} dailyProgress={dailyProgress} isDailyDone={isDailyDone} onGoalTap={handleGoalTap} isMonarch={isMonarch} dailyQuest={dailyQuest} activeHiddenQuest={activeHiddenQuest} hiddenQuestProgress={hiddenQuestProgress} onHiddenGoalTap={handleHiddenGoalTap} energyScore={energyScore} onReset={handleDailyReset} fame={fame} worldEvent={worldEvent} awakeningDay={awakeningDay} reevalAvailable={reevalAvailable} reevalDaysLeft={reevalDaysLeft} onOpenReeval={function(){setReevalOpen(true);}} />}
+          {activeView==="Dashboard"&&<DashboardView player={player} rank={rank} dailyProgress={dailyProgress} isDailyDone={isDailyDone} onGoalTap={handleGoalTap} isMonarch={isMonarch} dailyQuest={dailyQuest} activeHiddenQuest={activeHiddenQuest} hiddenQuestProgress={hiddenQuestProgress} onHiddenGoalTap={handleHiddenGoalTap} energyScore={energyScore} onReset={handleDailyReset} fame={fame} worldEvent={worldEvent} awakeningDay={awakeningDay} reevalAvailable={reevalAvailable} reevalDaysLeft={reevalDaysLeft} onOpenReeval={function(){setReevalOpen(true);}} deployedShadow={deployedShadowId?shadowArmy.find(function(s){return s.id===deployedShadowId;}):null} xpBoostCharges={xpBoostCharges} />}
           {activeView==="Daily Quest"&&(
             <div className="fade-in">
               <SL text="Daily Quest" ac={accentColor} />
@@ -11642,9 +11672,9 @@ function App() {
 
         {/* DEV: Monarch interest only — no free XP */}
         <div style={{ position:"fixed",bottom:12,right:12,zIndex:8000,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:8 }}>
-          {/* System 7: Notification history tray — cinematic hologram cards, last 4 */}
+          {/* System 7: Notification history tray — cinematic hologram cards, auto-fade after 3s */}
           {notifHistory.slice(0,4).map(function(n,i){
-            return <SystemNotificationCard key={i} message={n.message} kind={n.kind} index={i} />;
+            return <SystemNotificationCard key={n.id!=null?n.id:i} message={n.message} kind={n.kind} index={i} />;
           })}
           <button onClick={function(){addMonarchInterest(10);maybeTriggerCryptic(monarchStage<1?1:monarchStage);}} style={{ background:"rgba(155,48,255,0.1)",border:"1px solid #9b30ff33",color:"#9b30ff55",fontSize:9,padding:"4px 8px",cursor:"pointer",fontFamily:"monospace" }} title="DEV: +interest">+mi</button>
         </div>
