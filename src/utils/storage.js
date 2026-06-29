@@ -38,13 +38,16 @@ function sanitisePlayer(raw) {
   const def = {
     name: "Hunter", level: 1, xp: 0, streak: 0,
     job: "fighter", physique: "hybrid", goals: [],
-    activeTitle: "awakened",
+    activeTitle: "awakened", avatar: null,
     stats: sanitiseStats(null),
   };
   if (!raw || typeof raw !== "object") return def;
   const level  = Number(raw.level);
   const xp     = Number(raw.xp);
   const streak = Number(raw.streak);
+  /* Avatar: base64 data URL only, capped to avoid blowing localStorage quota */
+  const avatar = (typeof raw.avatar === "string" && raw.avatar.indexOf("data:image") === 0 && raw.avatar.length < 600000)
+    ? raw.avatar : null;
   return {
     name:        typeof raw.name === "string" && raw.name.trim() ? raw.name : def.name,
     level:       Number.isFinite(level)  && level  >= 1 ? Math.floor(level)  : 1,
@@ -54,6 +57,7 @@ function sanitisePlayer(raw) {
     physique:    typeof raw.physique === "string" ? raw.physique : def.physique,
     goals:       Array.isArray(raw.goals)         ? raw.goals    : [],
     activeTitle: typeof raw.activeTitle === "string" ? raw.activeTitle : "awakened",
+    avatar:      avatar,
     stats:       sanitiseStats(raw.stats),
   };
 }
@@ -80,7 +84,21 @@ export function defaultSave() {
     monarchInterest: 0, monarchStage: 0, isMonarch: false, ascensionCount: 0,
     soundOn: true,
     energyState: { sleep:7, soreness:3, fatigue:3, hydration:7, stress:3 },
+    discipline: { startTs: null, bestDays: 0, lastResetTs: null, motivation: "", urgeLog: [], hidden: false },
     bossHpSnapshot: null, secretUnlockedIds: [],
+  };
+}
+
+function sanitiseDiscipline(d, def) {
+  if (!d || typeof d !== "object") return def;
+  const num = function (v) { return (typeof v === "number" && isFinite(v)) ? v : null; };
+  return {
+    startTs:     num(d.startTs),
+    bestDays:    (typeof d.bestDays === "number" && d.bestDays >= 0) ? Math.floor(d.bestDays) : 0,
+    lastResetTs: num(d.lastResetTs),
+    motivation:  typeof d.motivation === "string" ? d.motivation.slice(0, 500) : "",
+    urgeLog:     Array.isArray(d.urgeLog) ? d.urgeLog.slice(0, 100) : [],
+    hidden:      !!d.hidden,
   };
 }
 
@@ -138,6 +156,7 @@ export function loadGame() {
       ascensionCount: Number.isFinite(Number(parsed.ascensionCount)) ? Math.max(0, Math.floor(Number(parsed.ascensionCount))) : 0,
       soundOn: typeof parsed.soundOn === "boolean" ? parsed.soundOn : true,
       energyState: typeof parsed.energyState === "object" && parsed.energyState ? parsed.energyState : def.energyState,
+      discipline: sanitiseDiscipline(parsed.discipline, def.discipline),
       bossHpSnapshot: Array.isArray(parsed.bossHpSnapshot) ? parsed.bossHpSnapshot : null,
       secretUnlockedIds: Array.isArray(parsed.secretUnlockedIds) ? parsed.secretUnlockedIds : [],
       savedAt: typeof parsed.savedAt === "number" ? parsed.savedAt : null,
