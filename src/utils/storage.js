@@ -85,6 +85,7 @@ export function defaultSave() {
     soundOn: true,
     energyState: { sleep:7, soreness:3, fatigue:3, hydration:7, stress:3 },
     energyHistory: [],
+    deployedShadowId: null,
     discipline: { startTs: null, bestDays: 0, lastResetTs: null, motivation: "", urgeLog: [], hidden: false },
     bossHpSnapshot: null, secretUnlockedIds: [],
   };
@@ -158,6 +159,7 @@ export function loadGame() {
       soundOn: typeof parsed.soundOn === "boolean" ? parsed.soundOn : true,
       energyState: typeof parsed.energyState === "object" && parsed.energyState ? parsed.energyState : def.energyState,
       energyHistory: Array.isArray(parsed.energyHistory) ? parsed.energyHistory.slice(-60) : [],
+      deployedShadowId: typeof parsed.deployedShadowId === "string" ? parsed.deployedShadowId : null,
       discipline: sanitiseDiscipline(parsed.discipline, def.discipline),
       bossHpSnapshot: Array.isArray(parsed.bossHpSnapshot) ? parsed.bossHpSnapshot : null,
       secretUnlockedIds: Array.isArray(parsed.secretUnlockedIds) ? parsed.secretUnlockedIds : [],

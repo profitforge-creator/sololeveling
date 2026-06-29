@@ -8939,6 +8939,8 @@ function SpecializationView({ player, unlockedSpecs, onUnlock, accentColor }) {
 
 function SecretBossesView({ player, clearedGates, streak, secretBosses, onAttack, accentColor, questGoalsCleared }) {
   const unlocked = getUnlockedSecretBosses(player, clearedGates, streak);
+  const unlockedIds = {}; unlocked.forEach(function(b){ unlockedIds[b.id] = true; });
+  const lockedSignals = SECRET_BOSS_DATA.filter(function(b){ return !unlockedIds[b.id]; });
 
   return (
     <div className="fade-in">
@@ -8953,14 +8955,12 @@ function SecretBossesView({ player, clearedGates, streak, secretBosses, onAttack
       </div>
 
       {unlocked.length === 0 ? (
-        <div style={{ border:"1px solid #1a2438", background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))", padding:"48px 24px", textAlign:"center" }}>
-          <div style={{ fontSize:40, marginBottom:16, opacity:0.15 }}>?</div>
-          <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:11, letterSpacing:"0.3em", color:"#2a3a55", marginBottom:8 }}>
-            NO ENCOUNTERS DETECTED
+        <div style={{ border:"1px solid #1a2438", background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))", padding:"22px 24px", textAlign:"center" }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:11, letterSpacing:"0.3em", color:"#2a3a55", marginBottom:6 }}>
+            NO ACTIVE ENCOUNTERS
           </div>
-          <p style={{ fontSize:12, color:"#2a3a55", lineHeight:1.7 }}>
-            The System has not detected any hidden entities in your current range.
-            Continue training. Continue clearing. Something will respond.
+          <p style={{ fontSize:12, color:"#2a3a55", lineHeight:1.6 }}>
+            No hidden entity has fully manifested — but the System is picking up faint signals. Meet their conditions to force them into range.
           </p>
         </div>
       ) : (
@@ -9023,6 +9023,34 @@ function SecretBossesView({ player, clearedGates, streak, secretBosses, onAttack
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Detected signals — locked encounters with cryptic unlock hints */}
+      {lockedSignals.length > 0 && (
+        <div style={{ marginTop: unlocked.length ? 24 : 16 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.3em",color:GLITCH_RED+"aa",marginBottom:12 }}>◈ DETECTED SIGNALS — {lockedSignals.length} LOCKED</div>
+          <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
+            {lockedSignals.map(function(boss){
+              const clearanceMet = (player.level||1) >= boss.minLevel;
+              return (
+                <div key={boss.id} style={{ position:"relative",overflow:"hidden",border:"1px solid "+GLITCH_RED+"33",background:"linear-gradient(160deg,rgba(14,6,10,0.97),rgba(6,2,6,0.99))",padding:"13px 15px" }}>
+                  <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,34,68,0.03) 3px,rgba(255,34,68,0.03) 4px)" }} />
+                  <div style={{ display:"flex",alignItems:"center",gap:12,position:"relative" }}>
+                    <div className="flicker" style={{ width:40,height:40,border:"1px solid "+GLITCH_RED+"55",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color:GLITCH_RED+"99",flexShrink:0 }}>?</div>
+                    <div style={{ flex:1,minWidth:0 }}>
+                      <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:3 }}>
+                        <span className="glitch-text" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:"#7a5a64",letterSpacing:"0.1em" }}>▓▓▓▓ UNIDENTIFIED</span>
+                        <span style={{ fontSize:8,padding:"1px 6px",border:"1px solid "+GLITCH_RED+"44",color:GLITCH_RED+"aa",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",whiteSpace:"nowrap" }}>SIGNAL LOCKED</span>
+                      </div>
+                      <div style={{ fontSize:11,color:"#8a6a74",fontStyle:"italic",lineHeight:1.5 }}>"{boss.unlockHint}"</div>
+                      <div style={{ fontSize:9,color:"#5a3a44",marginTop:5,fontFamily:"monospace" }}>{"> CLEARANCE: LV "+boss.minLevel+(clearanceMet?" [MET]":" [INSUFFICIENT]")}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -9326,7 +9354,15 @@ function ShadowMissionsPanel({ shadowArmy, activeMissions, onDispatch, onComplet
   );
 }
 
-function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, onFavorite, activeMissions, onDispatchMission, onCompleteMission, squads, onAddToSquad, coins, onUpgrade }) {
+/* Deployed-shadow XP buff — scales with the shadow's evolution + power. */
+function getShadowXpBonus(shadow) {
+  if (!shadow) return 0;
+  const evo = shadow.evolutionLevel || 0;
+  const pow = shadow.power || 50;
+  return Math.min(0.30, 0.05 + evo*0.03 + Math.max(0, pow-50)/500);
+}
+
+function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, onFavorite, activeMissions, onDispatchMission, onCompleteMission, squads, onAddToSquad, coins, onUpgrade, deployedShadowId, onDeploy }) {
   const [renaming, setRenaming] = useState(null);
   const [renameVal, setRenameVal] = useState("");
   const [filter, setFilter] = useState("all");
@@ -9460,6 +9496,19 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
                 {shadow.evolutionTo && (
                   <div style={{ marginTop:10,fontSize:10,color:"#5b7aa0" }}>Evolves → <span style={{ color:MONARCH_PURP }}>{shadow.evolutionTo.replace("sh_","").charAt(0).toUpperCase()+shadow.evolutionTo.replace("sh_","").slice(1)}</span></div>
                 )}
+                {/* Deploy as escort — grants real quest XP buff */}
+                {(function(){
+                  const isDeployed = deployedShadowId === shadow.id;
+                  const bonusPct = Math.round(getShadowXpBonus(shadow) * 100);
+                  return (
+                    <div style={{ marginTop:12,display:"flex",alignItems:"center",gap:8 }}>
+                      <button onClick={function(){ if(typeof onDeploy==="function") onDeploy(shadow); }}
+                        style={{ flex:1,padding:"7px",background:isDeployed?"rgba(46,232,138,0.12)":"rgba(155,48,255,0.12)",border:"1px solid "+(isDeployed?"#2ee88a":MONARCH_PURP),color:isDeployed?"#2ee88a":"#e0b0ff",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.12em" }}>
+                        {isDeployed?"◉ DEPLOYED — RECALL":"⚑ DEPLOY · +"+bonusPct+"% XP"}
+                      </button>
+                    </div>
+                  );
+                })()}
                 {/* Power + upgrade */}
                 {(function(){
                   const evo = shadow.evolutionLevel || 0;
@@ -9838,6 +9887,7 @@ function App() {
 
   /* Shadow army */
   const [shadowArmy, setShadowArmy]     = useState(sv ? (sv.shadowArmy || []) : []);
+  const [deployedShadowId, setDeployedShadowId] = useState(sv ? (sv.deployedShadowId || null) : null);
   const [shadowMissions, setShadowMissions] = useState(sv ? (sv.shadowMissions || []) : []);
   const [shadowSquads, setShadowSquads] = useState(sv && Array.isArray(sv.shadowSquads) ? sv.shadowSquads : [
     { id:"assault", name:"Assault Squad", shadowIds:[], icon:"⚔" },
@@ -10101,6 +10151,7 @@ function App() {
           fame,
           inventory,
           shadowArmy,
+          deployedShadowId,
           shadowMissions,
           shadowSquads,
           shadowNames,
@@ -10143,7 +10194,7 @@ function App() {
     sideProgress, sideDone, extSideProgress, extSideDone,
     anomalyProgress, anomalyDone, recentAnomalyIds,
     clearedGates, dungeonKeys, coins, fame, inventory,
-    shadowArmy, shadowMissions, shadowSquads, shadowNames,
+    shadowArmy, deployedShadowId, shadowMissions, shadowSquads, shadowNames,
     loreFragments, collectedLoreIds, earnedAchievements, unlockedSpecs,
     completedBTs, guildId, guildQuestProgress, guildQuestDone,
     monarchInterest, monarchStage, isMonarch, ascensionCount,
@@ -10748,6 +10799,26 @@ function App() {
     addLog("Shadow upgraded: "+(shadow.displayName||shadow.name||"shadow")+" to Evolution Lv "+(lvl+1)+".","evolve");
   }
 
+  function handleDeployShadow(shadow) {
+    if (!shadow || !shadow.id) return;
+    if (deployedShadowId === shadow.id) {
+      setDeployedShadowId(null);
+      showToast((shadow.displayName||shadow.name||"Shadow")+" recalled from escort.","system");
+      addLog("Shadow recalled: "+(shadow.displayName||shadow.name||"shadow")+".","system");
+      return;
+    }
+    /* Persist boss-derived shadows so the buff resolves on every grantXp */
+    setShadowArmy(function(prev){
+      if (prev.some(function(s){ return s.id === shadow.id; })) return prev;
+      return prev.concat([ Object.assign({}, shadow, { fromBoss:false, favorite:false }) ]);
+    });
+    setDeployedShadowId(shadow.id);
+    const bonus = Math.round(getShadowXpBonus(shadow) * 100);
+    sfx.sfxEvolve();
+    showToast((shadow.displayName||shadow.name||"Shadow")+" deployed — +"+bonus+"% quest XP.","evolve");
+    addLog("Shadow deployed as escort: "+(shadow.displayName||shadow.name)+" (+"+bonus+"% XP).","evolve");
+  }
+
   /* ---- System 6: Squad management ---- */
   function handleToggleShadowFavorite(shadowId) {
     setShadowArmy(function(prev){
@@ -10837,6 +10908,12 @@ function App() {
         if (next <= 0) { xpBoostRef.current = false; }
         return Math.max(0, next);
       });
+    }
+    /* Deployed shadow escort — real, stacking quest XP buff */
+    if (deployedShadowId) {
+      const dShadow = shadowArmy.find(function(s){ return s.id === deployedShadowId; });
+      const bonus = getShadowXpBonus(dShadow);
+      if (bonus > 0) boostedAmount = Math.round(boostedAmount * (1 + bonus));
     }
     const finalAmount = boostedAmount;
     setPlayer(function(prev){
@@ -11552,7 +11629,7 @@ function App() {
           {activeView==="Boss Raids"&&<BossRaidsView bosses={bosses} bossData={BOSS_DATA} onAttack={handleBossAttack} ac={accentColor} questGoalsCleared={totalQuestGoalsCleared} inventory={inventory} shadowArmy={shadowArmy} lastRaidResult={lastRaidResult} onDismissRaidResult={function(){setLastRaidResult(null);}} />}
           {activeView==="Secret Encounters"&&<SecretBossesView player={player} clearedGates={clearedGates} streak={player.streak} secretBosses={secretBossStates} onAttack={handleSecretBossAttack} accentColor={accentColor} questGoalsCleared={totalQuestGoalsCleared} />}
           {activeView==="Shadow Archive"&&<ShadowArchiveView bosses={bosses} bossData={BOSS_DATA} ac={accentColor} />}
-          {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} coins={coins} onUpgrade={handleUpgradeShadow} />}
+          {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} coins={coins} onUpgrade={handleUpgradeShadow} deployedShadowId={deployedShadowId} onDeploy={handleDeployShadow} />}
           {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
           {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} xpBoostCharges={xpBoostCharges} />}
           {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} discipline={discipline} onDiscipline={handleDisciplineChange} history={energyHistory} />}
