@@ -5,7 +5,16 @@
  */
 
 const SAVE_KEY     = "arise_save_v1";
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
+const SAVE_BACKUP_KEY = "arise_save_backup_v1";
+const MANUAL_BACKUP_KEY = "arise_save_backup_latest";
+const STORY_V2_KEY = "arise_story_campaign_v2";
+const STORY_V3_KEY = "arise_story_campaign_v3";
+const STORY_V4_KEY = "arise_story_campaign_v4";
+const STORY_BACKUP_KEY = "arise_story_backup_v4";
+const STORY_NEW_GAME_MARKER = "arise_story_new_game_requested";
+const REEVAL_KEY = "arise_last_reeval";
+const DAILY_RESET_KEY = "arise_last_daily_reset";
 
 function safeStringify(value) {
   try { return JSON.stringify(value); }
@@ -60,7 +69,7 @@ function sanitisePlayer(raw) {
 
 export function defaultSave() {
   return {
-    version: 1, phase: "onboard",
+    version: SAVE_VERSION, phase: "onboard",
     player: sanitisePlayer(null),
     isDailyDone: false, dailyProgress: {},
     sideProgress: [], sideDone: [],
@@ -87,6 +96,7 @@ export function defaultSave() {
       muscleFatigue: 34,
       neuralLoad: 28,
       stressNoise: 30,
+      lastLoggedOn: null,
     },
     energyScore: 68,
     disciplineState: {
@@ -97,6 +107,7 @@ export function defaultSave() {
       recoveryCompliance: 60,
       slips: 1,
       cleanCycles: 0,
+      lastLoggedOn: null,
       protocols: {
         wake: true,
         training: true,
@@ -112,7 +123,7 @@ export function defaultSave() {
 
 export function saveGame(state) {
   try {
-    const payload = Object.assign({}, state, { version: 1, savedAt: Date.now() });
+    const payload = Object.assign({}, state, { version: SAVE_VERSION, savedAt: Date.now() });
     const str = safeStringify(payload);
     if (!str) return false;
     localStorage.setItem(SAVE_KEY, str);
@@ -126,10 +137,15 @@ export function loadGame() {
     if (!raw) return null;
     const parsed = safeParse(raw, null);
     if (!parsed || typeof parsed !== "object") return null;
-    if (parsed.version && parsed.version > 1) return null;
+    if (parsed.version && parsed.version > SAVE_VERSION) return null;
+    const parsedVersion = Number.isFinite(Number(parsed.version)) ? Number(parsed.version) : 1;
+    if (parsedVersion < SAVE_VERSION && !localStorage.getItem(SAVE_BACKUP_KEY)) {
+      const backup = safeStringify({ schemaVersion: parsedVersion, backedUpAt: Date.now(), raw });
+      if (backup) localStorage.setItem(SAVE_BACKUP_KEY, backup);
+    }
     const def = defaultSave();
     return {
-      version: 1,
+      version: SAVE_VERSION,
       phase: parsed.phase === "app" ? "app" : "onboard",
       player: sanitisePlayer(parsed.player),
       isDailyDone: !!parsed.isDailyDone,
@@ -167,15 +183,27 @@ export function loadGame() {
       energyScore: Number.isFinite(Number(parsed.energyScore)) ? Math.max(0, Math.min(100, Math.round(Number(parsed.energyScore)))) : def.energyScore,
       disciplineState: typeof parsed.disciplineState === "object" && parsed.disciplineState ? parsed.disciplineState : def.disciplineState,
       disciplineScore: Number.isFinite(Number(parsed.disciplineScore)) ? Math.max(0, Math.min(100, Math.round(Number(parsed.disciplineScore)))) : def.disciplineScore,
+      innerDemonActive: !!parsed.innerDemonActive,
+      lastEvalStats: parsed.lastEvalStats && typeof parsed.lastEvalStats === "object" ? parsed.lastEvalStats : null,
       bossHpSnapshot: Array.isArray(parsed.bossHpSnapshot) ? parsed.bossHpSnapshot : null,
       secretUnlockedIds: Array.isArray(parsed.secretUnlockedIds) ? parsed.secretUnlockedIds : [],
       savedAt: typeof parsed.savedAt === "number" ? parsed.savedAt : null,
+      migratedFrom: parsedVersion < SAVE_VERSION ? parsedVersion : null,
     };
   } catch (_) { return null; }
 }
 
 export function deleteSave() {
-  try { localStorage.removeItem(SAVE_KEY); return true; }
+  try {
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(STORY_V2_KEY);
+    localStorage.removeItem(STORY_V3_KEY);
+    localStorage.removeItem(STORY_V4_KEY);
+    localStorage.removeItem(STORY_NEW_GAME_MARKER);
+    localStorage.removeItem(REEVAL_KEY);
+    localStorage.removeItem(DAILY_RESET_KEY);
+    return true;
+  }
   catch (_) { return false; }
 }
 
@@ -185,8 +213,63 @@ export function hasSave() {
 }
 
 export function exportSave() {
-  try { return localStorage.getItem(SAVE_KEY) || null; }
+  try {
+    return safeStringify({
+      format: "arise_full_backup",
+      schemaVersion: SAVE_VERSION,
+      exportedAt: Date.now(),
+      mainSave: safeParse(localStorage.getItem(SAVE_KEY), null),
+      storyV4: safeParse(localStorage.getItem(STORY_V4_KEY), null),
+      storyV3: safeParse(localStorage.getItem(STORY_V3_KEY), null),
+      storyV2: safeParse(localStorage.getItem(STORY_V2_KEY), null),
+      reevaluation: localStorage.getItem(REEVAL_KEY),
+      dailyReset: localStorage.getItem(DAILY_RESET_KEY),
+    });
+  }
   catch (_) { return null; }
+}
+
+export function backupSaveData(reason) {
+  try {
+    const bundle = exportSave();
+    if (!bundle) return false;
+    const backup = safeStringify({ reason: reason || "manual", backedUpAt: Date.now(), bundle: safeParse(bundle, null) });
+    if (!backup) return false;
+    localStorage.setItem(MANUAL_BACKUP_KEY, backup);
+    return true;
+  } catch (_) { return false; }
+}
+
+export function importSave(raw) {
+  try {
+    const parsed = typeof raw === "string" ? safeParse(raw, null) : raw;
+    if (!parsed || typeof parsed !== "object") return { ok:false, error:"Invalid backup file." };
+    backupSaveData("before_import");
+    if (parsed.format === "arise_full_backup") {
+      if (!parsed.mainSave || typeof parsed.mainSave !== "object") return { ok:false, error:"Main save is missing." };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(parsed.mainSave));
+      if (parsed.storyV4) localStorage.setItem(STORY_V4_KEY, JSON.stringify(parsed.storyV4));
+      else if (parsed.storyV3) localStorage.setItem(STORY_V3_KEY, JSON.stringify(parsed.storyV3));
+      else if (parsed.storyV2) localStorage.setItem(STORY_V2_KEY, JSON.stringify(parsed.storyV2));
+      if (parsed.reevaluation !== null && parsed.reevaluation !== undefined) localStorage.setItem(REEVAL_KEY, String(parsed.reevaluation));
+      if (parsed.dailyReset !== null && parsed.dailyReset !== undefined) localStorage.setItem(DAILY_RESET_KEY, String(parsed.dailyReset));
+    } else {
+      if (!parsed.player || typeof parsed.player !== "object") return { ok:false, error:"Unrecognized save format." };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(parsed));
+    }
+    return { ok:true };
+  } catch (_) { return { ok:false, error:"Import failed." }; }
+}
+
+export function resetStoryOnly() {
+  try {
+    backupSaveData("before_story_reset");
+    localStorage.removeItem(STORY_V2_KEY);
+    localStorage.removeItem(STORY_V3_KEY);
+    localStorage.removeItem(STORY_V4_KEY);
+    localStorage.setItem(STORY_NEW_GAME_MARKER, "1");
+    return true;
+  } catch (_) { return false; }
 }
 
 export function debounce(fn, ms) {

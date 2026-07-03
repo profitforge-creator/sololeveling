@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { saveGame, loadGame, defaultSave, deleteSave, exportSave, debounce } from "./utils/storage.js";
-import StoryModeView from "./StoryModeView.jsx";
+import { saveGame, loadGame, defaultSave, deleteSave, exportSave, importSave, resetStoryOnly, backupSaveData, debounce } from "./utils/storage.js";
+import StoryModeView, { getStoryCampaignSnapshot } from "./StoryModeView.jsx";
 import "./system-overrides.css";
 
 /* ============================================================================
@@ -3033,6 +3033,7 @@ function normaliseEnergyState(raw) {
       muscleFatigue: clamp(Math.round((Number(raw.soreness) || 3) * 10), 0, 100),
       neuralLoad: clamp(Math.round((Number(raw.fatigue) || 3) * 10), 0, 100),
       stressNoise: clamp(Math.round((Number(raw.stress) || 3) * 10), 0, 100),
+      lastLoggedOn: typeof raw.lastLoggedOn === "string" ? raw.lastLoggedOn : null,
     };
   }
   const next = {};
@@ -3040,6 +3041,7 @@ function normaliseEnergyState(raw) {
     const v = Number(raw[key]);
     next[key] = Number.isFinite(v) ? clamp(Math.round(v), 0, 100) : DEFAULT_ENERGY_STATE[key];
   });
+  next.lastLoggedOn = typeof raw.lastLoggedOn === "string" ? raw.lastLoggedOn : null;
   return next;
 }
 
@@ -3056,6 +3058,7 @@ function normaliseDisciplineState(raw) {
   Object.keys(DEFAULT_DISCIPLINE_STATE.protocols).forEach(function(key) {
     next.protocols[key] = !!protocols[key];
   });
+  next.lastLoggedOn = typeof raw.lastLoggedOn === "string" ? raw.lastLoggedOn : null;
   return next;
 }
 
@@ -3136,6 +3139,7 @@ function getRankIndex(level) { return getRankForLevel(level).minRankIndex; }
 function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function ts() { const d = new Date(); return d.getHours().toString().padStart(2,"0") + ":" + d.getMinutes().toString().padStart(2,"0") + ":" + d.getSeconds().toString().padStart(2,"0"); }
+function localDateKey() { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 
 /* Derive starting stats and rank from evaluation scores */
 function computeEvaluation(scores) {
@@ -4723,7 +4727,7 @@ function TopHud({ player, rank, onMenuToggle, menuOpen, isMonarch }) {
   );
 }
 
-function Sidebar({ activeView, onSelect, onClose, ac, playerName, isMonarch }) {
+function Sidebar({ activeView, onSelect, onClose, ac, playerName, isMonarch, storySnapshot, onLocked }) {
   const c = isMonarch?MONARCH_PURP:(ac||SYS_BLUE);
   return (
     <>
@@ -4739,10 +4743,15 @@ function Sidebar({ activeView, onSelect, onClose, ac, playerName, isMonarch }) {
 
         {MENU_ITEMS.map(function(item){
           const active = item === activeView;
+          const gate = storySnapshot && storySnapshot.featureAccess ? storySnapshot.featureAccess[item] : null;
+          const locked = Boolean(gate && !gate.unlocked);
           return (
-            <button key={item} onClick={function(){onSelect(item);onClose();}}
-              className={"sl-menu-item"+(active?" active":"")}>
+            <button key={item} aria-disabled={locked} onClick={function(){
+              if (locked) { if (typeof onLocked === "function") onLocked(item, gate); return; }
+              onSelect(item);onClose();
+            }} className={"sl-menu-item"+(active?" active":"")+(locked?" story-locked":"")}>
               <span>{item.toUpperCase()}</span>
+              {locked&&<small className="story-menu-lock">DAY {gate.day} <b>LOCKED</b></small>}
               {active&&<span style={{ color:c,marginLeft:"auto",fontSize:12 }}>›</span>}
             </button>
           );
@@ -6777,8 +6786,11 @@ function GateMapView({ player, accentColor, onEnterGate }) {
   );
 }
 
-function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, ascensionCount, onAscend, lastSavedAt, onDeleteSave, innerDemonActive, onToggleInnerDemon, reevalAvailable, onOpenReeval }) {
+function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, ascensionCount, onAscend, lastSavedAt, onDeleteSave, onExportSave, onImportSave, onResetStory, innerDemonActive, onToggleInnerDemon, reevalAvailable, onOpenReeval }) {
   const c = isMonarch?MONARCH_PURP:rank.color;
+  const importInputRef = useRef(null);
+  const [storyResetConfirm, setStoryResetConfirm] = useState(false);
+  const [allResetConfirm, setAllResetConfirm] = useState(false);
   return (
     <div className="fade-in">
       <SL text="Settings" ac={c} />
@@ -6850,11 +6862,18 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
             ) : (
               <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>Progress saves automatically after every action.</div>
             )}
-            <button onClick={function(){
-              if (typeof onDeleteSave === "function") onDeleteSave();
-            }} style={{ padding:"8px 16px",background:"transparent",border:"1px solid #f53d3d44",color:"#f53d3d88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.15em" }}>
-              DELETE SAVE DATA
-            </button>
+            <div className="settings-save-actions">
+              <button onClick={onExportSave}>EXPORT SAVE</button>
+              <button onClick={function(){ if(importInputRef.current) importInputRef.current.click(); }}>IMPORT SAVE</button>
+              <input ref={importInputRef} type="file" accept="application/json,.json" style={{display:"none"}} onChange={function(event){
+                const file=event.target.files&&event.target.files[0]; if(!file)return;
+                const reader=new FileReader(); reader.onload=function(){if(typeof onImportSave==="function")onImportSave(String(reader.result||""));}; reader.readAsText(file); event.target.value="";
+              }} />
+              {!storyResetConfirm ? <button className="warning" onClick={function(){setStoryResetConfirm(true);setAllResetConfirm(false);}}>RESET STORY ONLY</button> : <button className="warning confirm" onClick={function(){if(typeof onResetStory==="function")onResetStory();}}>CONFIRM STORY RESET</button>}
+              {!allResetConfirm ? <button className="danger" onClick={function(){setAllResetConfirm(true);setStoryResetConfirm(false);}}>RESET ALL DATA</button> : <button className="danger confirm" onClick={function(){if(typeof onDeleteSave==="function")onDeleteSave();}}>DANGEROUS: CONFIRM RESET ALL</button>}
+              {(storyResetConfirm||allResetConfirm)&&<button onClick={function(){setStoryResetConfirm(false);setAllResetConfirm(false);}}>CANCEL</button>}
+            </div>
+            <p style={{fontSize:10,color:"#536b84",lineHeight:1.5,marginTop:10}}>Import creates a backup first. Reset Story preserves profile, rank, XP, inventory, Shadows, guild, and settings. Reset All Data removes active save data.</p>
           </div>
         </div>
       </div>
@@ -9297,8 +9316,10 @@ function App() {
   const sv = (function() {
     try { return loadGame(BOSS_DATA); } catch (_) { return null; }
   })();
+  const hadSaveOnLaunch = useRef(Boolean(sv)).current;
 
   const [phase, setPhase] = useState(sv ? sv.phase : "onboard");
+  const [storySnapshot, setStorySnapshot] = useState(function(){ return getStoryCampaignSnapshot(); });
 
   /* Player */
   const [player, setPlayer] = useState(sv ? sv.player : {
@@ -9501,6 +9522,13 @@ function App() {
   const rank        = getRankForLevel(player.level);
   const accentColor = isMonarch ? MONARCH_PURP : rank.color;
   const dailyQuest  = generateDailyQuest(player.job, player.goals, player.level, energyScore, innerDemonActive, player.physique);
+  const currentStorySnapshot = getStoryCampaignSnapshot(storySnapshot && storySnapshot.state ? storySnapshot.state : null, {
+    previousSaveDetected:hadSaveOnLaunch, evaluationDone:phase === "app", isMonarch:Boolean(isMonarch), level:player.level, streak:player.streak,
+    dailyDone:Boolean(isDailyDone),
+    gates:Object.keys(clearedGates || {}).filter(function(id){return Boolean(clearedGates[id]);}).length,
+    bosses:(bosses || []).filter(function(boss){return boss && Number(boss.currentHp) <= 0;}).length,
+    shadows:(shadowArmy || []).length, guildJoined:Boolean(guildId),
+  });
 
   const totalQuestGoalsCleared =
     dailyQuest.goals.filter(function(g){return (dailyProgress[g.id]||0)>=g.target;}).length +
@@ -9882,7 +9910,7 @@ function App() {
   }
 
   function handleEnergyUpdate(state) {
-    const safeState = normaliseEnergyState(state);
+    const safeState = normaliseEnergyState(Object.assign({}, state, { lastLoggedOn: localDateKey() }));
     const diag = computeEnergyDiagnostics(safeState, disciplineState);
     setEnergyState(safeState);
     setEnergyScore(diag.score);
@@ -9891,7 +9919,7 @@ function App() {
   }
 
   function handleDisciplineUpdate(state) {
-    const safeState = normaliseDisciplineState(state);
+    const safeState = normaliseDisciplineState(Object.assign({}, state, { lastLoggedOn: localDateKey() }));
     const diag = computeDisciplineDiagnostics(safeState);
     const energyDiag = computeEnergyDiagnostics(energyState, safeState);
     setDisciplineState(safeState);
@@ -9899,6 +9927,21 @@ function App() {
     setEnergyScore(energyDiag.score);
     showToast("Discipline calibrated: " + diag.label, "system");
     addLog("Discipline kernel updated: " + diag.label + " (" + diag.score + "). Energy lift " + (diag.readinessLift >= 0 ? "+" : "") + diag.readinessLift + ".","system");
+  }
+
+  function handleStoryPenalty(penalty) {
+    const missed = Math.max(1, Number(penalty && penalty.missedDays) || 1);
+    const xpLoss = Math.max(0, Number(penalty && penalty.xpLoss) || 0);
+    const regen = Math.max(0, Number(penalty && penalty.bossRegen) || 0);
+    if (xpLoss > 0) setPlayer(function(prev){ return Object.assign({}, prev, { xp: Math.max(0, (prev.xp || 0) - xpLoss) }); });
+    if (regen > 0) {
+      setBosses(function(prev){ return prev.map(function(boss){
+        if (!boss || boss.currentHp <= 0 || boss.currentHp >= boss.maxHp) return boss;
+        return Object.assign({}, boss, { currentHp: Math.min(boss.maxHp, boss.currentHp + regen) });
+      }); });
+    }
+    showToast("STORY PAUSED - recovery protocol issued.", "warning");
+    addLog("Campaign penalty: " + missed + " missed day" + (missed === 1 ? "" : "s") + ", -" + xpLoss + " XP, rank stability reduced.", "warning");
   }
 
   /* ---- Phase 4: Coins ---- */
@@ -10241,9 +10284,39 @@ function App() {
   }
 
   function handleDeleteSave() {
+    try { backupSaveData("before_reset_all"); } catch (_) {}
     try { deleteSave(); } catch (_) {}
     showToast("Save data deleted. Reload to start fresh.", "warning");
     addLog("Save data deleted by hunter.","warning");
+  }
+
+  function handleExportSave() {
+    try {
+      const raw = exportSave();
+      if (!raw) { showToast("Save export failed.","warning"); return; }
+      const blob = new Blob([raw], { type:"application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = "arise-save-" + localDateKey() + ".json";
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      setTimeout(function(){URL.revokeObjectURL(url);},1000);
+      showToast("Full save backup exported.","evolve");
+      addLog("Full save backup exported by hunter.","system");
+    } catch (_) { showToast("Save export failed.","warning"); }
+  }
+
+  function handleImportSave(raw) {
+    const result = importSave(raw);
+    if (!result || !result.ok) { showToast(result&&result.error?result.error:"Import failed.","warning"); return; }
+    showToast("Save imported. Reloading synchronized data.","evolve");
+    setTimeout(function(){window.location.reload();},700);
+  }
+
+  function handleResetStoryOnly() {
+    const ok = resetStoryOnly();
+    if (!ok) { showToast("Story reset failed.","warning"); return; }
+    showToast("Story reset. Main hunter data preserved.","warning");
+    setTimeout(function(){window.location.reload();},700);
   }
 
   function handleAscension() {
@@ -11052,7 +11125,7 @@ function App() {
 
       <div style={{ position:"relative",zIndex:1 }}>
         <TopHud player={player} rank={rank} onMenuToggle={function(){setMenuOpen(function(m){return !m;});}} menuOpen={menuOpen} isMonarch={isMonarch} />
-        {menuOpen&&<Sidebar activeView={activeView} onSelect={setActiveView} onClose={function(){setMenuOpen(false);sfx.sfxClick();}} ac={rank.color} playerName={player.name} isMonarch={isMonarch} />}
+        {menuOpen&&<Sidebar activeView={activeView} onSelect={setActiveView} onClose={function(){setMenuOpen(false);sfx.sfxClick();}} ac={rank.color} playerName={player.name} isMonarch={isMonarch} storySnapshot={currentStorySnapshot} onLocked={function(item,gate){showToast(item+" sealed - "+(gate&&gate.reason?gate.reason:"advance Story Mode")+".","warning");}} />}
 
         <div className="system-content" style={{ maxWidth:860,margin:"0 auto",padding:"28px 16px 80px" }}>
           {activeView==="Dashboard"&&<DashboardView player={player} rank={rank} dailyProgress={dailyProgress} isDailyDone={isDailyDone} onGoalTap={handleGoalTap} isMonarch={isMonarch} dailyQuest={dailyQuest} activeHiddenQuest={activeHiddenQuest} hiddenQuestProgress={hiddenQuestProgress} onHiddenGoalTap={handleHiddenGoalTap} energyScore={energyScore} disciplineScore={disciplineScore} onReset={handleDailyReset} fame={fame} worldEvent={worldEvent} awakeningDay={awakeningDay} />}
@@ -11064,7 +11137,7 @@ function App() {
             </div>
           )}
           {activeView==="Side Quests"&&<SideQuestsView rank={rank} sideProgress={sideProgress} sideDone={sideDone} onSideGoalTap={handleSideGoalTap} isMonarch={isMonarch} extSideProgress={extSideProgress} extSideDone={extSideDone} onExtGoalTap={handleExtSideGoalTap} player={player} energyScore={energyScore} fame={fame} guildId={guildId} anomalyDone={anomalyDone} onAnomalyComplete={handleAnomalyComplete} recentAnomalyIds={recentAnomalyIds} />}
-          {activeView==="Story Mode"&&<StoryModeView player={player} rank={rank} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} guildId={guildId} dailyDone={isDailyDone} onReward={function(chapter){ grantXp(chapter.xp,"Intelligence",1); addCoins(chapter.coins); showToast(chapter.title+" cleared! +"+chapter.xp+" XP","evolve"); addLog("Story chapter cleared: "+chapter.title+".","evolve"); }} />}
+          {activeView==="Story Mode"&&<StoryModeView player={player} rank={rank} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} guildId={guildId} dailyDone={isDailyDone} dailyQuestType={dailyQuest.dayType} focusDone={Boolean(sideDone[1])||Object.values(extSideDone||{}).some(Boolean)||Object.values(anomalyDone||{}).some(Boolean)||Boolean(guildQuestDone)} energyState={energyState} energyScore={energyScore} disciplineState={disciplineState} disciplineScore={disciplineScore} reevaluationDone={Boolean(lastEvalStats)} evaluationDone={phase==="app"} previousSaveDetected={hadSaveOnLaunch} isMonarch={isMonarch} onCampaignChange={setStorySnapshot} onPenalty={handleStoryPenalty} onReward={function(chapter){ grantXp(chapter.xp,"Intelligence",1); addCoins(chapter.coins); showToast(chapter.title+" cleared! +"+chapter.xp+" XP","evolve"); addLog("Story arc cleared: "+chapter.title+". Authority unlocked: "+chapter.unlocks.join(", ")+".","evolve"); }} />}
           {activeView==="Hunter Stats"&&<StatsView player={player} rank={rank} isMonarch={isMonarch} onSelectTitle={handleSetTitle} clearedGates={clearedGates} />}
           {activeView==="Hunter Profile"&&<HunterIdentityView player={player} rank={rank} isMonarch={isMonarch} fame={fame} shadowArmy={shadowArmy} bosses={bosses} clearedGates={clearedGates} earnedAchievements={earnedAchievements} guildId={guildId} accentColor={accentColor} />}
           {activeView==="Guild"&&<GuildView player={player} fame={fame} guildId={guildId} guildQuestProgress={guildQuestProgress} guildQuestDone={guildQuestDone} onGoalTap={handleGuildGoalTap} onLeave={handleLeaveGuild} accentColor={accentColor} />}
@@ -11082,7 +11155,7 @@ function App() {
           {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
           {activeView==="Gate Map"&&<GateMapView player={player} accentColor={accentColor} onEnterGate={handleEnterGateWithCutscene} />}
           {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
-          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
+          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} onExportSave={handleExportSave} onImportSave={handleImportSave} onResetStory={handleResetStoryOnly} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
         </div>
 
         {/* DEV: Monarch interest only — no free XP */}
