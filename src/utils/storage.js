@@ -62,6 +62,169 @@ function sanitisePlayer(raw) {
   };
 }
 
+/* ---------------------------------------------------------------------------
+   SYSTEM 2 SLICES — profile, routines, story, npc, business, app lock,
+   free time, penalty. All new fields default safely so v1 saves upgrade
+   in place without losing progress.
+--------------------------------------------------------------------------- */
+export function defaultProfile() {
+  return {
+    complete: false,
+    age: null, heightCm: null, weightKg: null, sex: null, /* sex optional */
+    sport: "track", mainPath: "speed",
+    events: [], prs: {},            /* e.g. { "100m": "12.8" } */
+    injuries: "",
+    sleepTarget: "22:30", wakeTarget: "06:30",
+    schedule: "summer",             /* summer | school | custom */
+    equipment: { track: true, gym: false, pullupBar: false, homeSpace: true },
+    activityLevel: "moderate",      /* low | moderate | high */
+    nutritionGoal: "performance",   /* performance | lean | gain */
+    businessGoal: "",
+    freeTimePrefs: "",
+  };
+}
+
+function sanitiseProfile(raw) {
+  const def = defaultProfile();
+  if (!raw || typeof raw !== "object") return def;
+  const num = function (v, lo, hi) {
+    const n = Number(v);
+    return Number.isFinite(n) && n >= lo && n <= hi ? n : null;
+  };
+  return {
+    complete:     !!raw.complete,
+    age:          num(raw.age, 5, 120),
+    heightCm:     num(raw.heightCm, 80, 260),
+    weightKg:     num(raw.weightKg, 20, 300),
+    sex:          raw.sex === "male" || raw.sex === "female" ? raw.sex : null,
+    sport:        typeof raw.sport === "string" ? raw.sport : def.sport,
+    mainPath:     typeof raw.mainPath === "string" ? raw.mainPath : def.mainPath,
+    events:       Array.isArray(raw.events) ? raw.events.slice(0, 10) : [],
+    prs:          raw.prs && typeof raw.prs === "object" ? raw.prs : {},
+    injuries:     typeof raw.injuries === "string" ? raw.injuries.slice(0, 400) : "",
+    sleepTarget:  typeof raw.sleepTarget === "string" ? raw.sleepTarget : def.sleepTarget,
+    wakeTarget:   typeof raw.wakeTarget === "string" ? raw.wakeTarget : def.wakeTarget,
+    schedule:     typeof raw.schedule === "string" ? raw.schedule : def.schedule,
+    equipment:    raw.equipment && typeof raw.equipment === "object" ? {
+      track:     !!raw.equipment.track,
+      gym:       !!raw.equipment.gym,
+      pullupBar: !!raw.equipment.pullupBar,
+      homeSpace: raw.equipment.homeSpace !== false,
+    } : def.equipment,
+    activityLevel:  typeof raw.activityLevel === "string" ? raw.activityLevel : def.activityLevel,
+    nutritionGoal:  typeof raw.nutritionGoal === "string" ? raw.nutritionGoal : def.nutritionGoal,
+    businessGoal:   typeof raw.businessGoal === "string" ? raw.businessGoal.slice(0, 300) : "",
+    freeTimePrefs:  typeof raw.freeTimePrefs === "string" ? raw.freeTimePrefs.slice(0, 300) : "",
+  };
+}
+
+export function defaultBusiness() {
+  return {
+    revenueGoal: 0, savingsGoal: 0,
+    incomeLog: [], spendLog: [],       /* { ts, amount, note } — user-entered real numbers */
+    projects: [],                      /* { id, name, milestones: [{id,name,done}] } */
+    questProgress: {}, questDone: {},  /* business quest chain progress */
+    deepWorkDates: [],                 /* dateKeys of completed deep-work quests */
+    skillsUnlocked: [],
+  };
+}
+
+function sanitiseBusiness(raw) {
+  const def = defaultBusiness();
+  if (!raw || typeof raw !== "object") return def;
+  const logOk = function (arr) {
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(function (e) {
+      return e && typeof e === "object" && Number.isFinite(Number(e.amount));
+    }).slice(-200);
+  };
+  return {
+    revenueGoal:   Number.isFinite(Number(raw.revenueGoal)) ? Math.max(0, Number(raw.revenueGoal)) : 0,
+    savingsGoal:   Number.isFinite(Number(raw.savingsGoal)) ? Math.max(0, Number(raw.savingsGoal)) : 0,
+    incomeLog:     logOk(raw.incomeLog),
+    spendLog:      logOk(raw.spendLog),
+    projects:      Array.isArray(raw.projects) ? raw.projects.slice(0, 30) : [],
+    questProgress: raw.questProgress && typeof raw.questProgress === "object" ? raw.questProgress : {},
+    questDone:     raw.questDone && typeof raw.questDone === "object" ? raw.questDone : {},
+    deepWorkDates: Array.isArray(raw.deepWorkDates) ? raw.deepWorkDates.slice(-120) : [],
+    skillsUnlocked: Array.isArray(raw.skillsUnlocked) ? raw.skillsUnlocked : [],
+  };
+}
+
+export function defaultAppLock() {
+  return {
+    enabled: false,
+    blockedApps: ["TikTok", "Instagram", "YouTube Shorts"],
+    requirement: "daily",             /* daily | routine | training */
+    passes: 0,                        /* earned App Unlock Passes */
+    passMinutes: 30,                  /* minutes granted per pass */
+  };
+}
+
+function sanitiseAppLock(raw) {
+  const def = defaultAppLock();
+  if (!raw || typeof raw !== "object") return def;
+  return {
+    enabled:     !!raw.enabled,
+    blockedApps: Array.isArray(raw.blockedApps) ? raw.blockedApps.filter(function (a) { return typeof a === "string"; }).slice(0, 20) : def.blockedApps,
+    requirement: typeof raw.requirement === "string" ? raw.requirement : "daily",
+    passes:      Number.isFinite(Number(raw.passes)) ? Math.max(0, Math.floor(Number(raw.passes))) : 0,
+    passMinutes: Number.isFinite(Number(raw.passMinutes)) ? Math.min(120, Math.max(5, Math.floor(Number(raw.passMinutes)))) : 30,
+  };
+}
+
+export function defaultFreeTime() {
+  return { minutes: 0, vouchers: 0, spentToday: 0, lastSpendDate: null, earnBlocked: false };
+}
+
+function sanitiseFreeTime(raw) {
+  const def = defaultFreeTime();
+  if (!raw || typeof raw !== "object") return def;
+  return {
+    minutes:       Number.isFinite(Number(raw.minutes)) ? Math.max(0, Math.floor(Number(raw.minutes))) : 0,
+    vouchers:      Number.isFinite(Number(raw.vouchers)) ? Math.max(0, Math.floor(Number(raw.vouchers))) : 0,
+    spentToday:    Number.isFinite(Number(raw.spentToday)) ? Math.max(0, Math.floor(Number(raw.spentToday))) : 0,
+    lastSpendDate: typeof raw.lastSpendDate === "string" ? raw.lastSpendDate : null,
+    earnBlocked:   !!raw.earnBlocked,
+  };
+}
+
+function sanitiseStory(raw) {
+  if (!raw || typeof raw !== "object") return { completedChapters: [], seenScenes: [], architectMet: false };
+  return {
+    completedChapters: Array.isArray(raw.completedChapters) ? raw.completedChapters : [],
+    seenScenes:        Array.isArray(raw.seenScenes) ? raw.seenScenes.slice(-200) : [],
+    architectMet:      !!raw.architectMet,
+  };
+}
+
+function sanitiseNpcState(raw) {
+  if (!raw || typeof raw !== "object") return { relationships: {}, lastTalk: {}, challengesDone: [] };
+  return {
+    relationships:  raw.relationships && typeof raw.relationships === "object" ? raw.relationships : {},
+    lastTalk:       raw.lastTalk && typeof raw.lastTalk === "object" ? raw.lastTalk : {},
+    challengesDone: Array.isArray(raw.challengesDone) ? raw.challengesDone : [],
+  };
+}
+
+function sanitiseRoutines(raw) {
+  if (!raw || typeof raw !== "object") return { dateKey: null, done: {}, streak: 0, lastFullDate: null };
+  return {
+    dateKey:      typeof raw.dateKey === "string" ? raw.dateKey : null,
+    done:         raw.done && typeof raw.done === "object" ? raw.done : {},
+    streak:       Number.isFinite(Number(raw.streak)) ? Math.max(0, Math.floor(Number(raw.streak))) : 0,
+    lastFullDate: typeof raw.lastFullDate === "string" ? raw.lastFullDate : null,
+  };
+}
+
+function sanitisePenalty(raw) {
+  if (!raw || typeof raw !== "object") return { activeZone: null, history: [] };
+  return {
+    activeZone: raw.activeZone && typeof raw.activeZone === "object" ? raw.activeZone : null,
+    history:    Array.isArray(raw.history) ? raw.history.slice(-30) : [],
+  };
+}
+
 export function defaultSave() {
   return {
     version: 1, phase: "onboard",
@@ -88,6 +251,19 @@ export function defaultSave() {
     deployedShadowId: null,
     discipline: { startTs: null, bestDays: 0, lastResetTs: null, motivation: "", urgeLog: [], hidden: false },
     bossHpSnapshot: null, secretUnlockedIds: [],
+    /* System 2 slices */
+    profile: defaultProfile(),
+    routines: sanitiseRoutines(null),
+    story: sanitiseStory(null),
+    npcState: sanitiseNpcState(null),
+    business: defaultBusiness(),
+    appLock: defaultAppLock(),
+    freeTime: defaultFreeTime(),
+    penalty: sanitisePenalty(null),
+    streakShields: 0,
+    systemSkin: "default",
+    auraFrame: "none",
+    trainingLog: [],
   };
 }
 
@@ -163,6 +339,21 @@ export function loadGame() {
       discipline: sanitiseDiscipline(parsed.discipline, def.discipline),
       bossHpSnapshot: Array.isArray(parsed.bossHpSnapshot) ? parsed.bossHpSnapshot : null,
       secretUnlockedIds: Array.isArray(parsed.secretUnlockedIds) ? parsed.secretUnlockedIds : [],
+      /* System 2 slices — upgrade v1 saves in place with safe defaults */
+      profile: sanitiseProfile(parsed.profile),
+      routines: sanitiseRoutines(parsed.routines),
+      story: sanitiseStory(parsed.story),
+      npcState: sanitiseNpcState(parsed.npcState),
+      business: sanitiseBusiness(parsed.business),
+      appLock: sanitiseAppLock(parsed.appLock),
+      freeTime: sanitiseFreeTime(parsed.freeTime),
+      penalty: sanitisePenalty(parsed.penalty),
+      streakShields: Number.isFinite(Number(parsed.streakShields)) ? Math.max(0, Math.floor(Number(parsed.streakShields))) : 0,
+      systemSkin: typeof parsed.systemSkin === "string" ? parsed.systemSkin : "default",
+      auraFrame: typeof parsed.auraFrame === "string" ? parsed.auraFrame : "none",
+      trainingLog: Array.isArray(parsed.trainingLog) ? parsed.trainingLog.slice(-200) : [],
+      innerDemonActive: !!parsed.innerDemonActive,
+      lastEvalStats: parsed.lastEvalStats && typeof parsed.lastEvalStats === "object" ? parsed.lastEvalStats : null,
       savedAt: typeof parsed.savedAt === "number" ? parsed.savedAt : null,
     };
   } catch (_) { return null; }

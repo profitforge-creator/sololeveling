@@ -1,5 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { saveGame, loadGame, defaultSave, deleteSave, exportSave, debounce } from "./utils/storage.js";
+import { saveGame, loadGame, defaultSave, deleteSave, exportSave, debounce, defaultProfile, defaultBusiness, defaultAppLock, defaultFreeTime } from "./utils/storage.js";
+import { MAIN_PATHS, getMainPath, estimateTargets, getRiskLevel, profileSummaryLine } from "./data/profile.js";
+import { generateAthleticQuest, explainLegacyQuest, DAY_FOCUS } from "./data/athletics.js";
+import { ROUTINE_DEFS, buildRoutineSteps, routineDateKey, ROUTINE_REWARD_MIN, ROUTINE_XP } from "./data/routines.js";
+import { STORY_CHAPTERS, getStorySnapshot, getChapterState } from "./data/story.js";
+import { BUSINESS_SKILLS, completedChainCount } from "./data/business.js";
+import { calcClearChance, chanceColor } from "./utils/clearChance.js";
+import { SystemLogo, BootScreen } from "./components/SystemLogo.jsx";
+import RoutinesView from "./components/RoutinesView.jsx";
+import StoryView from "./components/StoryView.jsx";
+import NPCsView from "./components/NPCsView.jsx";
+import BusinessView from "./components/BusinessView.jsx";
+import CompanionView from "./components/CompanionView.jsx";
+import AppLockView from "./components/AppLockView.jsx";
+import PenaltyZoneModal from "./components/PenaltyZoneModal.jsx";
 
 /* ============================================================================
    ARISE — Solo Leveling System Interface  ·  Hardcore Rework
@@ -2860,6 +2874,46 @@ const SHOP_ITEMS = [
     desc:"The system's way of saying: rest is not weakness." },
 
   /* ══════════════════════════════════════════
+     CATEGORY: LIFE — real-world gameplay items
+  ══════════════════════════════════════════ */
+  { id:"focus_potion",    name:"Focus Potion",            category:"life",        cost:100,
+    icon:"🧪", color:"#4db8ff",
+    effect:"25-min focus timer → +40 XP", effectKey:"focus_potion", effectGain:1,
+    desc:"Drink it, then work. A 25-minute focus session begins immediately. Finish it and the System pays out bonus XP." },
+  { id:"streak_shield",   name:"Streak Shield",           category:"life",        cost:400,
+    icon:"🛡", color:"#2ee88a",
+    effect:"Protects one missed daily",  effectKey:"streak_shield", effectGain:1,
+    desc:"Absorbs exactly one failed daily chain. Consumed automatically the night you need it." },
+  { id:"free_voucher",    name:"Free Time Voucher",       category:"life",        cost:250,
+    icon:"🎟", color:"#f5b65d",
+    effect:"+1 voucher (30 min free time)", effectKey:"free_voucher", effectGain:1,
+    desc:"Redeemable for 30 minutes of guilt-free gaming/TV/social time. Earned time hits different." },
+  { id:"app_pass",        name:"App Unlock Pass",         category:"life",        cost:200,
+    icon:"🔓", color:"#a05df5",
+    effect:"+1 seal unlock pass",        effectKey:"app_pass", effectGain:1,
+    desc:"Temporarily releases the App Lock seal for your configured pass duration." },
+  { id:"recovery_crystal", name:"Recovery Crystal",       category:"life",        cost:150,
+    icon:"💠", color:"#2ee88a",
+    effect:"Clears Penalty Zone + energy", effectKey:"recovery_crystal", effectGain:15,
+    desc:"Converts an open Penalty Zone into a completed recovery and restores +15 energy." },
+  { id:"sprint_token",    name:"Sprint Token",            category:"life",        cost:180,
+    icon:"⚡", color:"#4db8ff",
+    effect:"+25% XP on next quest (speed days)", effectKey:"xp_boost", effectGain:1,
+    desc:"Only mint on days the System cleared you for intensity. Converts readiness into reward." },
+  { id:"skin_monarch",    name:"System Skin: Void",       category:"life",        cost:800,
+    icon:"◈", color:"#9b30ff",
+    effect:"UI accent → violet void",    effectKey:"skin", effectGain:0, skinId:"void",
+    desc:"Re-themes the System interface with Monarch-violet accents. Cosmetic. Menacing." },
+  { id:"skin_ember",      name:"System Skin: Ember",      category:"life",        cost:800,
+    icon:"✸", color:"#f5b65d",
+    effect:"UI accent → ember gold",     effectKey:"skin", effectGain:0, skinId:"ember",
+    desc:"S-Rank gold interface theme. For hunters who intend to earn the color." },
+  { id:"aura_frame",      name:"Aura Frame",              category:"life",        cost:500,
+    icon:"◉", color:"#4db8ff",
+    effect:"Glowing profile aura ring",  effectKey:"aura_frame", effectGain:0,
+    desc:"A cosmetic aura ring around your hunter portrait. Visible everywhere your avatar appears." },
+
+  /* ══════════════════════════════════════════
      CATEGORY: BLACK MARKET
      Extremely rare. Mysterious. No explanation.
   ══════════════════════════════════════════ */
@@ -2957,9 +3011,10 @@ function getUnlockedSpecNodes(playerStats, unlockedIds) {
 }
 
 const MENU_ITEMS = [
-  "Dashboard","Daily Quest","Side Quests","Hunter Profile","Hunter Stats","Specialization",
+  "Dashboard","Daily Quest","Routines","Side Quests","Story Mode","The System",
+  "Hunter Network","Business HQ","Hunter Profile","Hunter Stats","Specialization",
   "Dungeon Gates","Boss Raids","Secret Encounters","Shadow Army","Guild","Inventory",
-  "Hunter Shop","Energy","Rankings","World Feed","Gate Map","System Log","Settings",
+  "Hunter Shop","App Lock","Energy","Rankings","World Feed","Gate Map","System Log","Settings",
 ];
 
 /* ---------------------------------------------------------------------------
@@ -4236,7 +4291,18 @@ function AwakeningRegistration({ onComplete }) {
   const [evalResult, setEvalResult] = useState(null);
   const evalTimerRef = useRef(null);
 
-  const currentTestIndex = step - 5; /* steps 5-10 are tests */
+  /* Hunter profile — personalizes quest generation, routines and nutrition estimates */
+  const [pAge, setPAge]           = useState("");
+  const [pHeight, setPHeight]     = useState("");
+  const [pWeight, setPWeight]     = useState("");
+  const [pSex, setPSex]           = useState(null);
+  const [pMainPath, setPMainPath] = useState("speed"); /* default build: Speed/Athleticism */
+  const [pSleep, setPSleep]       = useState("22:30");
+  const [pWake, setPWake]         = useState("06:30");
+  const [pEquip, setPEquip]       = useState({ track:true, gym:false, pullupBar:false, homeSpace:true });
+  const [pInjuries, setPInjuries] = useState("");
+
+  const currentTestIndex = step - 7; /* steps 7-12 are tests */
   const currentTest = EVAL_TESTS[currentTestIndex] || null;
 
   function toggleGoal(id) {
@@ -4258,12 +4324,12 @@ function AwakeningRegistration({ onComplete }) {
     } else {
       /* All tests done — evaluate */
       setEvaluating(true);
-      setStep(11);
+      setStep(13);
       evalTimerRef.current = setTimeout(function() {
         const result = computeEvaluation(next);
         setEvalResult(result);
         setEvaluating(false);
-        setStep(12);
+        setStep(14);
       }, 5000);
     }
   }
@@ -4277,6 +4343,7 @@ function AwakeningRegistration({ onComplete }) {
     if (physique) {
       Object.keys(physique.statBonus).forEach(function(k) { baseStats[k] = (baseStats[k]||10) + physique.statBonus[k]; });
     }
+    const numOr = function(v, lo, hi) { const n = parseFloat(v); return isFinite(n) && n >= lo && n <= hi ? n : null; };
     onComplete({
       name: name.trim() || "Hunter",
       hunterClass: chosenClass || "unknown",
@@ -4284,6 +4351,16 @@ function AwakeningRegistration({ onComplete }) {
       goals: chosenGoals,
       startLevel: evalResult.startLevel,
       stats: baseStats,
+      profile: {
+        complete: true,
+        age: numOr(pAge, 5, 120), heightCm: numOr(pHeight, 80, 260), weightKg: numOr(pWeight, 20, 300),
+        sex: pSex, sport: "track", mainPath: pMainPath,
+        events: [], prs: {}, injuries: pInjuries.slice(0, 400),
+        sleepTarget: pSleep || "22:30", wakeTarget: pWake || "06:30",
+        schedule: "summer", equipment: pEquip,
+        activityLevel: "moderate", nutritionGoal: "performance",
+        businessGoal: "", freeTimePrefs: "",
+      },
     });
   }
 
@@ -4414,12 +4491,86 @@ function AwakeningRegistration({ onComplete }) {
                 })}
               </div>
               <div style={{ fontSize:11,color:"#5b7aa0",textAlign:"center",marginBottom:16 }}>{chosenGoals.length}/3 selected</div>
-              <button disabled={chosenGoals.length===0} onClick={function(){setStep(5);}} style={{ width:"100%",padding:"12px",background:chosenGoals.length>0?"#f5b65d":"#1a2438",color:chosenGoals.length>0?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenGoals.length>0?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>BEGIN EVALUATION</button>
+              <button disabled={chosenGoals.length===0} onClick={function(){setStep(5);}} style={{ width:"100%",padding:"12px",background:chosenGoals.length>0?"#f5b65d":"#1a2438",color:chosenGoals.length>0?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenGoals.length>0?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONTINUE</button>
             </div>
           )}
 
-          {/* STEPS 5-10: Evaluation tests */}
-          {step>=5&&step<=10&&currentTest&&(
+          {/* STEP 5: Hunter biometrics — powers personalized quests + nutrition estimates */}
+          {step===5&&(
+            <div className="fade-in">
+              <div style={{ marginBottom:20,textAlign:"center" }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:"#2ee88a",marginBottom:8 }}>HUNTER BIOMETRICS</div>
+                <div style={{ height:1,background:"linear-gradient(90deg,transparent,#2ee88a,transparent)",marginBottom:12 }} />
+                <p style={{ fontSize:13,color:"#9fb8d8" }}>The System calibrates quest intensity, recovery and nutrition estimates from this data. All of it stays on this device.</p>
+              </div>
+              {[["Age","years",pAge,setPAge],["Height","cm",pHeight,setPHeight],["Weight","kg",pWeight,setPWeight]].map(function(row){
+                return (
+                  <div key={row[0]} style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12 }}>
+                    <span style={{ width:70,fontSize:13,color:"#9fb8d8" }}>{row[0]}</span>
+                    <input type="number" min="0" value={row[2]} onChange={function(e){row[3](e.target.value);}} placeholder="—"
+                      style={{ flex:1,background:"transparent",border:"none",borderBottom:"1px solid #2ee88a66",color:"#eaf2ff",fontSize:18,textAlign:"center",padding:"6px 0",outline:"none",fontFamily:"'Orbitron',sans-serif" }} />
+                    <span style={{ width:44,fontSize:11,color:"#5b7aa0" }}>{row[1]}</span>
+                  </div>
+                );
+              })}
+              <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:8,marginTop:16 }}>
+                <span style={{ fontSize:12,color:"#9fb8d8",flexShrink:0 }}>Sex (optional — calorie estimates only)</span>
+              </div>
+              <div style={{ display:"flex",gap:8,marginBottom:20 }}>
+                {[["male","Male"],["female","Female"],[null,"Skip"]].map(function(opt){
+                  const sel = pSex===opt[0];
+                  return <button key={String(opt[0])} onClick={function(){setPSex(opt[0]);}} style={{ flex:1,padding:"9px",background:sel?"rgba(46,232,138,0.12)":"transparent",border:sel?"1px solid #2ee88a":"1px solid #1e3048",color:sel?"#eaf2ff":"#5b7aa0",cursor:"pointer",fontSize:12 }}>{opt[1]}</button>;
+                })}
+              </div>
+              <button onClick={function(){setStep(6);}} style={{ width:"100%",padding:"12px",background:"#2ee88a",color:"#03050c",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM BIOMETRICS</button>
+              <button onClick={function(){setStep(6);}} style={{ width:"100%",padding:"9px",marginTop:8,background:"transparent",border:"none",color:"#5b7aa0",fontSize:11,cursor:"pointer" }}>Skip — the System will use conservative defaults</button>
+            </div>
+          )}
+
+          {/* STEP 6: Main path + schedule + equipment */}
+          {step===6&&(
+            <div className="fade-in">
+              <div style={{ marginBottom:16,textAlign:"center" }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:SYS_BLUE,marginBottom:8 }}>BUILD PATH</div>
+                <div style={{ height:1,background:"linear-gradient(90deg,transparent,"+SYS_BLUE+",transparent)",marginBottom:12 }} />
+                <p style={{ fontSize:13,color:"#9fb8d8" }}>Your main path drives daily quest generation. It can be changed later in Settings.</p>
+              </div>
+              <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:16,maxHeight:220,overflowY:"auto" }}>
+                {MAIN_PATHS.map(function(p){
+                  const sel = pMainPath===p.id;
+                  return (
+                    <button key={p.id} onClick={function(){setPMainPath(p.id);}}
+                      style={{ padding:"9px 10px",background:sel?"rgba(77,184,255,0.12)":"transparent",border:sel?"1px solid "+p.color:"1px solid rgba(77,184,255,0.15)",color:sel?"#eaf2ff":"#9fb8d8",cursor:"pointer",textAlign:"left" }}>
+                      <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10.5,fontWeight:700,color:sel?p.color:"#9fb8d8" }}>{p.icon} {p.name}{p.id==="speed"&&<span style={{ color:"#2ee88a",fontSize:8,marginLeft:4 }}>★ DEFAULT</span>}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ display:"flex",gap:10,marginBottom:12 }}>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:10,color:"#5b7aa0",marginBottom:4,letterSpacing:"0.1em" }}>SLEEP TARGET</div>
+                  <input type="time" value={pSleep} onChange={function(e){setPSleep(e.target.value);}} style={{ width:"100%",background:"rgba(5,10,20,0.9)",border:"1px solid #2a3a55",color:"#eaf2ff",fontSize:14,padding:"7px 10px",outline:"none" }} />
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:10,color:"#5b7aa0",marginBottom:4,letterSpacing:"0.1em" }}>WAKE TARGET</div>
+                  <input type="time" value={pWake} onChange={function(e){setPWake(e.target.value);}} style={{ width:"100%",background:"rgba(5,10,20,0.9)",border:"1px solid #2a3a55",color:"#eaf2ff",fontSize:14,padding:"7px 10px",outline:"none" }} />
+                </div>
+              </div>
+              <div style={{ fontSize:10,color:"#5b7aa0",marginBottom:6,letterSpacing:"0.1em" }}>ACCESS / EQUIPMENT</div>
+              <div style={{ display:"flex",flexWrap:"wrap",gap:6,marginBottom:14 }}>
+                {[["track","Track"],["gym","Gym"],["pullupBar","Pull-up Bar"],["homeSpace","Home Space"]].map(function(eq){
+                  const on = !!pEquip[eq[0]];
+                  return <button key={eq[0]} onClick={function(){setPEquip(Object.assign({},pEquip,{[eq[0]]:!on}));}} style={{ padding:"7px 12px",background:on?"rgba(77,184,255,0.12)":"transparent",border:on?"1px solid "+SYS_BLUE:"1px solid #1e3048",color:on?"#c8e8ff":"#5b7aa0",cursor:"pointer",fontSize:12 }}>{on?"✓ ":""}{eq[1]}</button>;
+                })}
+              </div>
+              <input placeholder="Injury history (optional — e.g. hamstring strain 2024)" value={pInjuries} onChange={function(e){setPInjuries(e.target.value);}}
+                style={{ width:"100%",background:"rgba(5,10,20,0.9)",border:"1px solid #2a3a55",color:"#eaf2ff",fontSize:12,padding:"9px 12px",outline:"none",marginBottom:16 }} />
+              <button onClick={function(){setStep(7);}} style={{ width:"100%",padding:"12px",background:SYS_BLUE,color:"#03050c",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif" }}>BEGIN PHYSICAL EVALUATION</button>
+            </div>
+          )}
+
+          {/* STEPS 7-12: Evaluation tests */}
+          {step>=7&&step<=12&&currentTest&&(
             <div className="fade-in" key={step}>
               <div style={{ textAlign:"center",marginBottom:8 }}>
                 <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:accent,marginBottom:8 }}>PHYSICAL EVALUATION</div>
@@ -4444,8 +4595,8 @@ function AwakeningRegistration({ onComplete }) {
             </div>
           )}
 
-          {/* STEP 11: Evaluating cinematic */}
-          {step===11&&(
+          {/* STEP 13: Evaluating cinematic */}
+          {step===13&&(
             <div className="fade-in" style={{ textAlign:"center",padding:"20px 0" }}>
               <div style={{ width:80,height:80,borderRadius:"50%",border:"3px solid "+SYS_BLUE,borderTopColor:"transparent",animation:"shake 0.3s linear infinite",margin:"0 auto 24px",boxShadow:"0 0 30px "+SYS_BLUE }} />
               <div className="flicker" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,color:SYS_BLUE,letterSpacing:"0.2em",marginBottom:12 }}>EVALUATING HUNTER...</div>
@@ -4458,8 +4609,8 @@ function AwakeningRegistration({ onComplete }) {
             </div>
           )}
 
-          {/* STEP 12: Rank reveal */}
-          {step===12&&evalResult&&(
+          {/* STEP 14: Rank reveal */}
+          {step===14&&evalResult&&(
             <div className="fade-in" style={{ textAlign:"center" }}>
               <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.4em",color:evalResult.startRank.color,marginBottom:16 }}>RANK ASSIGNED</div>
               <div style={{ width:120,height:120,borderRadius:"50%",border:"3px solid "+evalResult.startRank.color,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",boxShadow:"0 0 40px "+evalResult.startRank.color+"66" }}>
@@ -4508,6 +4659,14 @@ function QuestCard({ quest, progress, isDone, onGoalTap, ac }) {
           {quest.tier>0&&<span style={{ fontSize:10,color:color,marginLeft:6 }}>[TIER {quest.tier}]</span>}
           {quest.dayType&&<span style={{ fontSize:9,color:quest.dayType==="rest"?"#f5b65d":quest.dayType==="recovery"?"#2ee88a":color,marginLeft:8,letterSpacing:"0.1em",fontFamily:"'Orbitron',sans-serif" }}>[{quest.dayType.toUpperCase()}]</span>}
         </p>
+
+        {/* System reasoning — why this quest was assigned */}
+        {quest.why && (
+          <div style={{ margin:"12px auto 0",maxWidth:460,padding:"10px 14px",border:"1px solid "+color+"33",background:color+"08",fontSize:11.5,color:"#8fb0d0",lineHeight:1.65 }}>
+            <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8.5,letterSpacing:"0.25em",color:color,display:"block",marginBottom:4 }}>◈ SYSTEM ANALYSIS</span>
+            {quest.why}
+          </div>
+        )}
 
         {/* Cyan divider */}
         <div style={{ height:1,margin:"14px 0",background:"linear-gradient(90deg,transparent,"+color+"99,transparent)" }} />
@@ -4824,8 +4983,9 @@ function TopHud({ player, rank, onMenuToggle, menuOpen, isMonarch }) {
         boxShadow:"0 2px 20px rgba(0,0,0,0.6), 0 1px 0 "+c+"22",
       }}
     >
-      {/* Rank badge + name */}
+      {/* System logo + rank badge + name */}
       <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
+        <div style={{ flexShrink:0,display:"flex",alignItems:"center" }}><SystemLogo size={26} color={c} /></div>
         <div className={isMonarch?"pulse-glow":""} style={{
           width:34, height:34,
           border:"1.5px solid "+c,
@@ -5378,9 +5538,10 @@ function getRotatingGates(player, isMonarch) {
   return out;
 }
 
-function DungeonGatesView({ rank, isMonarch, clearedGates, onEnterGate, ac, player, energyScore }) {
+function DungeonGatesView({ rank, isMonarch, clearedGates, onEnterGate, ac, player, energyScore, clearChanceFor }) {
   const rankIndex   = rank ? (rank.minRankIndex || 0) : 0;
   const playerLevel = player ? (player.level || 1) : 1;
+  const [expandedChance, setExpandedChance] = useState(null);
 
   /* Fixed story gates + daily-rotating gates */
   const rotatingGates = getRotatingGates(player, isMonarch);
@@ -5472,6 +5633,39 @@ function DungeonGatesView({ rank, isMonarch, clearedGates, onEnterGate, ac, play
                   </div>
 
                   <p style={{ fontSize:12,color:"#6a8aaa",lineHeight:1.6,marginBottom:10 }}>{gate.desc}</p>
+
+                  {/* Data-driven clear probability with factor breakdown */}
+                  {typeof clearChanceFor === "function" && (function() {
+                    const cc = clearChanceFor(gate);
+                    const ccColor = cc.chance >= 75 ? "#2ee88a" : cc.chance >= 55 ? gc : cc.chance >= 35 ? "#f5b65d" : "#f53d3d";
+                    const open = expandedChance === gate.id;
+                    return (
+                      <div style={{ marginBottom:10 }}>
+                        <button onClick={function(){ setExpandedChance(open ? null : gate.id); }}
+                          style={{ display:"flex",alignItems:"center",gap:10,width:"100%",background:"rgba(2,8,18,0.6)",border:"1px solid "+ccColor+"44",padding:"7px 12px",cursor:"pointer",color:"inherit" }}>
+                          <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.18em",color:"#5b7aa0",flexShrink:0 }}>CLEAR CHANCE</span>
+                          <div style={{ flex:1,height:5,background:"rgba(77,184,255,0.1)" }}>
+                            <div style={{ height:"100%",width:cc.chance+"%",background:ccColor,boxShadow:"0 0 8px "+ccColor }} />
+                          </div>
+                          <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:900,color:ccColor,flexShrink:0 }}>{cc.chance}%</span>
+                          <span style={{ fontSize:9,color:"#5b7aa0",flexShrink:0 }}>{open?"▲":"▼"}</span>
+                        </button>
+                        {open && (
+                          <div style={{ border:"1px solid "+ccColor+"22",borderTop:"none",padding:"8px 12px",background:"rgba(2,8,18,0.8)" }}>
+                            {cc.factors.length === 0 && <div style={{ fontSize:10.5,color:"#5b7aa0" }}>Baseline assessment — no modifiers active.</div>}
+                            {cc.factors.map(function(f,i){
+                              return (
+                                <div key={i} style={{ display:"flex",justifyContent:"space-between",gap:10,fontSize:10.5,lineHeight:1.9 }}>
+                                  <span style={{ color:"#8fb0d0" }}>{f.label}</span>
+                                  <span style={{ color:f.delta>=0?"#2ee88a":"#f57a7a",fontWeight:700,fontVariantNumeric:"tabular-nums" }}>{f.delta>=0?"+":""}{f.delta}%</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10 }}>
                     <div>
@@ -6666,6 +6860,21 @@ function GateMapView({ player, accentColor, onEnterGate }) {
   const [arrivedGate, setArrivedGate]   = useState(null);
   const [navTarget, setNavTarget]       = useState(null); /* gate being navigated to */
   const [followMode, setFollowMode]     = useState(true);
+  /* Safe destinations — user-saved real locations (Home, Track, Gym…) */
+  const SAFE_LOC_KEY = "arise_safe_locations";
+  const [savedLocs, setSavedLocs] = useState(function() {
+    try { const raw = JSON.parse(localStorage.getItem(SAFE_LOC_KEY) || "[]"); return Array.isArray(raw) ? raw : []; } catch(_) { return []; }
+  });
+  function persistLocs(next) {
+    setSavedLocs(next);
+    try { localStorage.setItem(SAFE_LOC_KEY, JSON.stringify(next)); } catch(_) {}
+  }
+  function saveCurrentAs(name) {
+    if (!coords) return;
+    const next = savedLocs.filter(function(l){ return l.name !== name; })
+      .concat([{ id:"loc_"+name.toLowerCase().replace(/\s+/g,"_"), name, lat:coords.lat, lng:coords.lng }]).slice(0, 10);
+    persistLocs(next);
+  }
   const watchIdRef    = useRef(null);
   const prevCoordsRef = useRef(null);
   const navDistRef    = useRef(null);
@@ -6831,7 +7040,14 @@ function GateMapView({ player, accentColor, onEnterGate }) {
 
   /* ── GRANTED ── */
   var closestGate  = gates.length ? gates[0] : null;
-  var navGate      = navTarget ? gates.find(function(g){return g.id===navTarget;}) : null;
+  /* Safe destinations as navigable points */
+  var safeLocPoints = savedLocs.map(function(l) {
+    return { id:l.id, label:l.name, isSafeLoc:true,
+      type:{ rank:"SAFE", color:"#2ee88a", icon:"⌂", minLevel:1 },
+      lat:l.lat, lng:l.lng,
+      distKm: coords ? distKm(coords.lat, coords.lng, l.lat, l.lng) : null };
+  });
+  var navGate      = navTarget ? gates.concat(safeLocPoints).find(function(g){return g.id===navTarget;}) : null;
   var headingRad   = heading != null ? (heading * Math.PI / 180) : null;
 
   /* Nav line endpoints (SVG space) */
@@ -6979,6 +7195,17 @@ function GateMapView({ player, accentColor, onEnterGate }) {
                 </g>
               );
             })}
+            {/* Safe destination markers */}
+            {safeLocPoints.map(function(loc){
+              var pos = toSvgXY(loc.lat, loc.lng);
+              var isNav = navTarget===loc.id;
+              return (
+                <g key={loc.id}>
+                  <rect x={pos.x-7} y={pos.y-7} width="14" height="14" fill="rgba(46,232,138,0.12)" stroke={isNav?"#2ee88a":"rgba(46,232,138,0.6)"} strokeWidth={isNav?2:1} transform={"rotate(45 "+pos.x+" "+pos.y+")"} />
+                  <text x={pos.x} y={pos.y+3.5} textAnchor="middle" fontSize="8" fill="#2ee88a" fontFamily="sans-serif">⌂</text>
+                </g>
+              );
+            })}
             {/* Player — direction triangle if heading known */}
             <circle cx={MAP_PX/2} cy={MAP_PX/2} r="11" fill={c+"18"} stroke={c} strokeWidth="1" opacity="0.35">
               <animate attributeName="r" values="11;16;11" dur="2s" repeatCount="indefinite"/>
@@ -7087,16 +7314,54 @@ function GateMapView({ player, accentColor, onEnterGate }) {
         })}
       </div>
 
+      {/* Safe destinations */}
+      <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.35em",color:"#2a3a55",margin:"16px 0 7px"}}>SAFE DESTINATIONS</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:8}}>
+        {["Home","Park","Track","Gym","School","Library"].map(function(name){
+          var exists = savedLocs.some(function(l){ return l.name===name; });
+          return (
+            <button key={name} onClick={function(){saveCurrentAs(name);}} disabled={!coords}
+              style={{padding:"5px 10px",background:exists?"rgba(46,232,138,0.08)":"transparent",border:"1px solid "+(exists?"#2ee88a55":"#1e3048"),color:exists?"#2ee88a":"#5b7aa0",cursor:coords?"pointer":"not-allowed",fontSize:9,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.08em"}}>
+              {exists?"✓ ":"+ "}{name.toUpperCase()}
+            </button>
+          );
+        })}
+      </div>
+      {savedLocs.length>0&&(
+        <div style={{display:"flex",flexDirection:"column",gap:5}}>
+          {safeLocPoints.map(function(loc){
+            var isNav = navTarget===loc.id;
+            return (
+              <div key={loc.id} style={{padding:"8px 13px",border:"1px solid rgba(46,232,138,"+(isNav?"0.5":"0.15")+")",background:isNav?"rgba(46,232,138,0.05)":"transparent",display:"flex",alignItems:"center",gap:10}}>
+                <span style={{color:"#2ee88a",fontSize:12,flexShrink:0}}>⌂</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"'Rajdhani',sans-serif",fontSize:12,fontWeight:600,color:"#9ab8d4"}}>{loc.label}</div>
+                  <div style={{fontSize:9,color:"#3a5a78"}}>{loc.distKm!=null?fmtDist(loc.distKm)+" · "+fmtETA(loc.distKm)+" walking":"—"}</div>
+                </div>
+                <button onClick={function(){setNavTarget(isNav?null:loc.id);}}
+                  style={{padding:"4px 10px",background:isNav?"rgba(46,232,138,0.15)":"transparent",border:"1px solid #2ee88a44",color:"#2ee88a",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.1em",flexShrink:0}}>
+                  {isNav?"✓ NAVIGATING":"➤ NAVIGATE"}
+                </button>
+                <button onClick={function(){ if(navTarget===loc.id) setNavTarget(null); persistLocs(savedLocs.filter(function(l){return l.id!==loc.id;})); }}
+                  style={{padding:"4px 8px",background:"transparent",border:"1px solid #2a3a55",color:"#5b7aa0",cursor:"pointer",fontSize:9,flexShrink:0}}>✕</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
       <div style={{marginTop:10,padding:"7px 12px",border:"1px solid rgba(77,184,255,0.07)",fontSize:9,color:"#2a3a55",lineHeight:1.6}}>
-        Map tracks your position in real time. Tap a gate to view details or navigate. Walk to the gate location to activate entry. Public areas only.
+        Map tracks your position in real time. Tap a gate to view details or navigate. Walk to the gate location to activate entry.
+        Stand at a real place and tap a destination name to save it. <span style={{color:"#f5b65d99"}}>⚠ Only travel to safe, familiar, public, or approved locations.</span>
       </div>
     </div>
   );
 }
 
-function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, ascensionCount, onAscend, lastSavedAt, onDeleteSave, innerDemonActive, onToggleInnerDemon, reevalAvailable, onOpenReeval, avatar, onSetAvatar, playerName, onPreviewLevelUp, onPreviewRankUp }) {
+function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, ascensionCount, onAscend, lastSavedAt, onDeleteSave, innerDemonActive, onToggleInnerDemon, reevalAvailable, onOpenReeval, avatar, onSetAvatar, playerName, onPreviewLevelUp, onPreviewRankUp, profile, onUpdateProfile }) {
   const c = isMonarch?MONARCH_PURP:rank.color;
   const fileRef = useRef(null);
+  const [pDraft, setPDraft] = useState(null); /* profile edit draft, null = view mode */
+  const targets = profile ? estimateTargets(profile) : null;
   function handlePickFile(e) {
     const file = e.target.files && e.target.files[0];
     if (!file || !/^image\//.test(file.type)) { e.target.value=""; return; }
@@ -7143,6 +7408,72 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
             </div>
           </div>
         </Win>
+        {/* Hunter Profile — biometrics, build path, sleep schedule, equipment */}
+        {profile && (
+          <Win ac={c}>
+            <div style={{ padding:"16px 20px" }}>
+              <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3 }}>
+                <div style={{ fontWeight:600,color:"#dbe6ff",fontSize:14 }}>Hunter Profile</div>
+                <button className="sl-btn" onClick={function(){ setPDraft(pDraft ? null : Object.assign({}, profile)); }}>{pDraft?"CANCEL":"EDIT"}</button>
+              </div>
+              {!pDraft && (
+                <div>
+                  <div style={{ fontSize:12,color:"#9fb8d8",lineHeight:1.8 }}>
+                    {profileSummaryLine(profile)}<br/>
+                    Sleep {profile.sleepTarget} → wake {profile.wakeTarget} · Access: {["track","gym","pullupBar","homeSpace"].filter(function(k){return profile.equipment&&profile.equipment[k];}).join(", ") || "none set"}
+                  </div>
+                  {targets && (
+                    <div style={{ marginTop:10,padding:"10px 12px",border:"1px solid "+c+"33",background:c+"08" }}>
+                      <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:c,marginBottom:6 }}>NUTRITION ESTIMATES (NOT MEDICAL ADVICE)</div>
+                      <div style={{ fontSize:11.5,color:"#9fb8d8",lineHeight:1.8 }}>
+                        {targets.maintenance ? "Est. maintenance: ~"+targets.maintenance+" kcal · Range: "+targets.calLow+"–"+targets.calHigh+" kcal" : "Add height + age for calorie estimates"}<br/>
+                        Protein target: {targets.proteinLow}–{targets.proteinHigh} g/day · Water: ~{targets.waterL} L/day
+                      </div>
+                      <div style={{ fontSize:9.5,color:"#5b7aa0",marginTop:6,lineHeight:1.5 }}>{targets.disclaimer}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {pDraft && (
+                <div style={{ marginTop:8 }}>
+                  <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10 }}>
+                    {[["age","Age"],["heightCm","Height cm"],["weightKg","Weight kg"]].map(function(f){
+                      return (
+                        <div key={f[0]}>
+                          <div style={{ fontSize:9,color:"#5b7aa0",marginBottom:3,letterSpacing:"0.1em" }}>{f[1].toUpperCase()}</div>
+                          <input type="number" value={pDraft[f[0]]==null?"":pDraft[f[0]]} onChange={function(e){ const v=parseFloat(e.target.value); setPDraft(Object.assign({},pDraft,{[f[0]]:isFinite(v)?v:null})); }}
+                            style={{ width:"100%",background:"rgba(5,10,20,0.9)",border:"1px solid "+c+"44",color:"#eaf2ff",fontSize:13,padding:"7px 8px",outline:"none" }} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ fontSize:9,color:"#5b7aa0",marginBottom:4,letterSpacing:"0.1em" }}>MAIN PATH</div>
+                  <select value={pDraft.mainPath} onChange={function(e){ setPDraft(Object.assign({},pDraft,{mainPath:e.target.value})); }}
+                    style={{ width:"100%",background:"rgba(5,10,20,0.9)",border:"1px solid "+c+"44",color:"#eaf2ff",fontSize:13,padding:"8px",outline:"none",marginBottom:10 }}>
+                    {MAIN_PATHS.map(function(p){ return <option key={p.id} value={p.id}>{p.name}</option>; })}
+                  </select>
+                  <div style={{ display:"flex",gap:8,marginBottom:10 }}>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:9,color:"#5b7aa0",marginBottom:3,letterSpacing:"0.1em" }}>SLEEP TARGET</div>
+                      <input type="time" value={pDraft.sleepTarget} onChange={function(e){ setPDraft(Object.assign({},pDraft,{sleepTarget:e.target.value})); }} style={{ width:"100%",background:"rgba(5,10,20,0.9)",border:"1px solid "+c+"44",color:"#eaf2ff",fontSize:13,padding:"7px 8px",outline:"none" }} />
+                    </div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:9,color:"#5b7aa0",marginBottom:3,letterSpacing:"0.1em" }}>WAKE TARGET</div>
+                      <input type="time" value={pDraft.wakeTarget} onChange={function(e){ setPDraft(Object.assign({},pDraft,{wakeTarget:e.target.value})); }} style={{ width:"100%",background:"rgba(5,10,20,0.9)",border:"1px solid "+c+"44",color:"#eaf2ff",fontSize:13,padding:"7px 8px",outline:"none" }} />
+                    </div>
+                  </div>
+                  <div style={{ display:"flex",flexWrap:"wrap",gap:6,marginBottom:12 }}>
+                    {[["track","Track"],["gym","Gym"],["pullupBar","Pull-up Bar"],["homeSpace","Home Space"]].map(function(eq){
+                      const on = pDraft.equipment && pDraft.equipment[eq[0]];
+                      return <button key={eq[0]} onClick={function(){ setPDraft(Object.assign({},pDraft,{equipment:Object.assign({},pDraft.equipment,{[eq[0]]:!on})})); }} style={{ padding:"6px 10px",background:on?c+"22":"transparent",border:"1px solid "+(on?c:"#1e3048"),color:on?"#c8e8ff":"#5b7aa0",cursor:"pointer",fontSize:11 }}>{on?"✓ ":""}{eq[1]}</button>;
+                    })}
+                  </div>
+                  <button className="sl-btn" onClick={function(){ if(typeof onUpdateProfile==="function") onUpdateProfile(Object.assign({},pDraft,{complete:true})); setPDraft(null); }}>SAVE PROFILE</button>
+                </div>
+              )}
+            </div>
+          </Win>
+        )}
         {/* Animation Preview — replay the cinematic sequences */}
         <Win ac={c}>
           <div style={{ padding:"16px 20px" }}>
@@ -8492,6 +8823,43 @@ function EnergyView({ energyState, onUpdate, accentColor, discipline, onDiscipli
         </div>
       </div>
 
+      {/* Hunter condition radar — futuristic 9-axis scanner */}
+      <div className="sl-panel" style={{ marginBottom:20, border:"1px solid "+accentColor+"44" }}>
+        <div className="sl-corners" />
+        <div className="sl-header-bar"><span className="sl-header-title" style={{ fontSize:12 }}>CONDITION SCAN · RADAR</span></div>
+        <div style={{ padding:"10px 12px 14px",display:"flex",justifyContent:"center" }}>
+          {(function(){
+            const R = 78, CX = 110, CY = 92;
+            const axes = METRICS.map(function(m,i){
+              const raw = local[m.id]!==undefined ? local[m.id] : 5;
+              const eff = m.invert ? (10-raw) : raw;
+              const ang = (Math.PI*2*i)/METRICS.length - Math.PI/2;
+              return { m, eff, ang };
+            });
+            const pt = function(r,ang){ return (CX+Math.cos(ang)*r).toFixed(1)+","+(CY+Math.sin(ang)*r).toFixed(1); };
+            const poly = axes.map(function(a){ return pt((a.eff/10)*R, a.ang); }).join(" ");
+            return (
+              <svg viewBox="0 0 220 184" style={{ width:"100%",maxWidth:340 }}>
+                {[0.25,0.5,0.75,1].map(function(f,i){
+                  return <polygon key={i} points={axes.map(function(a){ return pt(R*f, a.ang); }).join(" ")} fill="none" stroke={accentColor} strokeWidth="0.6" opacity={0.14+i*0.05} />;
+                })}
+                {axes.map(function(a,i){ return <line key={i} x1={CX} y1={CY} x2={CX+Math.cos(a.ang)*R} y2={CY+Math.sin(a.ang)*R} stroke={accentColor} strokeWidth="0.5" opacity="0.18" />; })}
+                <polygon points={poly} fill={accentColor+"2c"} stroke={accentColor} strokeWidth="1.6" style={{ filter:"drop-shadow(0 0 6px "+accentColor+"88)" }} />
+                {axes.map(function(a,i){
+                  const r = (a.eff/10)*R;
+                  return <circle key={"c"+i} cx={CX+Math.cos(a.ang)*r} cy={CY+Math.sin(a.ang)*r} r="2.4" fill={a.eff<=3?"#f53d3d":a.eff>=8?"#2ee88a":accentColor} />;
+                })}
+                {axes.map(function(a,i){
+                  const lr = R+16;
+                  const x = CX+Math.cos(a.ang)*lr, y = CY+Math.sin(a.ang)*lr;
+                  return <text key={"t"+i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fill={a.eff<=3?"#f57a7a":"#5b7aa0"} style={{ fontSize:7,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.08em" }}>{a.m.label.split(" ")[0].toUpperCase()}</text>;
+                })}
+              </svg>
+            );
+          })()}
+        </div>
+      </div>
+
       {/* System Recommendation */}
       <div className="sl-panel" style={{ marginBottom:20, border:"1px solid "+accentColor+"44" }}>
         <div className="sl-corners" />
@@ -9109,6 +9477,7 @@ function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoo
   const [purchaseFx, setPurchaseFx] = useState(null);
   const categories = [
     { id:"all",          label:"ALL"           },
+    { id:"life",         label:"◈ LIFE"         },
     { id:"training",     label:"TRAINING"       },
     { id:"dungeon",      label:"DUNGEON"        },
     { id:"shadow",       label:"SHADOW"         },
@@ -9129,7 +9498,8 @@ function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoo
   /* Items that can be purchased multiple times (consumables) */
   const consumableKeys = ["energy","xp_boost","xp_boost3","shadow_loyalty","shadow_power",
                           "rename_token","lore_unlock","quest_scan","sys_decode","raid_compass",
-                          "red_gate","scan","monarch","shadow_lore"];
+                          "red_gate","scan","monarch","shadow_lore",
+                          "focus_potion","streak_shield","free_voucher","app_pass","recovery_crystal"];
   function isConsumable(item) { return consumableKeys.includes(item.effectKey) || item.keyType; }
 
   return (
@@ -9922,6 +10292,23 @@ function App() {
   ]);
   const [unlockedSpecs, setUnlockedSpecs] = useState(sv ? (sv.unlockedSpecs || []) : []);
 
+  /* System 2 — profile, routines, story, NPCs, business, app lock, free time, penalty */
+  const [profile, setProfile]           = useState(sv && sv.profile ? sv.profile : defaultProfile());
+  const [routines, setRoutines]         = useState(sv && sv.routines ? sv.routines : { dateKey:null, done:{}, streak:0, lastFullDate:null });
+  const [story, setStory]               = useState(sv && sv.story ? sv.story : { completedChapters:[], seenScenes:[], architectMet:false });
+  const [npcState, setNpcState]         = useState(sv && sv.npcState ? sv.npcState : { relationships:{}, lastTalk:{}, challengesDone:[] });
+  const [business, setBusiness]         = useState(sv && sv.business ? sv.business : defaultBusiness());
+  const [appLock, setAppLock]           = useState(sv && sv.appLock ? sv.appLock : defaultAppLock());
+  const [freeTime, setFreeTime]         = useState(sv && sv.freeTime ? sv.freeTime : defaultFreeTime());
+  const [penalty, setPenalty]           = useState(sv && sv.penalty ? sv.penalty : { activeZone:null, history:[] });
+  const [streakShields, setStreakShields] = useState(sv ? (sv.streakShields || 0) : 0);
+  const [systemSkin, setSystemSkin]     = useState(sv ? (sv.systemSkin || "default") : "default");
+  const [auraFrame, setAuraFrame]       = useState(sv ? (sv.auraFrame || "none") : "none");
+  const [trainingLog, setTrainingLog]   = useState(sv && Array.isArray(sv.trainingLog) ? sv.trainingLog : []);
+  const [booting, setBooting]           = useState(true);
+  const [focusSession, setFocusSession] = useState(null); /* { endsAt } — transient */
+  const focusTimerRef = useRef(null);
+
   /* Energy */
   const [energyState, setEnergyState] = useState(sv ? (sv.energyState || { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 }) : { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 });
   const [energyScore, setEnergyScore] = useState(68);
@@ -10004,8 +10391,14 @@ function App() {
 
   /* Derived */
   const rank        = getRankForLevel(player.level);
-  const accentColor = isMonarch ? MONARCH_PURP : rank.color;
-  const dailyQuest  = generateDailyQuest(player.job, player.goals, player.level, energyScore, innerDemonActive, player.physique);
+  const skinColor   = systemSkin === "void" ? MONARCH_PURP : systemSkin === "ember" ? "#f5b65d" : null;
+  const accentColor = isMonarch ? MONARCH_PURP : (skinColor || rank.color);
+  /* Speed/Athleticism paths use the periodized athletic engine; other paths
+     keep the legacy generator, now with a System Analysis explanation. */
+  const ATHLETIC_PATHS = ["speed","track","basketball"];
+  const dailyQuest = (profile && profile.complete && ATHLETIC_PATHS.includes(profile.mainPath))
+    ? generateAthleticQuest(profile, player.level, energyState, energyScore, innerDemonActive)
+    : explainLegacyQuest(generateDailyQuest(player.job, player.goals, player.level, energyScore, innerDemonActive, player.physique), player.goals, energyScore);
 
   const totalQuestGoalsCleared =
     dailyQuest.goals.filter(function(g){return (dailyProgress[g.id]||0)>=g.target;}).length +
@@ -10199,6 +10592,9 @@ function App() {
           discipline,
           innerDemonActive,
           lastEvalStats,
+          /* System 2 slices */
+          profile, routines, story, npcState, business, appLock, freeTime, penalty,
+          streakShields, systemSkin, auraFrame, trainingLog,
           /* Boss HP snapshot — only the HP value, not the full data */
           bossHpSnapshot: bosses.map(function(b){ return { currentHp: b.currentHp }; }),
           /* Secret achievements — store only the unlocked condition strings */
@@ -10226,6 +10622,8 @@ function App() {
     monarchInterest, monarchStage, isMonarch, ascensionCount,
     soundOn, energyState, energyHistory, discipline, bosses, secretAchievements,
     innerDemonActive, lastEvalStats,
+    profile, routines, story, npcState, business, appLock, freeTime, penalty,
+    streakShields, systemSkin, auraFrame, trainingLog,
   ]);
 
   /* System 8: Achievement check — runs when key player values change */
@@ -10370,11 +10768,32 @@ function App() {
 
   /* ---- Daily reset (midnight) ---- */
   function handleDailyReset() {
-    /* System 2: If streak > 0 and daily wasn't completed, offer recovery opportunity */
+    /* Failed required Gate → consume a Streak Shield if available,
+       otherwise offer recovery AND open a Penalty Zone */
     if (player.streak > 0 && !isDailyDone) {
-      setStreakProtectActive(true);
-      setStreakProtectDone(false);
+      if (streakShields > 0) {
+        setStreakShields(function(prev){ return Math.max(0, prev - 1); });
+        showToast("Streak Shield consumed — your " + player.streak + "-day streak survives the night.", "evolve");
+        addLog("Streak Shield absorbed a missed daily. Shields remaining: " + (streakShields - 1) + ".", "evolve");
+      } else {
+        setStreakProtectActive(true);
+        setStreakProtectDone(false);
+        setPenalty(function(prev) {
+          return Object.assign({}, prev, { activeZone: { reason: "yesterday's required Gate", ts: Date.now(), blocksEarning: true } });
+        });
+        setFreeTime(function(prev){ return Object.assign({}, prev, { earnBlocked: true }); });
+        addLog("Penalty Zone opened: required Gate failed. Recovery protocol pending.", "warning");
+      }
     }
+    /* Routines roll to the new day */
+    setRoutines(function(prev) {
+      const today = routineDateKey();
+      if (prev.dateKey === today) return prev;
+      /* Routine streak breaks if yesterday wasn't a full day */
+      const keepStreak = prev.lastFullDate === prev.dateKey;
+      return { dateKey: today, done: {}, streak: keepStreak ? prev.streak : 0, lastFullDate: prev.lastFullDate };
+    });
+    setFreeTime(function(prev){ return Object.assign({}, prev, { spentToday: 0 }); });
     setDailyProgress({});
     setIsDailyDone(false);
     setSideProgress(SIDE_QUESTS.map(function(){return {};}));
@@ -10519,6 +10938,44 @@ function App() {
     if (["quest_scan","sys_decode","raid_compass","red_gate","scan"].includes(item.effectKey)) {
       setInventory(function(prev){ return prev.concat([item.id+":"+Date.now()]); });
       showToast(item.name+" acquired.","ach");
+    }
+
+    /* ---- LIFE items — real gameplay effects ---- */
+    if (item.effectKey === "focus_potion") {
+      setFocusSession({ endsAt: Date.now() + 25 * 60 * 1000 });
+      showToast("Focus Potion active — 25-minute session started. Go.","evolve");
+      addLog("Focus Potion consumed. 25-min focus timer running.","xp");
+    }
+    if (item.effectKey === "streak_shield") {
+      setStreakShields(function(prev){ return prev + 1; });
+      showToast("Streak Shield forged. It will absorb one missed daily automatically.","ach");
+      addLog("Streak Shield acquired ("+(streakShields+1)+" held).","ach");
+    }
+    if (item.effectKey === "free_voucher") {
+      setFreeTime(function(prev){ return Object.assign({}, prev, { vouchers:(prev.vouchers||0)+1 }); });
+      showToast("Free Time Voucher acquired — redeem it in App Lock.","ach");
+    }
+    if (item.effectKey === "app_pass") {
+      setAppLock(function(prev){ return Object.assign({}, prev, { passes:(prev.passes||0)+1 }); });
+      showToast("App Unlock Pass acquired.","ach");
+    }
+    if (item.effectKey === "recovery_crystal") {
+      if (penalty.activeZone) {
+        setPenalty(function(prev){ return { activeZone:null, history:(prev.history||[]).concat([{ ts:Date.now(), cleared:true, viaCrystal:true }]).slice(-30) }; });
+        setFreeTime(function(prev){ return Object.assign({}, prev, { earnBlocked:false }); });
+        showToast("Recovery Crystal shattered the Penalty Zone. Rank stabilized.","evolve");
+      }
+      setEnergyScore(function(prev){ return Math.min(100, prev + item.effectGain); });
+      addLog("Recovery Crystal used. Energy +"+item.effectGain+".","evolve");
+    }
+    if (item.effectKey === "skin") {
+      setSystemSkin(item.skinId || "default");
+      showToast("System Skin applied: "+item.name+". Interface re-themed.","evolve");
+      addLog("System skin changed to "+(item.skinId||"default")+".","system");
+    }
+    if (item.effectKey === "aura_frame") {
+      setAuraFrame("ring");
+      showToast("Aura Frame equipped — your presence is now visible.","evolve");
     }
 
     /* Dungeon key */
@@ -10889,6 +11346,312 @@ function App() {
     addLog("Dungeon key used: "+key.label+".","ach");
   }
 
+  /* =========================================================================
+     SYSTEM 2 HANDLERS — routines, story, NPCs, business, app lock,
+     free time, penalty zone, focus sessions
+     ========================================================================= */
+
+  /* ---- Free time economy ---- */
+  function earnFreeTime(minutes, reason) {
+    if (freeTime.earnBlocked || (penalty.activeZone && penalty.activeZone.blocksEarning)) {
+      showToast("Free time earning is sealed — clear the Penalty Zone first.", "warning");
+      return;
+    }
+    setFreeTime(function(prev){ return Object.assign({}, prev, { minutes: (prev.minutes||0) + minutes }); });
+    showToast("+" + minutes + " min free time earned" + (reason ? " — " + reason : "") + ".", "ach");
+    addLog("Free time earned: +" + minutes + " min" + (reason ? " (" + reason + ")" : "") + ".", "ach");
+  }
+
+  function handleSpendFreeTime(mins) {
+    setFreeTime(function(prev) {
+      let minutes = prev.minutes || 0;
+      let vouchers = prev.vouchers || 0;
+      if (minutes < mins && vouchers > 0 && mins === 30) { vouchers -= 1; minutes += 30; }
+      if (minutes < mins) { showToast("Not enough earned free time.", "warning"); return prev; }
+      showToast(mins + " minutes of free time redeemed. Enjoy it — it's paid for.", "evolve");
+      addLog("Free time redeemed: " + mins + " min.", "info");
+      return Object.assign({}, prev, { minutes: minutes - mins, vouchers, spentToday: (prev.spentToday||0) + mins, lastSpendDate: routineDateKey() });
+    });
+  }
+
+  function handleUseAppPass() {
+    if ((appLock.passes||0) < 1) return;
+    setAppLock(function(prev){ return Object.assign({}, prev, { passes: Math.max(0, (prev.passes||0) - 1) }); });
+    setFreeTime(function(prev){ return Object.assign({}, prev, { minutes: (prev.minutes||0) + (appLock.passMinutes||30) }); });
+    showToast("Seal released — App Unlock Pass consumed (+" + (appLock.passMinutes||30) + " min).", "evolve");
+    addLog("App Unlock Pass used.", "info");
+  }
+
+  /* ---- App lock requirement check ---- */
+  function isRoutineChainDone(rid) {
+    if (routines.dateKey !== routineDateKey()) return false;
+    const steps = buildRoutineSteps(rid, profile, energyState, energyScore, dailyQuest.dayType);
+    const done = (routines.done || {})[rid] || {};
+    return steps.every(function(s){ return done[s.id]; });
+  }
+  const appLockRequirementMet = (function() {
+    if (appLock.requirement === "routine")  return isRoutineChainDone("morning") && (isRoutineChainDone("athletic") || isRoutineChainDone("evening") || isRoutineChainDone("night"));
+    if (appLock.requirement === "training") return isDailyDone && isRoutineChainDone("athletic");
+    return isDailyDone;
+  })();
+
+  /* ---- Routines ---- */
+  function handleRoutineStep(routineId, stepId, steps) {
+    const today = routineDateKey();
+    setRoutines(function(prev) {
+      const sameDay = prev.dateKey === today;
+      const done = sameDay ? Object.assign({}, prev.done) : {};
+      const rDone = Object.assign({}, done[routineId] || {});
+      if (rDone[stepId]) return prev;
+      rDone[stepId] = true;
+      done[routineId] = rDone;
+      const chainComplete = steps.every(function(s){ return rDone[s.id]; });
+      let streak = prev.streak || 0;
+      let lastFullDate = prev.lastFullDate;
+      if (chainComplete) {
+        setTimeout(function() {
+          sfx.sfxComplete();
+          grantXp(ROUTINE_XP[routineId] || 40, routineId === "athletic" ? "Agility" : routineId === "evening" ? "Intelligence" : "Discipline", 1);
+          earnFreeTime(ROUTINE_REWARD_MIN[routineId] || 10, ROUTINE_DEFS.find(function(r){return r.id===routineId;}).name);
+          addLog("Routine chain cleared: " + routineId + ".", "evolve");
+        }, 50);
+        /* All four chains today → routine streak advances */
+        const allDone = ROUTINE_DEFS.every(function(r) {
+          const rd = r.id === routineId ? rDone : (done[r.id] || {});
+          const st = buildRoutineSteps(r.id, profile, energyState, energyScore, dailyQuest.dayType);
+          return st.every(function(s){ return rd[s.id]; });
+        });
+        if (allDone && lastFullDate !== today) {
+          streak = streak + 1;
+          lastFullDate = today;
+          setTimeout(function() {
+            showToast("ALL ROUTINE CHAINS CLEARED — routine streak " + streak + "d.", "evolve");
+            grantXp(60, "Discipline", 1);
+            earnFreeTime(15, "full routine day");
+          }, 900);
+        }
+      } else {
+        sfx.sfxClick();
+      }
+      return { dateKey: today, done, streak, lastFullDate };
+    });
+  }
+
+  /* ---- Story mode ---- */
+  const storySnapshot = getStorySnapshot({
+    level: player.level,
+    rankIdx: rank ? rank.minRankIndex : 0,
+    streak: player.streak,
+    gatesCleared: Object.keys(clearedGates).filter(function(k){ return clearedGates[k]; }).length,
+    bossesDefeated: bosses.filter(function(b){ return b.currentHp <= 0; }).length,
+    shadows: shadowArmy.length,
+    guildJoined: !!guildId,
+    dailiesDone: isDailyDone ? Math.max(1, player.streak) : player.streak,
+    businessMilestones: completedChainCount(business),
+    energyLogs: energyHistory.length,
+    storyDone: story.completedChapters,
+  });
+
+  function handleChapterComplete(ch) {
+    if (story.completedChapters.indexOf(ch.id) !== -1) return;
+    setStory(function(prev) {
+      return Object.assign({}, prev, {
+        completedChapters: prev.completedChapters.concat([ch.id]),
+        architectMet: prev.architectMet || !!ch.architectEncounter,
+      });
+    });
+    grantXp(ch.reward.xp, "Aura", 1);
+    addCoins(ch.reward.coins);
+    if (ch.architectEncounter) {
+      addMonarchInterest(8);
+      setGlitchIntensity(0.7);
+      setTimeout(function(){ setGlitchIntensity(0); }, 2200);
+      setTimeout(function(){
+        setTakeoverEvent({ title:"FILE RECLASSIFIED", message:"The Architect has opened a direct observation window on your file.", sub:"Classification: SUBJECT OF INTEREST", color:GLITCH_RED, duration:4200 });
+      }, 1200);
+    }
+    sfx.sfxEvolve();
+    setCinematic({ kind:"hidden", title:"CHAPTER COMPLETE", bigText:ch.title.split("—")[1] ? ch.title.split("—")[1].trim() : ch.title, sub:ch.tagline, reward:"+"+ch.reward.xp+" XP · +"+ch.reward.coins+" coins" });
+    addLog("Story chapter completed: " + ch.title + ".", "evolve");
+  }
+
+  /* ---- NPCs ---- */
+  function handleNpcRelGain(npcId, amt) {
+    setNpcState(function(prev) {
+      const rel = Object.assign({}, prev.relationships);
+      rel[npcId] = Math.min(99, (rel[npcId] || 0) + amt);
+      return Object.assign({}, prev, { relationships: rel, lastTalk: Object.assign({}, prev.lastTalk, { [npcId]: Date.now() }) });
+    });
+  }
+
+  function buildNpcCtx(npc) {
+    const guild = GUILDS.find(function(g){ return g.id === guildId; });
+    return {
+      name: player.name, level: player.level, rankName: rank.name,
+      streak: player.streak, energyScore, fame,
+      gatesCleared: storySnapshot.gatesCleared, shadows: shadowArmy.length,
+      guildName: guild ? guild.name : null,
+      mainPathName: getMainPath(profile.mainPath).name,
+      isDailyDone, rel: (npcState.relationships || {})[npc.id] || 0,
+      businessMilestones: completedChainCount(business),
+      sleepTarget: profile.sleepTarget,
+    };
+  }
+
+  /* ---- Companion context ---- */
+  const companionCtx = {
+    name: player.name, level: player.level, rankName: rank.name,
+    mainPathName: getMainPath(profile.mainPath).name,
+    streak: player.streak, isDailyDone,
+    energyScore, sleep: energyState.sleep !== undefined ? energyState.sleep : 7,
+    soreness: energyState.soreness || 0, fatigue: energyState.fatigue || 0,
+    gatesCleared: storySnapshot.gatesCleared,
+    bossesDefeated: storySnapshot.bossesDefeated,
+    shadows: shadowArmy.length, coins, fame,
+    guildName: (GUILDS.find(function(g){ return g.id === guildId; }) || {}).name || null,
+    dailyLabel: dailyQuest.label, dailyWhy: dailyQuest.why || "",
+    profileLine: profileSummaryLine(profile),
+    riskLabel: getRiskLevel(profile, energyState).label,
+    businessMilestones: completedChainCount(business),
+    sleepTarget: profile.sleepTarget,
+  };
+
+  /* ---- Business ---- */
+  function handleBusinessUpdate(next, kind, entry) {
+    setBusiness(next);
+    if (kind === "income" && entry) {
+      const gold = Math.max(1, Math.round(Number(entry.amount)));
+      addCoins(gold);
+      grantXp(Math.min(80, 20 + Math.round(Number(entry.amount))), "Intelligence", 0);
+      showToast("Revenue logged — +" + gold + " gold minted into the System.", "evolve");
+      addLog("Business income logged: " + entry.amount + (entry.note ? " (" + entry.note + ")" : "") + ".", "xp");
+    }
+    if (kind === "spend" && entry) {
+      addLog("Business spending logged: " + entry.amount + (entry.note ? " (" + entry.note + ")" : "") + ".", "info");
+    }
+    if (kind === "milestone_clear") {
+      grantXp(80, "Intelligence", 1);
+      addCoins(40); addFame(15);
+      sfx.sfxComplete();
+      showToast("PROJECT ROOM CLEARED — milestone complete. +80 XP", "evolve");
+      addLog("Project milestone cleared.", "evolve");
+    }
+    if (kind === "project") {
+      showToast("Project Gate opened. Add milestone rooms to clear it.", "system");
+      addLog("New project dungeon opened.", "system");
+    }
+  }
+
+  function handleBusinessChainStep(chain, step) {
+    setBusiness(function(prev) {
+      const prog = Object.assign({}, prev.questProgress);
+      const p = Object.assign({}, prog[chain.id] || {});
+      if (p[step.id]) return prev;
+      p[step.id] = true;
+      prog[chain.id] = p;
+      grantXp(step.xp, "Intelligence", 0);
+      showToast(step.name + " — +" + step.xp + " XP", "xp");
+      const allDone = chain.steps.every(function(s){ return p[s.id]; });
+      let questDone = prev.questDone;
+      if (allDone) {
+        questDone = Object.assign({}, prev.questDone);
+        questDone[chain.id] = (questDone[chain.id] || 0) + 1;
+        prog[chain.id] = {};
+        const prevChains = completedChainCount(prev);
+        const newChains = prevChains + 1;
+        setTimeout(function() {
+          sfx.sfxRankUp();
+          addCoins(60); addFame(20);
+          setCinematicAch({ title: chain.id === "bq_launch" ? "LAUNCH RAID CLEARED" : "QUEST CHAIN CLEARED", sub: chain.name + " · +60 gold · +20 fame", color: chain.color, icon: chain.icon });
+          addLog("Business chain completed: " + chain.name + ".", "evolve");
+          /* Skill tier unlock check */
+          BUSINESS_SKILLS.forEach(function(sk) {
+            if (prevChains < sk.req && newChains >= sk.req) {
+              const gains = sk.bonus.match(/\+(\d+) Intelligence/);
+              const aura = sk.bonus.match(/\+(\d+) Aura/);
+              if (gains) grantXp(0, "Intelligence", parseInt(gains[1], 10));
+              if (aura) grantXp(0, "Aura", parseInt(aura[1], 10));
+              showToast("Developer skill unlocked: " + sk.name + " — " + sk.bonus, "evolve");
+              addLog("Business skill tier unlocked: " + sk.name + ".", "evolve");
+            }
+          });
+        }, 400);
+      }
+      return Object.assign({}, prev, { questProgress: prog, questDone });
+    });
+  }
+
+  /* ---- App lock ---- */
+  function handleUpdateAppLock(next) {
+    setAppLock(next);
+    if (next.enabled && !appLock.enabled) {
+      showToast("The System has sealed your distractions. Clear your Gate to unlock free time.", "warning");
+      addLog("App Lock seal enabled. Blocked: " + next.blockedApps.join(", ") + ".", "system");
+    }
+    if (!next.enabled && appLock.enabled) addLog("App Lock seal disabled.", "info");
+  }
+
+  /* ---- Penalty zone ---- */
+  function handlePenaltyComplete() {
+    setPenalty(function(prev) {
+      return { activeZone: null, history: (prev.history || []).concat([{ ts: Date.now(), cleared: true }]).slice(-30) };
+    });
+    setFreeTime(function(prev){ return Object.assign({}, prev, { earnBlocked: false }); });
+    grantXp(25, "Discipline", 1);
+    sfx.sfxComplete();
+    showToast("Penalty Zone cleared. Rank stabilized. Free-time earning restored.", "evolve");
+    addLog("Penalty Zone recovery protocol completed.", "evolve");
+  }
+  function handlePenaltyDefer() {
+    showToast("Penalty Zone remains open. Free-time earning stays sealed until cleared.", "warning");
+    setPenalty(function(prev) {
+      if (!prev.activeZone) return prev;
+      return Object.assign({}, prev, { activeZone: Object.assign({}, prev.activeZone, { deferred: true }) });
+    });
+  }
+
+  /* ---- Focus session (Focus Potion) ---- */
+  useEffect(function() {
+    if (!focusSession) return;
+    focusTimerRef.current = setInterval(function() {
+      if (Date.now() >= focusSession.endsAt) {
+        clearInterval(focusTimerRef.current);
+        setFocusSession(null);
+        grantXp(40, "Intelligence", 1);
+        sfx.sfxComplete();
+        showToast("Focus session complete — +40 XP. The potion worked because you did.", "evolve");
+        addLog("Focus Potion session completed (25 min).", "evolve");
+      }
+    }, 1000);
+    return function(){ clearInterval(focusTimerRef.current); };
+  }, [focusSession]);
+
+  /* ---- Clear chance context (deterministic, data-based) ---- */
+  function clearChanceFor(gate) {
+    const rankOrder = { "E":0, "D":1, "C":2, "B":3, "A":4, "S":5 };
+    const tierIdx = typeof gate.tierIdx === "number" ? gate.tierIdx
+      : rankOrder[(gate.rank || "D").replace("-Rank","").charAt(0)] !== undefined
+        ? rankOrder[(gate.rank || "D").replace("-Rank","").charAt(0)] : 1;
+    const clearedCount = Object.keys(clearedGates).filter(function(k){ return clearedGates[k]; }).length;
+    return calcClearChance(
+      { minLevel: gate.minLevel, rank: gate.rank, statKey: gate.statKey, tierIdx },
+      {
+        level: player.level, stats: player.stats, rankIdx: rank ? rank.minRankIndex : 0,
+        energyScore, sleep: energyState.sleep, soreness: energyState.soreness, fatigue: energyState.fatigue,
+        streak: player.streak, questCompletionToday: isDailyDone ? 1 : 0,
+        shadowDeployed: !!deployedShadowId, gatesClearedSimilar: Math.min(5, clearedCount),
+        guildJoined: !!guildId,
+      }
+    );
+  }
+
+  /* ---- Profile update (Settings) ---- */
+  function handleUpdateProfile(next) {
+    setProfile(next);
+    showToast("Hunter profile updated. The System has recalibrated.", "system");
+    addLog("Profile updated: " + profileSummaryLine(next) + ".", "system");
+  }
+
   /* ---- Helpers ---- */
   function addLog(message, kind) {
     setSystemLog(function(prev){
@@ -11228,6 +11991,8 @@ function App() {
         setTimeout(function(){
           setCinematicAch({ title:raidRank.label+" PERFORMANCE", sub:"Score: "+score+"/100. Fame +" + fameBonus + " awarded.", color:raidRank.color, icon:"⚔" });
         }, 2200);
+        /* Boss raids pay out real free time */
+        setTimeout(function(){ earnFreeTime(45, "Boss Raid victory"); }, 3200);
         /* Trigger ARISE */
         setTimeout(function(){ setAriseTarget({bossIndex,bossData:data}); setAriseAttempt(1); },800);
         if(next.every(function(b){return b.currentHp<=0;})) unlockSecret("allBossesDefeated");
@@ -11367,6 +12132,17 @@ function App() {
       addMonarchInterest(MONARCH_INTEREST_PER_DAILY);
       showToast("DAILY QUEST CLEARED!","evolve");
       addLog("Daily quest cleared. Streak extended.","evolve");
+      /* Free-time economy: daily chain = 1 voucher; seal earns an unlock pass */
+      setFreeTime(function(prev){ return Object.assign({}, prev, { vouchers: (prev.vouchers||0) + 1 }); });
+      setTimeout(function(){ showToast("+1 Free Time Voucher (30 min) — earned, not given.","ach"); }, 1800);
+      if (appLock.enabled) {
+        setAppLock(function(prev){ return Object.assign({}, prev, { passes: (prev.passes||0) + 1 }); });
+        setTimeout(function(){ addLog("App Unlock Pass earned via daily clear.","ach"); }, 2000);
+      }
+      /* Training log entry for athletic paths */
+      setTrainingLog(function(prev){
+        return prev.concat([{ ts: Date.now(), dayType: dailyQuest.dayType, label: dailyQuest.label, readiness: dailyQuest.readiness || "n/a", energyScore }]).slice(-200);
+      });
       /* Phase 3: Shadows gain +5 loyalty on daily clear */
       setShadowArmy(function(prev) {
         return prev.map(function(s) {
@@ -11550,6 +12326,10 @@ function App() {
       activeTitle: "awakened",
       stats:       safeStats,
     });
+    /* Hunter profile — drives the athletic engine, routines and nutrition */
+    if (data.profile && typeof data.profile === "object") {
+      setProfile(Object.assign({}, defaultProfile(), data.profile, { complete: true }));
+    }
     sfx.sfxOpen();
     addLog(
       "Hunter " + (data.name||"Hunter") + " registered. Class: " + (data.hunterClass||"fighter") +
@@ -11609,6 +12389,15 @@ function App() {
     return null;
   })();
 
+  /* ---- BOOT SEQUENCE ---- */
+  if (booting) {
+    return (
+      <div style={{ minHeight:"100vh",background:"#02040a" }}>
+        <BootScreen hasSave={phase==="app"} onDone={function(){ setBooting(false); }} />
+      </div>
+    );
+  }
+
   /* ---- ONBOARDING ---- */
   if(phase==="onboard"){
     return (<div style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif" }}><AwakeningRegistration onComplete={handleOnboardComplete} /></div>);
@@ -11651,11 +12440,17 @@ function App() {
             </div>
           )}
           {activeView==="Side Quests"&&<SideQuestsView rank={rank} sideProgress={sideProgress} sideDone={sideDone} onSideGoalTap={handleSideGoalTap} isMonarch={isMonarch} extSideProgress={extSideProgress} extSideDone={extSideDone} onExtGoalTap={handleExtSideGoalTap} player={player} energyScore={energyScore} fame={fame} guildId={guildId} anomalyDone={anomalyDone} onAnomalyComplete={handleAnomalyComplete} recentAnomalyIds={recentAnomalyIds} />}
+          {activeView==="Routines"&&<RoutinesView profile={profile} energyState={energyState} energyScore={energyScore} routines={routines} onStepToggle={handleRoutineStep} accentColor={accentColor} dailyDayType={dailyQuest.dayType} freeTime={freeTime} />}
+          {activeView==="Story Mode"&&<StoryView snapshot={storySnapshot} accentColor={accentColor} onChapterComplete={handleChapterComplete} />}
+          {activeView==="The System"&&<CompanionView ctx={companionCtx} accentColor={accentColor} />}
+          {activeView==="Hunter Network"&&<NPCsView npcCtxBuilder={buildNpcCtx} npcState={npcState} accentColor={accentColor} onRelGain={handleNpcRelGain} />}
+          {activeView==="Business HQ"&&<BusinessView business={business} onUpdateBusiness={handleBusinessUpdate} onChainStep={handleBusinessChainStep} accentColor={accentColor} />}
+          {activeView==="App Lock"&&<AppLockView appLock={appLock} freeTime={freeTime} onUpdateAppLock={handleUpdateAppLock} onSpendFreeTime={handleSpendFreeTime} onUsePass={handleUseAppPass} requirementMet={appLockRequirementMet} accentColor={accentColor} />}
           {activeView==="Hunter Stats"&&<StatsView player={player} rank={rank} isMonarch={isMonarch} onSelectTitle={handleSetTitle} clearedGates={clearedGates} />}
           {activeView==="Hunter Profile"&&<HunterIdentityView player={player} rank={rank} isMonarch={isMonarch} fame={fame} shadowArmy={shadowArmy} bosses={bosses} clearedGates={clearedGates} earnedAchievements={earnedAchievements} guildId={guildId} accentColor={accentColor} />}
           {activeView==="Guild"&&<GuildView player={player} fame={fame} guildId={guildId} guildQuestProgress={guildQuestProgress} guildQuestDone={guildQuestDone} onGoalTap={handleGuildGoalTap} onLeave={handleLeaveGuild} onApply={handleApplyGuild} accentColor={accentColor} />}
           {activeView==="Specialization"&&<SpecializationView player={player} unlockedSpecs={unlockedSpecs} onUnlock={handleUnlockSpec} accentColor={accentColor} />}
-          {activeView==="Dungeon Gates"&&<DungeonGatesView rank={rank} isMonarch={isMonarch} clearedGates={clearedGates} onEnterGate={handleEnterGateWithCutscene} ac={accentColor} player={player} energyScore={energyScore} />}
+          {activeView==="Dungeon Gates"&&<DungeonGatesView rank={rank} isMonarch={isMonarch} clearedGates={clearedGates} onEnterGate={handleEnterGateWithCutscene} ac={accentColor} player={player} energyScore={energyScore} clearChanceFor={clearChanceFor} />}
           {activeView==="Boss Raids"&&<BossRaidsView bosses={bosses} bossData={BOSS_DATA} onAttack={handleBossAttack} ac={accentColor} questGoalsCleared={totalQuestGoalsCleared} inventory={inventory} shadowArmy={shadowArmy} lastRaidResult={lastRaidResult} onDismissRaidResult={function(){setLastRaidResult(null);}} />}
           {activeView==="Secret Encounters"&&<SecretBossesView player={player} clearedGates={clearedGates} streak={player.streak} secretBosses={secretBossStates} onAttack={handleSecretBossAttack} accentColor={accentColor} questGoalsCleared={totalQuestGoalsCleared} />}
           {activeView==="Shadow Archive"&&<ShadowArchiveView bosses={bosses} bossData={BOSS_DATA} ac={accentColor} />}
@@ -11667,7 +12462,7 @@ function App() {
           {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
           {activeView==="Gate Map"&&<GateMapView player={player} accentColor={accentColor} onEnterGate={handleEnterGateWithCutscene} />}
           {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
-          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} avatar={player.avatar} onSetAvatar={handleSetAvatar} playerName={player.name} onPreviewLevelUp={handlePreviewLevelUp} onPreviewRankUp={handlePreviewRankUp} />}
+          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} avatar={player.avatar} onSetAvatar={handleSetAvatar} playerName={player.name} onPreviewLevelUp={handlePreviewLevelUp} onPreviewRankUp={handlePreviewRankUp} profile={profile} onUpdateProfile={handleUpdateProfile} />}
         </div>
 
         {/* DEV: Monarch interest only — no free XP */}
@@ -11681,8 +12476,7 @@ function App() {
       </div>
 
       {/* Overlays */}
-      {/* Phase 4 overlays */}
-      {cutsceneGate&&<DungeonCutscene gate={cutsceneGate} onEnter={function(){const g=cutsceneGate;setCutsceneGate(null);if(g.rooms&&g.rooms.length>0){setDungeonChainGate(g);}else{completeDungeon(g,[]);}}} onAbort={function(){setCutsceneGate(null);showToast("Gate entry withdrawn.","info");}} />}
+      {/* Phase 4 overlays — DungeonCutscene renders once, further below (with modifier roll) */}
       {rewardChest&&pendingStatPoints===0&&<RewardChestModal rewards={rewardChest} onClaim={handleChestClaim} accentColor={accentColor} />}
       {pendingStatPoints>0&&!rewardChest&&<StatPointDistributor points={pendingStatPoints} onConfirm={handleStatPointConfirm} accentColor={accentColor} />}
       {/* Re-evaluation modal */}
@@ -11705,6 +12499,21 @@ function App() {
       {accessDeniedBoss&&<AccessDeniedScreen boss={accessDeniedBoss} playerRank={rank} onClose={function(){setAccessDeniedBoss(null);}} />}
       {ariseTarget&&<AriseScreen boss={ariseTarget.bossData} attemptNumber={ariseAttempt} onSuccess={handleAriseSuccess} onFail={handleAriseFail} onAbandon={handleAriseAbandon} sfx={sfx} extractionChance={arisePoolShadow?calcExtractionChance(arisePoolShadow,player,fame):undefined} />}
       {crypticVisible&&<CrypticNote message={crypticMessage} onDismiss={handleCrypticDismiss} />}
+      {/* Penalty Zone — opens after a failed required Gate; safe 5–20 min reset */}
+      {penalty.activeZone&&!penalty.activeZone.deferred&&!streakProtectActive&&<PenaltyZoneModal zone={penalty.activeZone} onComplete={handlePenaltyComplete} onDefer={handlePenaltyDefer} />}
+      {/* Deferred penalty reminder strip */}
+      {penalty.activeZone&&penalty.activeZone.deferred&&(
+        <button onClick={function(){ setPenalty(function(prev){ return Object.assign({},prev,{ activeZone:Object.assign({},prev.activeZone,{deferred:false}) }); }); }}
+          style={{ position:"fixed",bottom:0,left:0,right:0,zIndex:7000,padding:"10px 16px",background:"rgba(30,4,10,0.96)",border:"none",borderTop:"1px solid #f53d3d88",color:"#f57a7a",fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.2em",cursor:"pointer" }}>
+          ⚠ PENALTY ZONE OPEN — TAP TO RUN THE RECOVERY PROTOCOL (FREE-TIME EARNING SEALED)
+        </button>
+      )}
+      {/* Focus Potion live timer */}
+      {focusSession&&(
+        <div style={{ position:"fixed",top:64,left:"50%",transform:"translateX(-50%)",zIndex:6000,padding:"8px 18px",background:"rgba(5,12,26,0.95)",border:"1px solid #4db8ff88",boxShadow:"0 0 20px rgba(77,184,255,0.3)",fontFamily:"'Orbitron',sans-serif",fontSize:11,color:"#4db8ff",letterSpacing:"0.15em" }}>
+          🧪 FOCUS SESSION · {Math.max(0,Math.ceil((focusSession.endsAt-Date.now())/60000))} MIN REMAINING
+        </div>
+      )}
       {trialOpen&&<MonarchTrialScreen progress={trialProgress} onGoalTap={handleTrialGoalTap} onForfeit={handleTrialForfeit} />}
       {reawakeningActive&&<ReawakeningSequence playerName={player.name} onComplete={handleReawakeningComplete} />}
       {toast!==null&&<Toast message={toast.message} kind={toast.kind} ac={accentColor} isMonarch={toast.monarch} />}
