@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { saveGame, loadGame, defaultSave, deleteSave, exportSave, debounce } from "./utils/storage.js";
+import StoryModeView from "./StoryModeView.jsx";
+import "./system-overrides.css";
 
 /* ============================================================================
    ARISE — Solo Leveling System Interface  ·  Hardcore Rework
@@ -2957,7 +2959,7 @@ function getUnlockedSpecNodes(playerStats, unlockedIds) {
 }
 
 const MENU_ITEMS = [
-  "Dashboard","Daily Quest","Side Quests","Hunter Profile","Hunter Stats","Specialization",
+  "Dashboard","Story Mode","Daily Quest","Side Quests","Hunter Profile","Hunter Stats","Specialization",
   "Dungeon Gates","Boss Raids","Secret Encounters","Shadow Army","Guild","Inventory",
   "Hunter Shop","Energy","Rankings","World Feed","Gate Map","System Log","Settings",
 ];
@@ -3885,8 +3887,67 @@ function CrypticNote({ message, onDismiss }) {
    Step 11: Evaluating cinematic
    Step 12: Rank reveal
    =========================================================================== */
+const FIRST_CONTACT_LINES = [
+  "Before the System appeared, every unfinished promise disappeared into an ordinary day.",
+  "The Association measured your current output and found nothing remarkable.",
+  "Then the evaluation signal changed. Your projected growth curve refused to flatten.",
+  "An unregistered authority requested direct observation of your life.",
+  "The System is not offering motivation. It is offering measurement, consequence, and proof.",
+  "You will begin at your real level. You will choose your own path. Nothing will be granted for intention.",
+  "Candidate located. Beginning Player selection protocol.",
+];
+
+function FirstContactPrelude({ onDone }) {
+  const [lineIndex, setLineIndex] = useState(0);
+  const [visibleText, setVisibleText] = useState("");
+  const [finished, setFinished] = useState(false);
+  const timerRef = useRef(null);
+  const full = FIRST_CONTACT_LINES[lineIndex];
+
+  useEffect(function() {
+    setVisibleText("");
+    setFinished(false);
+    let count = 0;
+    timerRef.current = setInterval(function() {
+      count += 2;
+      setVisibleText(full.slice(0, count));
+      if (count >= full.length) {
+        clearInterval(timerRef.current);
+        setFinished(true);
+      }
+    }, 18);
+    return function() { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [lineIndex, full]);
+
+  function advance() {
+    if (!finished) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      setVisibleText(full);
+      setFinished(true);
+      return;
+    }
+    if (lineIndex < FIRST_CONTACT_LINES.length - 1) setLineIndex(function(i){ return i + 1; });
+    else if (typeof onDone === "function") onDone();
+  }
+
+  return (
+    <div className="first-contact" onClick={advance}>
+      <div className="first-contact-world"><span/><i/><b/></div>
+      <div className="first-contact-scan" />
+      <div className="first-contact-label">OBSERVATION LOG · SUBJECT 01</div>
+      <div className="first-contact-dialogue">
+        <div className="first-contact-speaker">{lineIndex < 3 ? "ASSOCIATION RECORD" : lineIndex < 6 ? "THE SYSTEM" : "NOTIFICATION"}</div>
+        <p>{visibleText}{!finished&&<span className="blink">|</span>}</p>
+        <div><small>{String(lineIndex + 1).padStart(2,"0")} / {String(FIRST_CONTACT_LINES.length).padStart(2,"0")}</small><strong>{finished ? (lineIndex === FIRST_CONTACT_LINES.length - 1 ? "BEGIN SELECTION" : "CONTINUE") : "DECODING"} &gt;</strong></div>
+      </div>
+    </div>
+  );
+}
+
 function AwakeningRegistration({ onComplete }) {
   const [step, setStep] = useState(0);
+  const [introDone, setIntroDone] = useState(false);
+  const [declineCount, setDeclineCount] = useState(0);
   const [name, setName] = useState("");
   const [chosenClass, setChosenClass] = useState(null);
   const [chosenPhysique, setChosenPhysique] = useState(null);
@@ -3951,6 +4012,8 @@ function AwakeningRegistration({ onComplete }) {
   const accentMap = { 0:"#4db8ff", 1:"#4db8ff", 2:"#4db8ff", 3:"#a05df5", 4:"#f5b65d" };
   const accent = currentTest ? currentTest.stat === "Strength" ? "#f53d3d" : currentTest.stat === "Agility" ? "#4db8ff" : currentTest.stat === "Discipline" ? "#a05df5" : "#6fae6f" : accentMap[Math.min(step,4)] || SYS_BLUE;
 
+  if (!introDone) return <FirstContactPrelude onDone={function(){ setIntroDone(true); }} />;
+
   return (
     <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px 16px" }}>
       <Win ac={accent} className="fade-in-up" style={{ maxWidth:520,width:"100%" }}>
@@ -3972,11 +4035,12 @@ function AwakeningRegistration({ onComplete }) {
                   From this point forward, all physical effort will be tracked, measured, and rewarded. Nothing is given freely. Everything must be earned.
                 </p>
               </div>
-              <p style={{ textAlign:"center",fontSize:16,color:"#dbe6ff",fontWeight:600,marginBottom:24 }}>Do you wish to become a Hunter?</p>
+              <p style={{ textAlign:"center",fontSize:16,color:"#dbe6ff",fontWeight:600,marginBottom:12 }}>Will you accept designation as the Player?</p>
+              {declineCount>0&&<div className="selection-refused">{declineCount===1?"SELECTION REFUSED. CONSENT WILL NOT BE ASSUMED.":"PLAYER STATUS REMAINS UNCLAIMED. CONFIRMATION IS STILL AVAILABLE."}</div>}
               <div style={{ display:"flex",gap:12 }}>
-                <button onClick={function(){setStep(1);}} style={{ flex:1,padding:"14px",background:SYS_BLUE,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,letterSpacing:"0.15em" }}>I ACCEPT</button>
-                <button onClick={function(){setStep(1);}} style={{ flex:1,padding:"14px",background:"transparent",border:"1px solid #2a3a55",color:"#5b7aa0",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11 }}>
-                  I have no choice
+                <button onClick={function(){setStep(1);}} className="sl-btn primary" style={{ flex:1,padding:"14px",cursor:"pointer" }}>ACCEPT</button>
+                <button onClick={function(){setDeclineCount(function(n){return Math.min(2,n+1);});}} className="sl-btn danger" style={{ flex:1,padding:"14px",cursor:"pointer" }}>
+                  DECLINE
                 </button>
               </div>
             </div>
@@ -4441,7 +4505,7 @@ function TopHud({ player, rank, onMenuToggle, menuOpen, isMonarch }) {
   const titleColor = activeTitleData ? TITLE_RARITY_COLOR[activeTitleData.rarity] || c : c;
   return (
     <div
-      className={isMonarch ? "monarch-breathe" : ""}
+      className={"system-top-hud " + (isMonarch ? "monarch-breathe" : "")}
       style={{
         position:"sticky", top:0, zIndex:100,
         padding:"8px 16px",
@@ -4552,7 +4616,7 @@ function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, is
   const classData = HUNTER_CLASSES.find(function(cl){return cl.id===player.job;}) || HUNTER_CLASSES[1];
   const sysMsg = getContextualMessage(player, isDailyDone, rank, isMonarch, energyScore, fame);
   return (
-    <div className="fade-in">
+    <div className="fade-in system-dashboard">
       <SL text={isMonarch?"Monarch Command Center":"Command Center"} ac={c} />
       {isMonarch&&(<div className="monarch-breathe fade-in" style={{ padding:"14px 20px",marginBottom:20,border:"1px solid "+MONARCH_PURP+"66",background:"linear-gradient(90deg,rgba(155,48,255,0.08),rgba(13,0,16,0.8))",display:"flex",alignItems:"center",gap:12 }}><span className="pulse-glow" style={{ fontSize:20,color:MONARCH_PURP }}>◉</span><div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,color:MONARCH_PURP,letterSpacing:"0.2em" }}>MONARCH AURA — ACTIVE</div><div style={{ fontSize:12,color:"#8a5ab0",marginTop:2 }}>The shadows obey.</div></div></div>)}
 
@@ -10498,12 +10562,12 @@ function App() {
 
   /* ---- ONBOARDING ---- */
   if(phase==="onboard"){
-    return (<div style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif" }}><AwakeningRegistration onComplete={handleOnboardComplete} /></div>);
+    return (<div className="awakening-shell" style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif" }}><AwakeningRegistration onComplete={handleOnboardComplete} /></div>);
   }
 
   /* ---- MAIN APP ---- */
   return (
-    <div style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif",position:"relative",transition:"background 2.5s ease" }}>
+    <div className="system-app-shell" style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif",position:"relative",transition:"background 2.5s ease" }}>
       <ParticleField color={particleColor} density={particleDensity} />
       {isMonarch&&<div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:"radial-gradient(ellipse at center,transparent 40%,rgba(155,48,255,0.10) 100%)" }} />}
       {/* Circuit-board grid — tighter, more SL-like */}
@@ -10518,7 +10582,7 @@ function App() {
         <TopHud player={player} rank={rank} onMenuToggle={function(){setMenuOpen(function(m){return !m;});}} menuOpen={menuOpen} isMonarch={isMonarch} />
         {menuOpen&&<Sidebar activeView={activeView} onSelect={setActiveView} onClose={function(){setMenuOpen(false);sfx.sfxClick();}} ac={rank.color} playerName={player.name} isMonarch={isMonarch} />}
 
-        <div style={{ maxWidth:860,margin:"0 auto",padding:"28px 16px 80px" }}>
+        <div className="system-content" style={{ maxWidth:860,margin:"0 auto",padding:"28px 16px 80px" }}>
           {activeView==="Dashboard"&&<DashboardView player={player} rank={rank} dailyProgress={dailyProgress} isDailyDone={isDailyDone} onGoalTap={handleGoalTap} isMonarch={isMonarch} dailyQuest={dailyQuest} activeHiddenQuest={activeHiddenQuest} hiddenQuestProgress={hiddenQuestProgress} onHiddenGoalTap={handleHiddenGoalTap} energyScore={energyScore} onReset={handleDailyReset} fame={fame} worldEvent={worldEvent} awakeningDay={awakeningDay} />}
           {activeView==="Daily Quest"&&(
             <div className="fade-in">
@@ -10528,6 +10592,7 @@ function App() {
             </div>
           )}
           {activeView==="Side Quests"&&<SideQuestsView rank={rank} sideProgress={sideProgress} sideDone={sideDone} onSideGoalTap={handleSideGoalTap} isMonarch={isMonarch} extSideProgress={extSideProgress} extSideDone={extSideDone} onExtGoalTap={handleExtSideGoalTap} player={player} energyScore={energyScore} fame={fame} guildId={guildId} anomalyDone={anomalyDone} onAnomalyComplete={handleAnomalyComplete} recentAnomalyIds={recentAnomalyIds} />}
+          {activeView==="Story Mode"&&<StoryModeView player={player} rank={rank} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} guildId={guildId} dailyDone={isDailyDone} onReward={function(chapter){ grantXp(chapter.xp,"Intelligence",1); addCoins(chapter.coins); showToast(chapter.title+" cleared! +"+chapter.xp+" XP","evolve"); addLog("Story chapter cleared: "+chapter.title+".","evolve"); }} />}
           {activeView==="Hunter Stats"&&<StatsView player={player} rank={rank} isMonarch={isMonarch} onSelectTitle={handleSetTitle} clearedGates={clearedGates} />}
           {activeView==="Hunter Profile"&&<HunterIdentityView player={player} rank={rank} isMonarch={isMonarch} fame={fame} shadowArmy={shadowArmy} bosses={bosses} clearedGates={clearedGates} earnedAchievements={earnedAchievements} guildId={guildId} accentColor={accentColor} />}
           {activeView==="Guild"&&<GuildView player={player} fame={fame} guildId={guildId} guildQuestProgress={guildQuestProgress} guildQuestDone={guildQuestDone} onGoalTap={handleGuildGoalTap} onLeave={handleLeaveGuild} accentColor={accentColor} />}
@@ -10548,7 +10613,7 @@ function App() {
         </div>
 
         {/* DEV: Monarch interest only — no free XP */}
-        <div style={{ position:"fixed",bottom:12,right:12,zIndex:8000,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4 }}>
+        <div className="system-notification-stack" style={{ position:"fixed",bottom:12,right:12,zIndex:8000,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4 }}>
           {/* System 7: Notification history tray — last 3 */}
           {notifHistory.slice(0,3).map(function(n,i){
             const nc = n.kind==="evolve"?"#2ee88a":n.kind==="ach"?"#a05df5":n.kind==="warning"?"#f5b65d":n.kind==="xp"?"#f5b65d":"#5b7aa0";
