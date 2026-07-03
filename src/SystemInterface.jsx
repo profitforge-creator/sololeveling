@@ -2961,12 +2961,167 @@ function getUnlockedSpecNodes(playerStats, unlockedIds) {
 const MENU_ITEMS = [
   "Dashboard","Story Mode","Daily Quest","Side Quests","Hunter Profile","Hunter Stats","Specialization",
   "Dungeon Gates","Boss Raids","Secret Encounters","Shadow Army","Guild","Inventory",
-  "Hunter Shop","Energy","Rankings","World Feed","Gate Map","System Log","Settings",
+  "Hunter Shop","Discipline","Energy","Rankings","World Feed","Gate Map","System Log","Settings",
+];
+
+const DEFAULT_ENERGY_STATE = {
+  sleepReserve: 72,
+  hydrationReserve: 70,
+  nutritionReserve: 64,
+  focusBandwidth: 62,
+  muscleFatigue: 34,
+  neuralLoad: 28,
+  stressNoise: 30,
+};
+
+const DEFAULT_DISCIPLINE_STATE = {
+  willpower: 61,
+  routineIntegrity: 58,
+  urgeControl: 54,
+  executionSharpness: 57,
+  recoveryCompliance: 60,
+  slips: 1,
+  cleanCycles: 0,
+  protocols: {
+    wake: true,
+    training: true,
+    nutrition: false,
+    focus: false,
+    sleep: true,
+  },
+};
+
+const DISCIPLINE_PROTOCOLS = [
+  { id: "wake", label: "Wake Window", desc: "Open the day on time before drift begins." },
+  { id: "training", label: "Training Lock", desc: "Anchor one physical output block." },
+  { id: "nutrition", label: "Nutrition Guard", desc: "Stop random underfueling and junk spirals." },
+  { id: "focus", label: "Focus Seal", desc: "Protect one deep-work session from distraction." },
+  { id: "sleep", label: "Sleep Curfew", desc: "Protect recovery instead of trading it away." },
+];
+
+const ENERGY_DRAG_METRICS = [
+  { id: "sleepReserve", label: "Sleep Reserve", short: "SLP", color: "#6be3ff", invert: false, hint: "How restored you actually feel waking up." },
+  { id: "hydrationReserve", label: "Hydration Reserve", short: "HYD", color: "#4db8ff", invert: false, hint: "Fluid level, electrolytes, and overall body readiness." },
+  { id: "nutritionReserve", label: "Fuel Reserve", short: "FUEL", color: "#8cffd8", invert: false, hint: "How fed and usable your energy stores are." },
+  { id: "focusBandwidth", label: "Focus Bandwidth", short: "FOC", color: "#b9f7ff", invert: false, hint: "Attention capacity available for work or training." },
+  { id: "muscleFatigue", label: "Muscle Load", short: "MUS", color: "#ffc66b", invert: true, hint: "Peripheral fatigue and soreness dragging power output down." },
+  { id: "neuralLoad", label: "Neural Load", short: "CNS", color: "#ff8bb8", invert: true, hint: "Nervous-system strain from hard work, lack of sleep, or overstimulation." },
+  { id: "stressNoise", label: "Stress Noise", short: "STR", color: "#ff6d6d", invert: true, hint: "Mental and emotional interference reducing usable output." },
+];
+
+const DISCIPLINE_TRACKS = [
+  { id: "willpower", label: "Willpower", short: "WIL", color: "#6be3ff", hint: "The ability to act before motivation arrives." },
+  { id: "routineIntegrity", label: "Routine Integrity", short: "RTE", color: "#8cffd8", hint: "How stable your core rhythm is under real life pressure." },
+  { id: "urgeControl", label: "Urge Control", short: "URG", color: "#f5b65d", hint: "How well you shut down impulses that steal momentum." },
+  { id: "executionSharpness", label: "Execution", short: "EXE", color: "#c2a7ff", hint: "How cleanly you start and finish the hard thing." },
+  { id: "recoveryCompliance", label: "Recovery Compliance", short: "REC", color: "#7df7be", hint: "How consistently you obey the recovery rules that keep output high." },
 ];
 
 /* ---------------------------------------------------------------------------
    HELPERS
 --------------------------------------------------------------------------- */
+function normaliseEnergyState(raw) {
+  if (!raw || typeof raw !== "object") return Object.assign({}, DEFAULT_ENERGY_STATE);
+  const legacySleep = Number(raw.sleep);
+  const looksLegacy = Number.isFinite(legacySleep) || Number.isFinite(Number(raw.hydration)) || Number.isFinite(Number(raw.fatigue));
+  if (looksLegacy) {
+    return {
+      sleepReserve: clamp(Math.round((Number(raw.sleep) || 7) * 10), 0, 100),
+      hydrationReserve: clamp(Math.round((Number(raw.hydration) || 7) * 10), 0, 100),
+      nutritionReserve: 64,
+      focusBandwidth: 60,
+      muscleFatigue: clamp(Math.round((Number(raw.soreness) || 3) * 10), 0, 100),
+      neuralLoad: clamp(Math.round((Number(raw.fatigue) || 3) * 10), 0, 100),
+      stressNoise: clamp(Math.round((Number(raw.stress) || 3) * 10), 0, 100),
+    };
+  }
+  const next = {};
+  Object.keys(DEFAULT_ENERGY_STATE).forEach(function(key) {
+    const v = Number(raw[key]);
+    next[key] = Number.isFinite(v) ? clamp(Math.round(v), 0, 100) : DEFAULT_ENERGY_STATE[key];
+  });
+  return next;
+}
+
+function normaliseDisciplineState(raw) {
+  if (!raw || typeof raw !== "object") return JSON.parse(JSON.stringify(DEFAULT_DISCIPLINE_STATE));
+  const protocols = Object.assign({}, DEFAULT_DISCIPLINE_STATE.protocols, raw.protocols && typeof raw.protocols === "object" ? raw.protocols : {});
+  const next = { protocols: {} };
+  DISCIPLINE_TRACKS.forEach(function(track) {
+    const v = Number(raw[track.id]);
+    next[track.id] = Number.isFinite(v) ? clamp(Math.round(v), 0, 100) : DEFAULT_DISCIPLINE_STATE[track.id];
+  });
+  next.slips = Number.isFinite(Number(raw.slips)) ? clamp(Math.round(Number(raw.slips)), 0, 12) : DEFAULT_DISCIPLINE_STATE.slips;
+  next.cleanCycles = Number.isFinite(Number(raw.cleanCycles)) ? clamp(Math.round(Number(raw.cleanCycles)), 0, 999) : DEFAULT_DISCIPLINE_STATE.cleanCycles;
+  Object.keys(DEFAULT_DISCIPLINE_STATE.protocols).forEach(function(key) {
+    next.protocols[key] = !!protocols[key];
+  });
+  return next;
+}
+
+function computeDisciplineDiagnostics(state) {
+  const safe = normaliseDisciplineState(state);
+  const protocolCount = Object.keys(safe.protocols).filter(function(key){ return safe.protocols[key]; }).length;
+  const trackAvg = Math.round(DISCIPLINE_TRACKS.reduce(function(sum, track){ return sum + safe[track.id]; }, 0) / DISCIPLINE_TRACKS.length);
+  const protocolPressure = protocolCount * 3;
+  const slipTax = safe.slips * 4;
+  const cleanBonus = Math.min(12, safe.cleanCycles * 2);
+  const score = clamp(Math.round(trackAvg + protocolPressure + cleanBonus - slipTax), 0, 100);
+  let label = "Unstable";
+  if (score >= 82) label = "Iron Discipline";
+  else if (score >= 68) label = "Locked In";
+  else if (score >= 54) label = "Holding";
+  const readinessLift = clamp(Math.round(((safe.recoveryCompliance - 50) * 0.18) + ((safe.routineIntegrity - 50) * 0.12) + (protocolCount * 0.8) - (safe.slips * 1.2)), -10, 10);
+  const driftRisk = clamp(Math.round((100 - safe.urgeControl) * 0.35 + (100 - safe.executionSharpness) * 0.25 + safe.slips * 4), 0, 100);
+  return {
+    safe,
+    score,
+    label,
+    protocolCount,
+    readinessLift,
+    driftRisk,
+  };
+}
+
+function computeEnergyDiagnostics(state, disciplineState) {
+  const safe = normaliseEnergyState(state);
+  const sleep = safe.sleepReserve;
+  const hydration = safe.hydrationReserve;
+  const fuel = safe.nutritionReserve;
+  const focus = safe.focusBandwidth;
+  const musclePenalty = 100 - safe.muscleFatigue;
+  const neuralPenalty = 100 - safe.neuralLoad;
+  const stressPenalty = 100 - safe.stressNoise;
+  let baseScore = (
+    sleep * 0.2 +
+    hydration * 0.12 +
+    fuel * 0.12 +
+    focus * 0.14 +
+    musclePenalty * 0.14 +
+    neuralPenalty * 0.15 +
+    stressPenalty * 0.13
+  );
+  if (sleep >= 75 && hydration >= 65 && fuel >= 65) baseScore += 6;
+  if (safe.stressNoise >= 72 && focus <= 45) baseScore -= 8;
+  if (safe.muscleFatigue >= 74 && safe.neuralLoad >= 70) baseScore -= 10;
+  const discipline = computeDisciplineDiagnostics(disciplineState);
+  const score = clamp(Math.round(baseScore + discipline.readinessLift), 0, 100);
+  const recoveryReserve = clamp(Math.round((sleep * 0.35) + (hydration * 0.2) + (fuel * 0.2) + (100 - safe.muscleFatigue) * 0.15 + (100 - safe.stressNoise) * 0.1), 0, 100);
+  const combatReadiness = clamp(Math.round((focus * 0.2) + (sleep * 0.18) + (100 - safe.neuralLoad) * 0.2 + (100 - safe.muscleFatigue) * 0.22 + (100 - safe.stressNoise) * 0.1 + discipline.score * 0.1), 0, 100);
+  const mentalClarity = clamp(Math.round((focus * 0.45) + (sleep * 0.18) + (100 - safe.stressNoise) * 0.25 + discipline.safe.urgeControl * 0.12), 0, 100);
+  const strainRisk = clamp(Math.round((safe.muscleFatigue * 0.34) + (safe.neuralLoad * 0.33) + (safe.stressNoise * 0.2) + ((100 - sleep) * 0.13)), 0, 100);
+  return {
+    safe,
+    score,
+    level: getEnergyLevel(score),
+    recoveryReserve,
+    combatReadiness,
+    mentalClarity,
+    strainRisk,
+    discipline,
+  };
+}
+
 function xpForLevel(level) {
   const l = (typeof level === "number" && isFinite(level) && level >= 1) ? level : 1;
   return 100 + (l - 1) * 50;
@@ -4609,7 +4764,7 @@ function Sidebar({ activeView, onSelect, onClose, ac, playerName, isMonarch }) {
 /* ===========================================================================
    VIEWS
    =========================================================================== */
-function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, isMonarch, dailyQuest, activeHiddenQuest, hiddenQuestProgress, onHiddenGoalTap, energyScore, onReset, fame, worldEvent, awakeningDay }) {
+function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, isMonarch, dailyQuest, activeHiddenQuest, hiddenQuestProgress, onHiddenGoalTap, energyScore, disciplineScore, onReset, fame, worldEvent, awakeningDay }) {
   const c = isMonarch?MONARCH_PURP:rank.color;
   const safeLevel = (typeof player.level === "number" && isFinite(player.level)) ? player.level : 1;
   const doneCount = dailyQuest.goals.filter(function(g){return (dailyProgress[g.id]||0)>=g.target;}).length;
@@ -4655,6 +4810,8 @@ function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, is
           { label:"RANK",   v:isMonarch?"MONARCH":rank.name.split("-")[0], sub:isMonarch?"Ruler of the Dead":rank.title },
           { label:"STREAK", v:player.streak+" 🔥",  sub:"days active" },
           { label:"QUEST",  v:doneCount+"/"+dailyQuest.goals.length, sub:"goals cleared today" },
+          { label:"ENERGY", v:String(energyScore), sub:"usable output" },
+          { label:"DISCIPLINE", v:String(disciplineScore||0), sub:"stability score" },
         ].map(function(s){ return (<Win key={s.label} ac={c}><div style={{ padding:"14px 16px" }}><div style={{ fontSize:10,letterSpacing:"0.25em",color:"#5b7aa0",marginBottom:4 }}>{s.label}</div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:900,color:c }}>{s.v}</div><div style={{ fontSize:10,color:"#7e98ba",marginTop:2 }}>{s.sub}</div></div></Win>); })}
       </div>
       {activeHiddenQuest&&<HiddenQuestCard quest={activeHiddenQuest} progress={hiddenQuestProgress} onGoalTap={onHiddenGoalTap} ac={c} />}
@@ -7760,7 +7917,7 @@ function StatPointDistributor({ points, onConfirm, accentColor }) {
 /* ===========================================================================
    ENERGY VIEW — Phase 4
    =========================================================================== */
-function EnergyView({ energyState, onUpdate, accentColor }) {
+function LegacyEnergyView({ energyState, onUpdate, accentColor }) {
   const [local, setLocal] = useState(energyState);
 
   const METRICS = [
@@ -7834,6 +7991,282 @@ function EnergyView({ energyState, onUpdate, accentColor }) {
       <button onClick={save} style={{ width:"100%",padding:"12px",background:accentColor,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.2em" }}>
         LOG ENERGY STATUS
       </button>
+    </div>
+  );
+}
+
+function DragMetricLane({ metric, value, onChange }) {
+  const trackRef = useRef(null);
+
+  const updateFromClientX = useCallback(function(clientX) {
+    const track = trackRef.current;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    const pct = clamp(Math.round(((clientX - rect.left) / rect.width) * 100), 0, 100);
+    if (typeof onChange === "function") onChange(metric.id, pct);
+  }, [metric.id, onChange]);
+
+  function beginDrag(clientX) {
+    updateFromClientX(clientX);
+    function handleMove(ev) {
+      if (ev.touches && ev.touches[0]) updateFromClientX(ev.touches[0].clientX);
+      else updateFromClientX(ev.clientX);
+    }
+    function handleStop() {
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleStop);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleStop);
+    }
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleStop);
+    window.addEventListener("touchmove", handleMove, { passive: true });
+    window.addEventListener("touchend", handleStop);
+  }
+
+  const displayValue = metric.invert ? (100 - value) : value;
+
+  return (
+    <div className="system-drag-lane">
+      <div style={{ display:"flex",justifyContent:"space-between",gap:10,marginBottom:6,alignItems:"center" }}>
+        <div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.16em",color:"#dff5ff" }}>{metric.label}</div>
+          <div style={{ fontSize:10,color:"#6f8bab",marginTop:2 }}>{metric.hint}</div>
+        </div>
+        <div style={{ minWidth:72,textAlign:"right" }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,color:metric.color }}>{String(displayValue).padStart(2,"0")}</div>
+          <div style={{ fontSize:9,color:"#5b7aa0",letterSpacing:"0.18em" }}>{metric.short}</div>
+        </div>
+      </div>
+      <div
+        ref={trackRef}
+        className="system-drag-track"
+        onMouseDown={function(ev){ beginDrag(ev.clientX); }}
+        onTouchStart={function(ev){ if (ev.touches && ev.touches[0]) beginDrag(ev.touches[0].clientX); }}
+      >
+        <div className="system-drag-track-fill" style={{ width:value+"%", background:"linear-gradient(90deg,"+metric.color+"33,"+metric.color+")" }} />
+        <div className="system-drag-thumb" style={{ left:"calc("+value+"% - 13px)", borderColor:metric.color, boxShadow:"0 0 18px "+metric.color+"55" }} />
+      </div>
+    </div>
+  );
+}
+
+function DisciplineView({ disciplineState, energyState, onUpdate, accentColor }) {
+  const [local, setLocal] = useState(normaliseDisciplineState(disciplineState));
+
+  useEffect(function() {
+    setLocal(normaliseDisciplineState(disciplineState));
+  }, [disciplineState]);
+
+  const diag = computeDisciplineDiagnostics(local);
+  const energyDiag = computeEnergyDiagnostics(energyState, local);
+
+  function setTrack(id, value) {
+    setLocal(function(prev) { return Object.assign({}, prev, { [id]: value }); });
+  }
+
+  function toggleProtocol(id) {
+    setLocal(function(prev) {
+      return Object.assign({}, prev, {
+        protocols: Object.assign({}, prev.protocols, { [id]: !prev.protocols[id] }),
+      });
+    });
+  }
+
+  function recordCleanCycle() {
+    setLocal(function(prev) {
+      return Object.assign({}, prev, {
+        willpower: clamp(prev.willpower + 4, 0, 100),
+        routineIntegrity: clamp(prev.routineIntegrity + 5, 0, 100),
+        urgeControl: clamp(prev.urgeControl + 3, 0, 100),
+        executionSharpness: clamp(prev.executionSharpness + 4, 0, 100),
+        recoveryCompliance: clamp(prev.recoveryCompliance + 3, 0, 100),
+        slips: clamp(prev.slips - 1, 0, 12),
+        cleanCycles: prev.cleanCycles + 1,
+      });
+    });
+  }
+
+  function recordSlip() {
+    setLocal(function(prev) {
+      return Object.assign({}, prev, {
+        willpower: clamp(prev.willpower - 4, 0, 100),
+        routineIntegrity: clamp(prev.routineIntegrity - 5, 0, 100),
+        urgeControl: clamp(prev.urgeControl - 6, 0, 100),
+        executionSharpness: clamp(prev.executionSharpness - 4, 0, 100),
+        recoveryCompliance: clamp(prev.recoveryCompliance - 3, 0, 100),
+        slips: clamp(prev.slips + 1, 0, 12),
+      });
+    });
+  }
+
+  function save() {
+    if (typeof onUpdate === "function") onUpdate(local);
+  }
+
+  return (
+    <div className="fade-in">
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Discipline System</div>
+        <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
+        <p style={{ fontSize:12,color:"#5b7aa0",marginTop:6 }}>Restore the willpower layer that keeps output stable when energy alone would collapse.</p>
+      </div>
+
+      <div className="system-energy-frame" style={{ marginBottom:18 }}>
+        <div className="system-energy-grid">
+          <div>
+            <div className="system-energy-label">MODE</div>
+            <div className="system-energy-title">Discipline Kernel</div>
+          </div>
+          <div>
+            <div className="system-energy-label">PRESSURE</div>
+            <div className="system-energy-meta">{diag.protocolCount} protocols active</div>
+          </div>
+          <div>
+            <div className="system-energy-label">DRIFT RISK</div>
+            <div className="system-energy-meta">{diag.driftRisk}%</div>
+          </div>
+        </div>
+
+        <div className="system-energy-hero">
+          <div>
+            <div className="system-energy-label">DISCIPLINE SCORE</div>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:40,fontWeight:900,color:diag.score >= 68 ? "#2ee88a" : diag.score >= 54 ? "#f5b65d" : "#ff6d6d" }}>{diag.score}</div>
+            <div style={{ fontSize:11,color:"#9fb8d8",letterSpacing:"0.18em" }}>{diag.label.toUpperCase()}</div>
+          </div>
+          <div className="system-energy-boosts">
+            <div><span>RTE</span> +{Math.max(0, Math.round((diag.safe.routineIntegrity - 50) / 5))}</div>
+            <div><span>REC</span> +{Math.max(0, Math.round((diag.safe.recoveryCompliance - 50) / 5))}</div>
+            <div><span>OUT</span> {diag.readinessLift >= 0 ? "+" : ""}{diag.readinessLift}</div>
+          </div>
+        </div>
+
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12,marginBottom:18 }}>
+          {DISCIPLINE_PROTOCOLS.map(function(protocol) {
+            const active = !!local.protocols[protocol.id];
+            return (
+              <button
+                key={protocol.id}
+                onClick={function(){ toggleProtocol(protocol.id); }}
+                className={"system-protocol-chip"+(active ? " active" : "")}
+                style={{ borderColor:active ? accentColor+"aa" : "#284564" }}
+              >
+                <span>{protocol.label}</span>
+                <small>{protocol.desc}</small>
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ display:"grid",gap:14 }}>
+          {DISCIPLINE_TRACKS.map(function(metric) {
+            const val = local[metric.id];
+            return <DragMetricLane key={metric.id} metric={metric} value={val} onChange={setTrack} />;
+          })}
+        </div>
+
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:10,marginTop:18 }}>
+          <button className="sl-btn" onClick={recordCleanCycle}>Record Clean Cycle</button>
+          <button className="sl-btn danger" onClick={recordSlip}>Record Slip</button>
+          <button className="sl-btn primary" onClick={save}>Lock Discipline Status</button>
+        </div>
+      </div>
+
+      <Win ac={accentColor}>
+        <div style={{ padding:"16px 18px" }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.18em",color:"#8fdcff",marginBottom:8 }}>SYSTEM EFFECT</div>
+          <div style={{ fontSize:13,color:"#cfe8ff",lineHeight:1.7 }}>
+            Current discipline modifies usable energy output by <span style={{ color:diag.readinessLift >= 0 ? "#2ee88a" : "#ff6d6d",fontWeight:700 }}>{diag.readinessLift >= 0 ? "+" : ""}{diag.readinessLift}</span>.
+            With your current energy pattern, the system estimates <span style={{ color:"#2ee88a",fontWeight:700 }}>{energyDiag.combatReadiness}</span> combat readiness and <span style={{ color:"#8fdcff",fontWeight:700 }}>{energyDiag.mentalClarity}</span> mental clarity.
+          </div>
+        </div>
+      </Win>
+    </div>
+  );
+}
+
+function EnergyView({ energyState, disciplineState, onUpdate, accentColor }) {
+  const [local, setLocal] = useState(normaliseEnergyState(energyState));
+
+  useEffect(function() {
+    setLocal(normaliseEnergyState(energyState));
+  }, [energyState]);
+
+  const diag = computeEnergyDiagnostics(local, disciplineState);
+
+  function setMetric(id, value) {
+    setLocal(function(prev) { return Object.assign({}, prev, { [id]: value }); });
+  }
+
+  function save() {
+    if (typeof onUpdate === "function") onUpdate(local);
+  }
+
+  return (
+    <div className="fade-in">
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Energy System</div>
+        <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
+        <p style={{ fontSize:12,color:"#5b7aa0",marginTop:6 }}>Drag each channel until it matches how much reserve you really have. This system now tracks usable output, not just a basic fatigue slider.</p>
+      </div>
+
+      <div className="system-energy-frame energy-pulse">
+        <div className="system-energy-grid">
+          <div>
+            <div className="system-energy-label">ITEM</div>
+            <div className="system-energy-title">Hunter Recovery Matrix</div>
+          </div>
+          <div>
+            <div className="system-energy-label">DIFFICULTY</div>
+            <div className="system-energy-meta">Adaptive calibration</div>
+          </div>
+          <div>
+            <div className="system-energy-label">CATEGORY</div>
+            <div className="system-energy-meta">Energy / Output</div>
+          </div>
+        </div>
+
+        <div className="system-energy-hero">
+          <div>
+            <div className="system-energy-label">USABLE OUTPUT</div>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:42,fontWeight:900,color:diag.level.color }}>{diag.score}</div>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,color:diag.level.color }}>{diag.level.label}</div>
+            <div style={{ fontSize:11,color:"#8ba6c7",marginTop:4 }}>{diag.level.desc}</div>
+          </div>
+          <div className="system-energy-boosts">
+            <div><span>RCV</span> {diag.recoveryReserve}</div>
+            <div><span>RDY</span> {diag.combatReadiness}</div>
+            <div><span>CLR</span> {diag.mentalClarity}</div>
+            <div><span>RISK</span> {diag.strainRisk}</div>
+          </div>
+        </div>
+
+        <div style={{ display:"grid",gap:14,marginBottom:18 }}>
+          {ENERGY_DRAG_METRICS.map(function(metric) {
+            const val = local[metric.id];
+            return <DragMetricLane key={metric.id} metric={metric} value={val} onChange={setMetric} />;
+          })}
+        </div>
+
+        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:10,marginBottom:16 }}>
+          {[
+            { label:"XP MOD", value:Math.round(diag.level.xpMod * 100) + "%" },
+            { label:"DISCIPLINE LIFT", value:(diag.discipline.readinessLift >= 0 ? "+" : "") + diag.discipline.readinessLift },
+            { label:"STRAIN RISK", value:diag.strainRisk + "%" },
+          ].map(function(item) {
+            return (
+              <div key={item.label} style={{ border:"1px solid rgba(110,190,255,0.18)",background:"rgba(3,12,24,0.62)",padding:"10px 12px" }}>
+                <div style={{ fontSize:9,letterSpacing:"0.2em",color:"#5b7aa0",marginBottom:4 }}>{item.label}</div>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,color:"#dff5ff" }}>{item.value}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <button onClick={save} className="sl-btn primary" style={{ width:"100%" }}>
+          LOG ENERGY STATUS
+        </button>
+      </div>
     </div>
   );
 }
@@ -8976,9 +9409,20 @@ function App() {
   ]);
   const [unlockedSpecs, setUnlockedSpecs] = useState(sv ? (sv.unlockedSpecs || []) : []);
 
-  /* Energy */
-  const [energyState, setEnergyState] = useState(sv ? (sv.energyState || { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 }) : { sleep:7,soreness:3,fatigue:3,hydration:7,stress:3 });
-  const [energyScore, setEnergyScore] = useState(68);
+  const initialDisciplineState = normaliseDisciplineState(sv ? sv.disciplineState : null);
+  const initialEnergyState = normaliseEnergyState(sv ? sv.energyState : null);
+
+  /* Energy + discipline */
+  const [disciplineState, setDisciplineState] = useState(initialDisciplineState);
+  const [disciplineScore, setDisciplineScore] = useState(function() {
+    if (sv && Number.isFinite(Number(sv.disciplineScore))) return clamp(Math.round(Number(sv.disciplineScore)), 0, 100);
+    return computeDisciplineDiagnostics(initialDisciplineState).score;
+  });
+  const [energyState, setEnergyState] = useState(initialEnergyState);
+  const [energyScore, setEnergyScore] = useState(function() {
+    if (sv && Number.isFinite(Number(sv.energyScore))) return clamp(Math.round(Number(sv.energyScore)), 0, 100);
+    return computeEnergyDiagnostics(initialEnergyState, initialDisciplineState).score;
+  });
 
   /* UI-only transient state — never persisted */
   const [rewardChest, setRewardChest]             = useState(null);
@@ -9242,6 +9686,9 @@ function App() {
           ascensionCount,
           soundOn,
           energyState,
+          energyScore,
+          disciplineState,
+          disciplineScore,
           innerDemonActive,
           lastEvalStats,
           /* Boss HP snapshot — only the HP value, not the full data */
@@ -9269,7 +9716,7 @@ function App() {
     loreFragments, collectedLoreIds, earnedAchievements, unlockedSpecs,
     completedBTs, guildId, guildQuestProgress, guildQuestDone,
     monarchInterest, monarchStage, isMonarch, ascensionCount,
-    soundOn, energyState, bosses, secretAchievements,
+    soundOn, energyState, energyScore, disciplineState, disciplineScore, bosses, secretAchievements,
     innerDemonActive, lastEvalStats,
   ]);
 
@@ -9434,11 +9881,24 @@ function App() {
     addLog("Daily reset triggered at midnight. Quests refreshed.","system");
   }
 
-  function handleEnergyUpdate(state, score) {
-    setEnergyState(state);
-    setEnergyScore(score);
-    showToast("Energy logged: " + getEnergyLevel(score).label, "xp");
-    addLog("Energy status updated: " + getEnergyLevel(score).label + " (score: " + score + ").","info");
+  function handleEnergyUpdate(state) {
+    const safeState = normaliseEnergyState(state);
+    const diag = computeEnergyDiagnostics(safeState, disciplineState);
+    setEnergyState(safeState);
+    setEnergyScore(diag.score);
+    showToast("Energy logged: " + diag.level.label, "xp");
+    addLog("Energy status updated: " + diag.level.label + " (score: " + diag.score + ", strain risk: " + diag.strainRisk + "%).","info");
+  }
+
+  function handleDisciplineUpdate(state) {
+    const safeState = normaliseDisciplineState(state);
+    const diag = computeDisciplineDiagnostics(safeState);
+    const energyDiag = computeEnergyDiagnostics(energyState, safeState);
+    setDisciplineState(safeState);
+    setDisciplineScore(diag.score);
+    setEnergyScore(energyDiag.score);
+    showToast("Discipline calibrated: " + diag.label, "system");
+    addLog("Discipline kernel updated: " + diag.label + " (" + diag.score + "). Energy lift " + (diag.readinessLift >= 0 ? "+" : "") + diag.readinessLift + ".","system");
   }
 
   /* ---- Phase 4: Coins ---- */
@@ -9486,7 +9946,19 @@ function App() {
 
     /* Energy restore */
     if (item.effectKey === "energy") {
-      setEnergyScore(function(prev) { return Math.min(100, prev + item.effectGain); });
+      setEnergyState(function(prev) {
+        const next = Object.assign({}, prev, {
+          sleepReserve: clamp((prev.sleepReserve||0) + Math.round(item.effectGain * 0.35), 0, 100),
+          hydrationReserve: clamp((prev.hydrationReserve||0) + Math.round(item.effectGain * 0.3), 0, 100),
+          nutritionReserve: clamp((prev.nutritionReserve||0) + Math.round(item.effectGain * 0.18), 0, 100),
+          focusBandwidth: clamp((prev.focusBandwidth||0) + Math.round(item.effectGain * 0.2), 0, 100),
+          muscleFatigue: clamp((prev.muscleFatigue||0) - Math.round(item.effectGain * 0.25), 0, 100),
+          neuralLoad: clamp((prev.neuralLoad||0) - Math.round(item.effectGain * 0.22), 0, 100),
+          stressNoise: clamp((prev.stressNoise||0) - Math.round(item.effectGain * 0.15), 0, 100),
+        });
+        setEnergyScore(computeEnergyDiagnostics(next, disciplineState).score);
+        return next;
+      });
       showToast("Energy restored +"+item.effectGain,"evolve");
     }
 
@@ -10583,7 +11055,7 @@ function App() {
         {menuOpen&&<Sidebar activeView={activeView} onSelect={setActiveView} onClose={function(){setMenuOpen(false);sfx.sfxClick();}} ac={rank.color} playerName={player.name} isMonarch={isMonarch} />}
 
         <div className="system-content" style={{ maxWidth:860,margin:"0 auto",padding:"28px 16px 80px" }}>
-          {activeView==="Dashboard"&&<DashboardView player={player} rank={rank} dailyProgress={dailyProgress} isDailyDone={isDailyDone} onGoalTap={handleGoalTap} isMonarch={isMonarch} dailyQuest={dailyQuest} activeHiddenQuest={activeHiddenQuest} hiddenQuestProgress={hiddenQuestProgress} onHiddenGoalTap={handleHiddenGoalTap} energyScore={energyScore} onReset={handleDailyReset} fame={fame} worldEvent={worldEvent} awakeningDay={awakeningDay} />}
+          {activeView==="Dashboard"&&<DashboardView player={player} rank={rank} dailyProgress={dailyProgress} isDailyDone={isDailyDone} onGoalTap={handleGoalTap} isMonarch={isMonarch} dailyQuest={dailyQuest} activeHiddenQuest={activeHiddenQuest} hiddenQuestProgress={hiddenQuestProgress} onHiddenGoalTap={handleHiddenGoalTap} energyScore={energyScore} disciplineScore={disciplineScore} onReset={handleDailyReset} fame={fame} worldEvent={worldEvent} awakeningDay={awakeningDay} />}
           {activeView==="Daily Quest"&&(
             <div className="fade-in">
               <SL text="Daily Quest" ac={accentColor} />
@@ -10604,7 +11076,8 @@ function App() {
           {activeView==="Shadow Army"&&<ShadowArmyView shadowArmy={shadowArmy} bosses={bosses} bossData={BOSS_DATA} accentColor={accentColor} onRename={handleShadowRename} onFavorite={handleToggleShadowFavorite} activeMissions={shadowMissions} onDispatchMission={handleDispatchMission} onCompleteMission={handleCompleteMission} squads={shadowSquads} onAddToSquad={handleAddToSquad} />}
           {activeView==="Inventory"&&<InventoryView inventory={inventory} keys={dungeonKeys} coins={coins} onUseKey={handleUseKey} accentColor={accentColor} />}
           {activeView==="Hunter Shop"&&<HunterShopView coins={coins} inventory={inventory} onBuy={handleBuyItem} accentColor={accentColor} isMonarch={isMonarch} xpBoostCharges={xpBoostCharges} />}
-          {activeView==="Energy"&&<EnergyView energyState={energyState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
+          {activeView==="Discipline"&&<DisciplineView disciplineState={disciplineState} energyState={energyState} onUpdate={handleDisciplineUpdate} accentColor={accentColor} />}
+          {activeView==="Energy"&&<EnergyView energyState={energyState} disciplineState={disciplineState} onUpdate={handleEnergyUpdate} accentColor={accentColor} />}
           {activeView==="Rankings"&&<RankingsView player={player} fame={fame} rank={rank} rivals={rivals} accentColor={accentColor} />}
           {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
           {activeView==="Gate Map"&&<GateMapView player={player} accentColor={accentColor} onEnterGate={handleEnterGateWithCutscene} />}
