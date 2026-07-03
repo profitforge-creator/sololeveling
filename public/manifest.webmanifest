@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "Gatebound System",
+  "short_name": "Gatebound",
+  "description": "A long-form Hunter System for quests, discipline, recovery, Story arcs, Gates, Bosses, and real-world progression.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#020713",
+  "theme_color": "#020713",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["productivity", "health", "lifestyle", "games"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Daily Quest", "short_name": "Daily", "description": "Open today's Daily Quest", "url": "/?open=daily", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Story Mode", "short_name": "Story", "description": "Continue the current Story arc", "url": "/?open=story", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Energy Check-In", "short_name": "Energy", "description": "Log current recovery and energy", "url": "/?open=energy", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

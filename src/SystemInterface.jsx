@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { saveGame, loadGame, defaultSave, deleteSave, exportSave, importSave, resetStoryOnly, backupSaveData, debounce } from "./utils/storage.js";
 import StoryModeView, { getStoryCampaignSnapshot } from "./StoryModeView.jsx";
+import { InstallAppPanel, NotificationSettingsPanel } from "./PwaFeatures.jsx";
+import { sendSystemNotification } from "./pwa.js";
 import "./system-overrides.css";
 
 /* ============================================================================
@@ -2165,6 +2167,9 @@ const SECRET_ACHIEVEMENTS = [
 --------------------------------------------------------------------------- */
 const HUNTER_TITLES = [
   /* Starting titles */
+  { id: "weakest_hunter",  name: "Weakest Hunter",       rarity: "COMMON",    auraGlow: "#57d9ff",
+    condition: function(p,st,cl,sb) { return p.level >= 1; },
+    desc: "An E-Rank beginning. Nothing has been earned yet." },
   { id: "awakened",        name: "The Awakened",        rarity: "COMMON",    auraGlow: null,
     condition: function(p,st,cl,sb) { return p.level >= 1; },
     desc: "You have heard the call." },
@@ -3141,7 +3146,7 @@ function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function ts() { const d = new Date(); return d.getHours().toString().padStart(2,"0") + ":" + d.getMinutes().toString().padStart(2,"0") + ":" + d.getSeconds().toString().padStart(2,"0"); }
 function localDateKey() { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 
-/* Derive starting stats and rank from evaluation scores */
+/* Record evaluation performance while every fresh Player begins at E-Rank. */
 function computeEvaluation(scores) {
   let totalScore = 0;
   EVAL_TESTS.forEach(function(test) {
@@ -3153,24 +3158,9 @@ function computeEvaluation(scores) {
   });
   const avg = EVAL_TESTS.length > 0 ? totalScore / EVAL_TESTS.length : 0;
 
-  /* Starting level — minimum 1 so XP calculations never receive 0 */
-  let startLevel;
-  if      (avg >= 0.8) startLevel = 34;
-  else if (avg >= 0.6) startLevel = 22;
-  else if (avg >= 0.4) startLevel = 12;
-  else if (avg >= 0.2) startLevel = 5;
-  else                 startLevel = 1;   /* E-Rank starts at LV 1, not 0 */
-
-  /* Starting stats — always positive, always finite */
-  const stats = { Strength:10, Agility:10, Endurance:10, Discipline:10, Intelligence:10, Recovery:10, Aura:5 };
-  EVAL_TESTS.forEach(function(test) {
-    const raw = parseFloat(scores[test.id]) || 0;
-    const pct = test.invert ? clamp(1-(raw/test.max),0,1) : clamp(raw/test.max,0,1);
-    const gain = Math.round((isFinite(pct) ? pct : 0) * 15);
-    stats[test.stat] = Math.max(5, (stats[test.stat] || 10) + gain);
-  });
-
-  return { startLevel, startRank: getRankForLevel(startLevel), stats };
+  const startLevel=1;
+  const stats={Strength:1,Agility:1,Endurance:1,Discipline:1,Intelligence:1,Recovery:1,Aura:1};
+  return { startLevel, startRank:getRankForLevel(startLevel), stats, evaluationScore:Math.round(avg*100) };
 }
 
 /* ---------------------------------------------------------------------------
@@ -3719,6 +3709,7 @@ function LevelUpOverlay({ level, accent, onDone }) {
       <div style={{ position:"absolute",width:300,height:300,borderRadius:"50%",border:"2px solid "+accent,animation:"level-up-burst 1s ease forwards" }} />
       {Array.from({length:12}).map(function(_,i) { return <div key={i} style={{ position:"absolute",width:3,height:90,background:"linear-gradient(to bottom,"+accent+",transparent)",transformOrigin:"center bottom",transform:"rotate("+(i*30)+"deg) translateY(-100px)",animation:"level-up-ray 1s ease forwards",animationDelay:(i*20)+"ms" }} />; })}
       <div style={{ position:"relative",textAlign:"center",animation:"fade-in-up 0.4s ease forwards" }}>
+        <img src="/icons/system-s-transparent.png" alt="" style={{width:72,height:72,objectFit:"contain",filter:"drop-shadow(0 0 14px "+accent+")",marginBottom:6}} />
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.5em",color:accent,marginBottom:8 }}>LEVEL UP</div>
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:72,fontWeight:900,color:"#fff",textShadow:"0 0 30px "+accent }}>{level}</div>
       </div>
@@ -3739,6 +3730,7 @@ function RankUpOverlay({ rank, onDone }) {
       <div style={{ position:"absolute",width:320,height:320,borderRadius:"50%",border:"2px solid "+rank.color+"88",animation:"aura-ring-2 2s ease 0.5s forwards" }} />
       {/* Text */}
       <div style={{ position:"relative",textAlign:"center",padding:"0 32px" }}>
+        <img src="/icons/system-s-transparent.png" alt="" style={{width:84,height:84,objectFit:"contain",filter:"drop-shadow(0 0 17px "+rank.color+")",marginBottom:8}} />
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.5em",color:rank.color,marginBottom:16,animation:"fade-in 0.5s ease 0.1s both" }}>
           RANK ASCENSION
         </div>
@@ -4153,11 +4145,7 @@ function AwakeningRegistration({ onComplete }) {
 
   function finish() {
     if (!evalResult) return;
-    const physique = PHYSIQUES.find(function(p) { return p.id === chosenPhysique; });
     const baseStats = Object.assign({}, evalResult.stats);
-    if (physique) {
-      Object.keys(physique.statBonus).forEach(function(k) { baseStats[k] = (baseStats[k]||10) + physique.statBonus[k]; });
-    }
     onComplete({
       name: name.trim() || "Hunter",
       hunterClass: chosenClass || "unknown",
@@ -4679,6 +4667,7 @@ function TopHud({ player, rank, onMenuToggle, menuOpen, isMonarch }) {
     >
       {/* Rank badge + name */}
       <div style={{ display:"flex",alignItems:"center",gap:10,minWidth:0 }}>
+        <img className="system-brand-logo" src="/icons/system-s-transparent.png" alt="ARISE System" />
         <div className={isMonarch?"pulse-glow":""} style={{
           width:34, height:34,
           border:"1.5px solid "+c,
@@ -6786,17 +6775,18 @@ function GateMapView({ player, accentColor, onEnterGate }) {
   );
 }
 
-function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, ascensionCount, onAscend, lastSavedAt, onDeleteSave, onExportSave, onImportSave, onResetStory, innerDemonActive, onToggleInnerDemon, reevalAvailable, onOpenReeval }) {
+function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, ascensionCount, onAscend, lastSavedAt, onDeleteSave, onBackupSave, onExportSave, onImportSave, onResetStory, innerDemonActive, onToggleInnerDemon, reevalAvailable, onOpenReeval }) {
   const c = isMonarch?MONARCH_PURP:rank.color;
   const importInputRef = useRef(null);
   const [storyResetConfirm, setStoryResetConfirm] = useState(false);
   const [allResetConfirm, setAllResetConfirm] = useState(false);
+  const [resetPhrase, setResetPhrase] = useState("");
   return (
     <div className="fade-in">
       <SL text="Settings" ac={c} />
       <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
         <Win ac={c}><div style={{ padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between" }}><div><div style={{ fontWeight:600,color:"#dbe6ff",fontSize:14 }}>System Audio</div><div style={{ fontSize:11,color:"#5b7aa0" }}>SFX toggle</div></div><button onClick={onToggleSound} style={{ width:52,height:26,borderRadius:13,background:soundOn?c:"#2a3a55",border:"none",cursor:"pointer",position:"relative",transition:"background 0.2s" }}><div style={{ position:"absolute",top:3,left:soundOn?28:4,width:20,height:20,borderRadius:"50%",background:"#fff",transition:"left 0.2s" }} /></button></div></Win>
-        {["AI Quest Generation (Phase 4)","Supabase Sync (Phase 4)","Push Notifications (Phase 4)"].map(function(item){ return (<Win key={item} ac={c}><div style={{ padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:0.5 }}><span style={{ color:"#9fb8d8",fontSize:13 }}>{item}</span><span style={{ fontSize:10,padding:"2px 8px",border:"1px solid #5b7aa0",color:"#5b7aa0" }}>LOCKED</span></div></Win>); })}
+        {["AI Quest Generation (Phase 4)","Supabase Sync (Phase 4)"].map(function(item){ return (<Win key={item} ac={c}><div style={{ padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:0.5 }}><span style={{ color:"#9fb8d8",fontSize:13 }}>{item}</span><span style={{ fontSize:10,padding:"2px 8px",border:"1px solid #5b7aa0",color:"#5b7aa0" }}>LOCKED</span></div></Win>); })}
         {/* Wave 4: Ascension */}
         <div style={{ marginTop:8 }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:GLITCH_RED,marginBottom:8 }}>ASCENSION</div>
@@ -6848,6 +6838,9 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
           </div>
         </div>
 
+        <InstallAppPanel />
+        <NotificationSettingsPanel />
+
         {/* SAVE DATA */}
         <div style={{ marginTop:8 }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:SYS_BLUE,marginBottom:8 }}>SAVE DATA</div>
@@ -6863,6 +6856,7 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
               <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>Progress saves automatically after every action.</div>
             )}
             <div className="settings-save-actions">
+              <button onClick={onBackupSave}>BACKUP SAVE</button>
               <button onClick={onExportSave}>EXPORT SAVE</button>
               <button onClick={function(){ if(importInputRef.current) importInputRef.current.click(); }}>IMPORT SAVE</button>
               <input ref={importInputRef} type="file" accept="application/json,.json" style={{display:"none"}} onChange={function(event){
@@ -6870,8 +6864,8 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
                 const reader=new FileReader(); reader.onload=function(){if(typeof onImportSave==="function")onImportSave(String(reader.result||""));}; reader.readAsText(file); event.target.value="";
               }} />
               {!storyResetConfirm ? <button className="warning" onClick={function(){setStoryResetConfirm(true);setAllResetConfirm(false);}}>RESET STORY ONLY</button> : <button className="warning confirm" onClick={function(){if(typeof onResetStory==="function")onResetStory();}}>CONFIRM STORY RESET</button>}
-              {!allResetConfirm ? <button className="danger" onClick={function(){setAllResetConfirm(true);setStoryResetConfirm(false);}}>RESET ALL DATA</button> : <button className="danger confirm" onClick={function(){if(typeof onDeleteSave==="function")onDeleteSave();}}>DANGEROUS: CONFIRM RESET ALL</button>}
-              {(storyResetConfirm||allResetConfirm)&&<button onClick={function(){setStoryResetConfirm(false);setAllResetConfirm(false);}}>CANCEL</button>}
+              {!allResetConfirm ? <button className="danger" onClick={function(){setAllResetConfirm(true);setStoryResetConfirm(false);setResetPhrase("");}}>RESET ALL PROGRESS / NEW GAME</button> : <div className="danger-reset-confirm"><label>TYPE RESET TO CONFIRM<input value={resetPhrase} onChange={function(event){setResetPhrase(event.target.value.toUpperCase());}} placeholder="RESET" autoComplete="off" /></label><button disabled={resetPhrase!=="RESET"} className="danger confirm" onClick={function(){if(resetPhrase==="RESET"&&typeof onDeleteSave==="function")onDeleteSave();}}>PERMANENTLY RESET ALL</button></div>}
+              {(storyResetConfirm||allResetConfirm)&&<button onClick={function(){setStoryResetConfirm(false);setAllResetConfirm(false);setResetPhrase("");}}>CANCEL</button>}
             </div>
             <p style={{fontSize:10,color:"#536b84",lineHeight:1.5,marginTop:10}}>Import creates a backup first. Reset Story preserves profile, rank, XP, inventory, Shadows, guild, and settings. Reset All Data removes active save data.</p>
           </div>
@@ -9304,6 +9298,14 @@ class ErrorBoundary extends React.Component {
 /* ===========================================================================
    ROOT APP
    =========================================================================== */
+function initialViewFromShortcut() {
+  try {
+    const requested = new URLSearchParams(window.location.search).get("open");
+    const views = { daily:"Daily Quest", story:"Story Mode", energy:"Energy", boss:"Boss Raids", settings:"Settings" };
+    return views[requested] || "Dashboard";
+  } catch (_) { return "Dashboard"; }
+}
+
 function App() {
   const sfx = useAudio();
 
@@ -9324,13 +9326,13 @@ function App() {
   /* Player */
   const [player, setPlayer] = useState(sv ? sv.player : {
     name: "Hunter", level: 1, xp: 0, streak: 0,
-    job: "fighter", physique: "hybrid", goals: [],
-    activeTitle: "awakened",
-    stats: { Strength:10, Agility:10, Endurance:10, Discipline:10, Intelligence:10, Recovery:10, Aura:5 },
+    job: "none", physique: "unselected", goals: [],
+    activeTitle: "weakest_hunter",
+    stats: { Strength:1, Agility:1, Endurance:1, Discipline:1, Intelligence:1, Recovery:1, Aura:1 },
   });
 
   /* UI */
-  const [activeView, setActiveView] = useState("Dashboard");
+  const [activeView, setActiveView] = useState(initialViewFromShortcut);
   const [menuOpen, setMenuOpen]     = useState(false);
   const [soundOn, setSoundOn]       = useState(sv ? sv.soundOn : true);
 
@@ -9907,6 +9909,7 @@ function App() {
     setAnomalyDone({});
     showToast("Daily quests reset. New protocol begins.","system");
     addLog("Daily reset triggered at midnight. Quests refreshed.","system");
+    sendSystemNotification("dailyQuest");
   }
 
   function handleEnergyUpdate(state) {
@@ -9942,6 +9945,7 @@ function App() {
     }
     showToast("STORY PAUSED - recovery protocol issued.", "warning");
     addLog("Campaign penalty: " + missed + " missed day" + (missed === 1 ? "" : "s") + ", -" + xpLoss + " XP, rank stability reduced.", "warning");
+    sendSystemNotification("penalty", { body:"Campaign paused after " + missed + " missed day" + (missed === 1 ? "." : "s.") + " Recovery protocol is waiting." });
   }
 
   /* ---- Phase 4: Coins ---- */
@@ -10303,6 +10307,15 @@ function App() {
       showToast("Full save backup exported.","evolve");
       addLog("Full save backup exported by hunter.","system");
     } catch (_) { showToast("Save export failed.","warning"); }
+  }
+
+  function handleBackupSave() {
+    try {
+      const ok=backupSaveData("manual_settings_backup");
+      if (!ok) { showToast("Backup snapshot failed.","warning"); return; }
+      showToast("Recovery snapshot secured.","evolve");
+      addLog("Manual recovery snapshot created by hunter.","system");
+    } catch (_) { showToast("Backup snapshot failed.","warning"); }
   }
 
   function handleImportSave(raw) {
@@ -11028,34 +11041,29 @@ function App() {
     /* CRITICAL: data has startLevel from computeEvaluation.
        Player state expects level. Map it here so player.level is
        always a finite number — prevents xpForLevel(undefined) → NaN. */
-    const safeLevel = (typeof data.startLevel === "number" && isFinite(data.startLevel))
-      ? data.startLevel
-      : 1;
-    const safeStats = data.stats && typeof data.stats === "object"
-      ? data.stats
-      : { Strength:10, Agility:10, Endurance:10, Discipline:10, Intelligence:10, Recovery:10, Aura:5 };
+    const safeLevel=1;
+    const safeStats={Strength:1,Agility:1,Endurance:1,Discipline:1,Intelligence:1,Recovery:1,Aura:1};
 
     setPlayer({
       name:        data.name       || "Hunter",
       level:       safeLevel,
       xp:          0,
       streak:      0,
-      job:         data.hunterClass || "fighter",
+      job:         "none",
       physique:    data.physique   || "hybrid",
       goals:       Array.isArray(data.goals) ? data.goals : [],
-      activeTitle: "awakened",
+      activeTitle: "weakest_hunter",
       stats:       safeStats,
     });
     sfx.sfxOpen();
     addLog(
-      "Hunter " + (data.name||"Hunter") + " registered. Class: " + (data.hunterClass||"fighter") +
-      ". Starting rank: " + getRankForLevel(safeLevel).name + ".",
+      "Hunter " + (data.name||"Hunter") + " registered. Path remains unselected. Starting rank: E-Rank.",
       "system"
     );
     setPhase("app");
     /* Save immediately after onboarding — don't wait for auto-save debounce */
     setTimeout(function() {
-      try { saveGame({ phase:"app", player:{ name:data.name||"Hunter",level:safeLevel,xp:0,streak:0,job:data.hunterClass||"fighter",physique:data.physique||"hybrid",goals:Array.isArray(data.goals)?data.goals:[],activeTitle:"awakened",stats:safeStats }, coins:0, fame:0, inventory:[], shadowArmy:[], isDailyDone:false }); } catch(_) {}
+      try { saveGame({ phase:"app", player:{ name:data.name||"Hunter",level:1,xp:0,streak:0,job:"none",physique:data.physique||"unselected",goals:Array.isArray(data.goals)?data.goals:[],activeTitle:"weakest_hunter",stats:safeStats }, coins:0, fame:0, inventory:[], shadowArmy:[], isDailyDone:false }); } catch(_) {}
     }, 200);
   }
 
@@ -11137,7 +11145,7 @@ function App() {
             </div>
           )}
           {activeView==="Side Quests"&&<SideQuestsView rank={rank} sideProgress={sideProgress} sideDone={sideDone} onSideGoalTap={handleSideGoalTap} isMonarch={isMonarch} extSideProgress={extSideProgress} extSideDone={extSideDone} onExtGoalTap={handleExtSideGoalTap} player={player} energyScore={energyScore} fame={fame} guildId={guildId} anomalyDone={anomalyDone} onAnomalyComplete={handleAnomalyComplete} recentAnomalyIds={recentAnomalyIds} />}
-          {activeView==="Story Mode"&&<StoryModeView player={player} rank={rank} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} guildId={guildId} dailyDone={isDailyDone} dailyQuestType={dailyQuest.dayType} focusDone={Boolean(sideDone[1])||Object.values(extSideDone||{}).some(Boolean)||Object.values(anomalyDone||{}).some(Boolean)||Boolean(guildQuestDone)} energyState={energyState} energyScore={energyScore} disciplineState={disciplineState} disciplineScore={disciplineScore} reevaluationDone={Boolean(lastEvalStats)} evaluationDone={phase==="app"} previousSaveDetected={hadSaveOnLaunch} isMonarch={isMonarch} onCampaignChange={setStorySnapshot} onPenalty={handleStoryPenalty} onReward={function(chapter){ grantXp(chapter.xp,"Intelligence",1); addCoins(chapter.coins); showToast(chapter.title+" cleared! +"+chapter.xp+" XP","evolve"); addLog("Story arc cleared: "+chapter.title+". Authority unlocked: "+chapter.unlocks.join(", ")+".","evolve"); }} />}
+          {activeView==="Story Mode"&&<StoryModeView player={player} rank={rank} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} guildId={guildId} dailyDone={isDailyDone} dailyQuestType={dailyQuest.dayType} focusDone={Boolean(sideDone[1])||Object.values(extSideDone||{}).some(Boolean)||Object.values(anomalyDone||{}).some(Boolean)||Boolean(guildQuestDone)} energyState={energyState} energyScore={energyScore} disciplineState={disciplineState} disciplineScore={disciplineScore} reevaluationDone={Boolean(lastEvalStats)} evaluationDone={phase==="app"} previousSaveDetected={hadSaveOnLaunch} isMonarch={isMonarch} onCampaignChange={setStorySnapshot} onPenalty={handleStoryPenalty} onReward={function(chapter){ grantXp(chapter.xp,"Intelligence",1); addCoins(chapter.coins); showToast(chapter.title+" cleared! +"+chapter.xp+" XP","evolve"); addLog("Story arc cleared: "+chapter.title+". Authority unlocked: "+chapter.unlocks.join(", ")+".","evolve"); sendSystemNotification("story",{body:chapter.title+" cleared. New System authority acquired."}); }} />}
           {activeView==="Hunter Stats"&&<StatsView player={player} rank={rank} isMonarch={isMonarch} onSelectTitle={handleSetTitle} clearedGates={clearedGates} />}
           {activeView==="Hunter Profile"&&<HunterIdentityView player={player} rank={rank} isMonarch={isMonarch} fame={fame} shadowArmy={shadowArmy} bosses={bosses} clearedGates={clearedGates} earnedAchievements={earnedAchievements} guildId={guildId} accentColor={accentColor} />}
           {activeView==="Guild"&&<GuildView player={player} fame={fame} guildId={guildId} guildQuestProgress={guildQuestProgress} guildQuestDone={guildQuestDone} onGoalTap={handleGuildGoalTap} onLeave={handleLeaveGuild} accentColor={accentColor} />}
@@ -11155,7 +11163,7 @@ function App() {
           {activeView==="World Feed"&&<WorldFeedView worldFeed={worldFeed} player={player} fame={fame} accentColor={accentColor} />}
           {activeView==="Gate Map"&&<GateMapView player={player} accentColor={accentColor} onEnterGate={handleEnterGateWithCutscene} />}
           {activeView==="System Log"&&<SystemLogView logs={systemLog} ac={accentColor} secretAchievements={secretAchievements} collectedLoreIds={collectedLoreIds} earnedAchievements={earnedAchievements} player={player} clearedGates={clearedGates} bosses={bosses} shadowArmy={shadowArmy} />}
-          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} onExportSave={handleExportSave} onImportSave={handleImportSave} onResetStory={handleResetStoryOnly} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
+          {activeView==="Settings"&&<SettingsView rank={rank} soundOn={soundOn} onToggleSound={function(){setSoundOn(function(s){return !s;});}} isMonarch={isMonarch} playerLevel={player.level} ascensionCount={ascensionCount} onAscend={handleAscension} lastSavedAt={lastSavedAt} onDeleteSave={handleDeleteSave} onBackupSave={handleBackupSave} onExportSave={handleExportSave} onImportSave={handleImportSave} onResetStory={handleResetStoryOnly} innerDemonActive={innerDemonActive} onToggleInnerDemon={handleToggleInnerDemon} reevalAvailable={reevalAvailable} onOpenReeval={function(){setReevalOpen(true);}} />}
         </div>
 
         {/* DEV: Monarch interest only — no free XP */}

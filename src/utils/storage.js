@@ -5,7 +5,11 @@
  */
 
 const SAVE_KEY     = "arise_save_v1";
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
+export const SAVE_SCHEMA_VERSION = "fresh-e-rank-v1";
+const FRESH_START_MARKER = "gatebound_fresh_e_rank_v1_initialized";
+export const FRESH_START_NOTICE_KEY = "gatebound_fresh_e_rank_v1_notice";
+const PRE_FRESH_BACKUP_KEY = "gatebound_pre_fresh_start_backup";
 const SAVE_BACKUP_KEY = "arise_save_backup_v1";
 const MANUAL_BACKUP_KEY = "arise_save_backup_latest";
 const STORY_V2_KEY = "arise_story_campaign_v2";
@@ -31,8 +35,8 @@ function safeParse(str, fallback) {
 
 function sanitiseStats(raw) {
   const defaults = {
-    Strength: 10, Agility: 10, Endurance: 10,
-    Discipline: 10, Intelligence: 10, Recovery: 10, Aura: 5,
+    Strength: 1, Agility: 1, Endurance: 1,
+    Discipline: 1, Intelligence: 1, Recovery: 1, Aura: 1,
   };
   if (!raw || typeof raw !== "object") return defaults;
   const out = {};
@@ -46,8 +50,8 @@ function sanitiseStats(raw) {
 function sanitisePlayer(raw) {
   const def = {
     name: "Hunter", level: 1, xp: 0, streak: 0,
-    job: "fighter", physique: "hybrid", goals: [],
-    activeTitle: "awakened",
+    job: "none", physique: "unselected", goals: [],
+    activeTitle: "weakest_hunter",
     stats: sanitiseStats(null),
   };
   if (!raw || typeof raw !== "object") return def;
@@ -62,14 +66,14 @@ function sanitisePlayer(raw) {
     job:         typeof raw.job === "string"      ? raw.job      : def.job,
     physique:    typeof raw.physique === "string" ? raw.physique : def.physique,
     goals:       Array.isArray(raw.goals)         ? raw.goals    : [],
-    activeTitle: typeof raw.activeTitle === "string" ? raw.activeTitle : "awakened",
+    activeTitle: typeof raw.activeTitle === "string" ? raw.activeTitle : "weakest_hunter",
     stats:       sanitiseStats(raw.stats),
   };
 }
 
 export function defaultSave() {
   return {
-    version: SAVE_VERSION, phase: "onboard",
+    version: SAVE_VERSION, schemaVersion: SAVE_SCHEMA_VERSION, hasFreshStartInitialized: true, phase: "onboard",
     player: sanitisePlayer(null),
     isDailyDone: false, dailyProgress: {},
     sideProgress: [], sideDone: [],
@@ -89,41 +93,80 @@ export function defaultSave() {
     monarchInterest: 0, monarchStage: 0, isMonarch: false, ascensionCount: 0,
     soundOn: true,
     energyState: {
-      sleepReserve: 72,
-      hydrationReserve: 70,
-      nutritionReserve: 64,
-      focusBandwidth: 62,
-      muscleFatigue: 34,
-      neuralLoad: 28,
-      stressNoise: 30,
+      sleepReserve: 50,
+      hydrationReserve: 50,
+      nutritionReserve: 50,
+      focusBandwidth: 50,
+      muscleFatigue: 50,
+      neuralLoad: 50,
+      stressNoise: 50,
       lastLoggedOn: null,
     },
-    energyScore: 68,
+    energyScore: 50,
     disciplineState: {
-      willpower: 61,
-      routineIntegrity: 58,
-      urgeControl: 54,
-      executionSharpness: 57,
-      recoveryCompliance: 60,
-      slips: 1,
+      willpower: 50,
+      routineIntegrity: 50,
+      urgeControl: 50,
+      executionSharpness: 50,
+      recoveryCompliance: 50,
+      slips: 0,
       cleanCycles: 0,
       lastLoggedOn: null,
       protocols: {
-        wake: true,
-        training: true,
+        wake: false,
+        training: false,
         nutrition: false,
         focus: false,
-        sleep: true,
+        sleep: false,
       },
     },
-    disciplineScore: 57,
+    disciplineScore: 50,
     bossHpSnapshot: null, secretUnlockedIds: [],
   };
 }
 
+function initialiseFreshStartOnce() {
+  try {
+    if (localStorage.getItem(FRESH_START_MARKER) === SAVE_SCHEMA_VERSION) return false;
+    const previous = {
+      backedUpAt:Date.now(),
+      schemaVersion:SAVE_SCHEMA_VERSION,
+      mainSave:safeParse(localStorage.getItem(SAVE_KEY),null),
+      storyV4:safeParse(localStorage.getItem(STORY_V4_KEY),null),
+      storyV3:safeParse(localStorage.getItem(STORY_V3_KEY),null),
+      storyV2:safeParse(localStorage.getItem(STORY_V2_KEY),null),
+      reevaluation:localStorage.getItem(REEVAL_KEY),
+      dailyReset:localStorage.getItem(DAILY_RESET_KEY),
+    };
+    const backup=safeStringify(previous);
+    if (backup) localStorage.setItem(PRE_FRESH_BACKUP_KEY,backup);
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(STORY_V2_KEY);
+    localStorage.removeItem(STORY_V3_KEY);
+    localStorage.removeItem(STORY_V4_KEY);
+    localStorage.removeItem(REEVAL_KEY);
+    localStorage.removeItem(DAILY_RESET_KEY);
+    localStorage.setItem(STORY_NEW_GAME_MARKER,"1");
+    localStorage.setItem(SAVE_KEY,JSON.stringify(Object.assign({},defaultSave(),{savedAt:Date.now()})));
+    localStorage.setItem(FRESH_START_MARKER,SAVE_SCHEMA_VERSION);
+    localStorage.setItem(FRESH_START_NOTICE_KEY,"1");
+    return true;
+  } catch (_) { return false; }
+}
+
+export function freshStartNoticePending() {
+  try { return localStorage.getItem(FRESH_START_NOTICE_KEY) === "1"; }
+  catch (_) { return false; }
+}
+
+export function acknowledgeFreshStartNotice() {
+  try { localStorage.removeItem(FRESH_START_NOTICE_KEY); return true; }
+  catch (_) { return false; }
+}
+
 export function saveGame(state) {
   try {
-    const payload = Object.assign({}, state, { version: SAVE_VERSION, savedAt: Date.now() });
+    const payload = Object.assign({}, state, { version: SAVE_VERSION, schemaVersion:SAVE_SCHEMA_VERSION, hasFreshStartInitialized:true, savedAt: Date.now() });
     const str = safeStringify(payload);
     if (!str) return false;
     localStorage.setItem(SAVE_KEY, str);
@@ -133,6 +176,7 @@ export function saveGame(state) {
 
 export function loadGame() {
   try {
+    initialiseFreshStartOnce();
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const parsed = safeParse(raw, null);
@@ -146,6 +190,8 @@ export function loadGame() {
     const def = defaultSave();
     return {
       version: SAVE_VERSION,
+      schemaVersion: SAVE_SCHEMA_VERSION,
+      hasFreshStartInitialized: true,
       phase: parsed.phase === "app" ? "app" : "onboard",
       player: sanitisePlayer(parsed.player),
       isDailyDone: !!parsed.isDailyDone,
@@ -202,6 +248,8 @@ export function deleteSave() {
     localStorage.removeItem(STORY_NEW_GAME_MARKER);
     localStorage.removeItem(REEVAL_KEY);
     localStorage.removeItem(DAILY_RESET_KEY);
+    localStorage.removeItem(FRESH_START_MARKER);
+    localStorage.removeItem(FRESH_START_NOTICE_KEY);
     return true;
   }
   catch (_) { return false; }
@@ -217,6 +265,7 @@ export function exportSave() {
     return safeStringify({
       format: "arise_full_backup",
       schemaVersion: SAVE_VERSION,
+      saveSchemaVersion: SAVE_SCHEMA_VERSION,
       exportedAt: Date.now(),
       mainSave: safeParse(localStorage.getItem(SAVE_KEY), null),
       storyV4: safeParse(localStorage.getItem(STORY_V4_KEY), null),

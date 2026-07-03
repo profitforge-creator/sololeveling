@@ -878,7 +878,7 @@ function ScenePlayer({ chapter, state, onState, onClose, onFinish }) {
       {scene.alert && <div className="story-top-alert"><b>!</b><span><small>SYSTEM NOTIFICATION</small><strong>{scene.alert}</strong></span></div>}
       {scene.kind === "item" && <div className="item-materialization"><div className="item-core">V</div><span>ACQUISITION COMPLETE</span></div>}
       <div className={"story-dialogue " + (scene.kind === "system" || scene.kind === "path" ? "system-dialogue" : "")}>
-        <div className="speaker-portrait" style={{ "--speaker": speaker.color }}><span>{scene.speaker === "architect" ? ":)" : scene.speaker === "shadow" ? "S" : "!"}</span></div>
+        <div className={"speaker-portrait speaker-"+scene.speaker} style={{ "--speaker": speaker.color }}><span>{scene.speaker === "architect" ? ":)" : scene.speaker === "shadow" ? "S" : "!"}</span></div>
         <div className="dialogue-copy">
           <div className="speaker-name" style={{ color: speaker.color }}>{speaker.name}</div>
           <p><Typewriter key={index} text={scene.text} onDone={() => setTyped(true)} /></p>
