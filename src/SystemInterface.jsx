@@ -40,23 +40,29 @@ const FONT_LINK = "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;50
 /* ---------------------------------------------------------------------------
    COLORS
 --------------------------------------------------------------------------- */
-const SYS_BLUE     = "#4db8ff";
+const SYS_BLUE     = "#6fd0ff";
+const SYS_BRACKET  = "#7cd6ff";
+const SYS_LABEL    = "#58c8ff";
+const TEXT_HI      = "#e6f3ff";
+const TEXT_DIM     = "#8fb7d9";
+const SYS_DANGER   = "#ff5964";
+const SYS_GAIN     = "#3ef29a";
 const MONARCH_DARK = "#0d0010";
-const MONARCH_PURP = "#9b30ff";
-const MONARCH_DIM  = "#6a1fa8";
-const GLITCH_RED   = "#ff2244";
+const MONARCH_PURP = "#a08dff";
+const MONARCH_DIM  = "#6a5da8";
+const GLITCH_RED   = "#ff5964";
 
 /* ---------------------------------------------------------------------------
-   RANKS
+   RANKS — E→S palette matches the System UI Kit RankBadge tokens
 --------------------------------------------------------------------------- */
 const RANKS = [
-  { name: "E-Rank",         color: "#8a8f98", glow: "rgba(138,143,152,0.4)", min: 0,  title: "Awakened",          minRankIndex: 0 },
-  { name: "D-Rank",         color: "#6fae6f", glow: "rgba(111,174,111,0.4)", min: 5,  title: "Hunter",            minRankIndex: 1 },
-  { name: "C-Rank",         color: "#4db8ff", glow: "rgba(77,184,255,0.5)",  min: 12, title: "Skilled Hunter",    minRankIndex: 2 },
-  { name: "B-Rank",         color: "#5d7cf5", glow: "rgba(93,124,245,0.5)",  min: 22, title: "Elite Hunter",      minRankIndex: 3 },
-  { name: "A-Rank",         color: "#a05df5", glow: "rgba(160,93,245,0.55)", min: 34, title: "High Hunter",       minRankIndex: 4 },
-  { name: "S-Rank",         color: "#f5b65d", glow: "rgba(245,182,93,0.6)",  min: 48, title: "Sovereign Hunter",  minRankIndex: 5 },
-  { name: "National Level", color: "#f55d8a", glow: "rgba(245,93,138,0.65)", min: 64, title: "National Asset",    minRankIndex: 6 },
+  { name: "E-Rank",         color: "#a9c4dd", glow: "rgba(169,196,221,0.4)", min: 0,  title: "Awakened",          minRankIndex: 0 },
+  { name: "D-Rank",         color: "#7fe6b5", glow: "rgba(127,230,181,0.4)", min: 5,  title: "Hunter",            minRankIndex: 1 },
+  { name: "C-Rank",         color: "#7cd6ff", glow: "rgba(124,214,255,0.5)", min: 12, title: "Skilled Hunter",    minRankIndex: 2 },
+  { name: "B-Rank",         color: "#8fa8ff", glow: "rgba(143,168,255,0.5)", min: 22, title: "Elite Hunter",      minRankIndex: 3 },
+  { name: "A-Rank",         color: "#b8a4ff", glow: "rgba(184,164,255,0.55)",min: 34, title: "High Hunter",       minRankIndex: 4 },
+  { name: "S-Rank",         color: "#ffd66b", glow: "rgba(255,214,107,0.6)", min: 48, title: "Sovereign Hunter",  minRankIndex: 5 },
+  { name: "National Level", color: "#ffe9a8", glow: "rgba(255,233,168,0.7)", min: 64, title: "National Asset",    minRankIndex: 6 },
 ];
 
 const STAT_KEYS = ["Strength","Agility","Endurance","Discipline","Intelligence","Recovery","Aura"];
@@ -527,13 +533,13 @@ const SIDE_QUESTS = [
 
 /* Quest rarity config */
 const SQ_RARITY = {
-  COMMON:    { color:"#4db8ff",  border:"#4db8ff44",  bg:"rgba(77,184,255,0.05)",    xpMod:1.0 },
+  COMMON:    { color:"#6fd0ff",  border:"#6fd0ff44",  bg:"rgba(111,208,255,0.05)",    xpMod:1.0 },
   UNCOMMON:  { color:"#6fae6f",  border:"#6fae6f44",  bg:"rgba(111,174,111,0.05)",   xpMod:1.3 },
   RARE:      { color:"#a05df5",  border:"#a05df588",  bg:"rgba(160,93,245,0.07)",    xpMod:1.7 },
   ELITE:     { color:"#f53d3d",  border:"#f53d3d88",  bg:"rgba(245,61,61,0.07)",     xpMod:2.0 },
   LEGENDARY: { color:"#f5b65d",  border:"#f5b65d88",  bg:"rgba(245,182,93,0.07)",    xpMod:2.2 },
-  CORRUPTED: { color:MONARCH_PURP,border:MONARCH_PURP+"88",bg:"rgba(155,48,255,0.07)",xpMod:2.5 },
-  MONARCH:   { color:"#2ee88a",  border:"#2ee88a88",  bg:"rgba(46,232,138,0.07)",    xpMod:3.0 },
+  CORRUPTED: { color:MONARCH_PURP,border:MONARCH_PURP+"88",bg:"rgba(160,141,255,0.07)",xpMod:2.5 },
+  MONARCH:   { color:"#3ef29a",  border:"#3ef29a88",  bg:"rgba(62,242,154,0.07)",    xpMod:3.0 },
 };
 
 /* ===========================================================================
@@ -1602,7 +1608,7 @@ const SECRET_BOSS_DATA = [
     name: "The Void Sovereign",
     title: "Entity of Absolute Stillness",
     icon: "◉",
-    color: "#9b30ff",
+    color: "#a08dff",
     hp: 8, maxHp: 8,
     xp: 300, statKey: "Aura", statGain: 8,
     minLevel: 22,
@@ -1666,7 +1672,7 @@ const SECRET_BOSS_DATA = [
     name: "The Absolute Being",
     title: "Creator of the System",
     icon: "✸",
-    color: "#2ee88a",
+    color: "#3ef29a",
     hp: 12, maxHp: 12,
     xp: 800, statKey: "Aura", statGain: 15,
     minLevel: 48,
@@ -1727,13 +1733,13 @@ const DUNGEON_EVENTS = [
   { id: "corrupted_altar", label: "CORRUPTED ALTAR",        color: GLITCH_RED,
     desc: "An anomalous altar pulses with forbidden mana. You can feel it calling.",
     outcome: "Aura +3 · Monarch interest ↑", statKey: "Aura", statGain: 3, monarchGain: 3, chance: 0.10 },
-  { id: "ambush_evaded",   label: "AMBUSH — EVADED",        color: "#4db8ff",
+  { id: "ambush_evaded",   label: "AMBUSH — EVADED",        color: "#6fd0ff",
     desc: "Your instincts fired before the ambush could land. You moved first.",
     outcome: "Agility +1 · Fame +5", statKey: "Agility", statGain: 1, fameGain: 5, chance: 0.20 },
   { id: "hidden_lore",     label: "ANCIENT RECORD",         color: "#6fae6f",
     desc: "A stone tablet inside the gate carries pre-System text. You absorb it.",
     outcome: "+1 Lore Fragment · Intelligence +1", loreFrag: true, statKey: "Intelligence", statGain: 1, chance: 0.12 },
-  { id: "mana_surge",      label: "MANA SURGE",             color: "#2ee88a",
+  { id: "mana_surge",      label: "MANA SURGE",             color: "#3ef29a",
     desc: "A natural mana surge floods the corridor. Your body adapts in real time.",
     outcome: "+40 XP · Endurance +1", xpGain: 40, statKey: "Endurance", statGain: 1, chance: 0.18 },
 ];
@@ -1750,7 +1756,7 @@ const DUNGEON_MODIFIERS = [
   { id: "none2",        label: null,                   color: null,         desc: null,                            xpMod: 1.0  },
   { id: "none3",        label: null,                   color: null,         desc: null,                            xpMod: 1.0  },
   { id: "time_limit",   label: "TIME LIMIT",           color: "#f53d3d",    desc: "Complete all rooms quickly. Hesitation costs you.", xpMod: 1.4 },
-  { id: "double_reward",label: "DOUBLE REWARD",        color: "#2ee88a",    desc: "The gate is unstable. All rewards doubled.",        xpMod: 2.0 },
+  { id: "double_reward",label: "DOUBLE REWARD",        color: "#3ef29a",    desc: "The gate is unstable. All rewards doubled.",        xpMod: 2.0 },
   { id: "corrupted",    label: "CORRUPTED AURA",       color: MONARCH_PURP, desc: "Shadow mana has infected the gate. Aura affected.",  xpMod: 1.6 },
   { id: "stamina_drain",label: "STAMINA DRAIN",        color: "#f5b65d",    desc: "Energy depletes faster inside. Push through.",      xpMod: 1.5 },
   { id: "no_recovery",  label: "NO RECOVERY ZONE",     color: "#f53d3d",    desc: "Recovery items disabled inside. Run clean.",         xpMod: 1.7 },
@@ -1911,7 +1917,7 @@ const SYSTEM_TAKEOVER_EVENTS = [
   {
     id: "guild_notice",
     chance: 0.04,
-    color: "#4db8ff",
+    color: "#6fd0ff",
     title: "GUILD TRANSMISSION",
     message: "An organization has been observing your performance data. This is not an automated message. Someone is watching you specifically.",
     sub: "Your reputation precedes you.",
@@ -1957,7 +1963,7 @@ const SYSTEM_TAKEOVER_EVENTS = [
   {
     id: "growth_exceeds",
     chance: 0.04,
-    color: "#2ee88a",
+    color: "#3ef29a",
     title: "GROWTH ANALYSIS",
     message: "Stat growth rate exceeds hunter average by a significant margin. The System is logging this for review. Your trajectory is being monitored.",
     sub: "Growth rate exceeds projections.",
@@ -2034,8 +2040,8 @@ function SystemTakeoverOverlay({ event, onDone }) {
       pointerEvents:"none",
     }}>
       {/* Circuit scanlines — matches Image 3 background */}
-      <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(77,184,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(77,184,255,0.03) 1px,transparent 1px)",backgroundSize:"40px 40px",pointerEvents:"none" }} />
-      <div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(77,184,255,0.015) 3px,rgba(77,184,255,0.015) 4px)",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(111,208,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(111,208,255,0.03) 1px,transparent 1px)",backgroundSize:"40px 40px",pointerEvents:"none" }} />
+      <div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(111,208,255,0.015) 3px,rgba(111,208,255,0.015) 4px)",pointerEvents:"none" }} />
       {/* Horizontal scan beam */}
       <div style={{ position:"absolute",left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+c+"66,transparent)",animation:"scan-line 2.5s linear infinite" }} />
 
@@ -2043,7 +2049,7 @@ function SystemTakeoverOverlay({ event, onDone }) {
       <div className="fade-in-up" style={{ maxWidth:520,width:"90%",padding:"0 20px",position:"relative" }}>
         <div style={{ border:"1px solid "+c+"66",background:"linear-gradient(160deg,rgba(2,6,18,0.97),rgba(3,8,22,0.99))",boxShadow:"0 0 60px "+c+"22,inset 0 0 40px rgba(0,0,0,0.6)",position:"relative",overflow:"hidden" }}>
           {/* Scanline overlay on panel */}
-          <div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(77,184,255,0.018) 3px,rgba(77,184,255,0.018) 4px)",pointerEvents:"none" }} />
+          <div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(111,208,255,0.018) 3px,rgba(111,208,255,0.018) 4px)",pointerEvents:"none" }} />
           <div className="sl-corners" />
 
           {/* NOTIFICATION header row — with [!] icon + title box */}
@@ -2179,7 +2185,7 @@ const HUNTER_TITLES = [
   { id: "relentless",      name: "The Relentless",       rarity: "UNCOMMON",  auraGlow: "#f5b65d",
     condition: function(p,st,cl,sb) { return st >= 7; },
     desc: "Seven days. No excuses." },
-  { id: "dungeon_survivor",name: "Dungeon Survivor",     rarity: "RARE",      auraGlow: "#4db8ff",
+  { id: "dungeon_survivor",name: "Dungeon Survivor",     rarity: "RARE",      auraGlow: "#6fd0ff",
     condition: function(p,st,cl,sb) { return Object.keys(cl).length >= 1; },
     desc: "Entered a gate. Came back out." },
   { id: "shadow_commander",name: "Shadow Commander",     rarity: "RARE",      auraGlow: MONARCH_PURP,
@@ -2194,14 +2200,14 @@ const HUNTER_TITLES = [
   { id: "monarch_candidate",name:"Monarch Candidate",    rarity: "LEGENDARY", auraGlow: GLITCH_RED,
     condition: function(p,st,cl,sb) { return p.level >= 48; },
     desc: "The System has flagged your potential." },
-  { id: "sovereign",       name: "Sovereign",            rarity: "MYTHIC",    auraGlow: "#2ee88a",
+  { id: "sovereign",       name: "Sovereign",            rarity: "MYTHIC",    auraGlow: "#3ef29a",
     condition: function(p,st,cl,sb) { return p.stats && (p.stats.Aura||0) >= 80; },
     desc: "Authority radiates from you." },
 ];
 
 const TITLE_RARITY_COLOR = {
-  COMMON: "#8a8f98", UNCOMMON: "#4db8ff", RARE: "#a05df5",
-  EPIC: "#f5b65d", LEGENDARY: "#f53d3d", MYTHIC: "#2ee88a",
+  COMMON: "#8a8f98", UNCOMMON: "#6fd0ff", RARE: "#a05df5",
+  EPIC: "#f5b65d", LEGENDARY: "#f53d3d", MYTHIC: "#3ef29a",
 };
 
 /* Return all titles the player has unlocked */
@@ -2219,13 +2225,13 @@ const SHADOW_TEMPLATES = [
   /* Soldiers */
   { id:"sh_iron",     name:"Iron",         rank:"Soldier",       rarity:"COMMON",    icon:"⚔", color:"#8a8f98", specialty:"Frontline",       aura:"dim grey",           passive:"Absorbs 5% incoming damage for you",          lore:"The first shadow you ever called. Unnamed. Loyal.",                    statBoost:{Strength:1},           evolutionTo:"sh_steel"   },
   { id:"sh_fleet",    name:"Fleet",        rank:"Soldier",       rarity:"COMMON",    icon:"➤", color:"#6fae6f", specialty:"Scout",            aura:"faint green",        passive:"+1 Agility on sprint completion",             lore:"Runs ahead so you never enter a room unprepared.",                    statBoost:{Agility:1},            evolutionTo:"sh_blade"   },
-  { id:"sh_grunt",    name:"Grunt",        rank:"Soldier",       rarity:"COMMON",    icon:"⚔", color:"#5b7aa0", specialty:"Brawler",          aura:"dim blue",           passive:"Endurance +1 on daily completion",            lore:"Never asked for a name. Never needed one.",                           statBoost:{Endurance:1},          evolutionTo:"sh_steel"   },
+  { id:"sh_grunt",    name:"Grunt",        rank:"Soldier",       rarity:"COMMON",    icon:"⚔", color:"#8fb7d9", specialty:"Brawler",          aura:"dim blue",           passive:"Endurance +1 on daily completion",            lore:"Never asked for a name. Never needed one.",                           statBoost:{Endurance:1},          evolutionTo:"sh_steel"   },
   { id:"sh_ash",      name:"Ash",          rank:"Soldier",       rarity:"COMMON",    icon:"◈", color:"#8a8f98", specialty:"Sentinel",         aura:"pale smoke",         passive:"Recovery +1 on rest day",                     lore:"Stands watch while you sleep.",                                       statBoost:{Recovery:1},           evolutionTo:"sh_shade"   },
   { id:"sh_pike",     name:"Pike",         rank:"Soldier",       rarity:"COMMON",    icon:"➤", color:"#6fae6f", specialty:"Spear",            aura:"forest mist",        passive:"Agility +1 on streak ≥ 3",                    lore:"First in, last out.",                                                 statBoost:{Agility:1},            evolutionTo:"sh_blade"   },
   /* Knights */
-  { id:"sh_steel",    name:"Steel",        rank:"Knight",        rarity:"UNCOMMON",  icon:"❖", color:"#4db8ff", specialty:"Tank",             aura:"ice blue",           passive:"Reduces quest penalty severity by 10%",       lore:"Evolved from Iron. Colder now. More deliberate.",                     statBoost:{Strength:2,Endurance:1},evolutionTo:"sh_titan"   },
+  { id:"sh_steel",    name:"Steel",        rank:"Knight",        rarity:"UNCOMMON",  icon:"❖", color:"#6fd0ff", specialty:"Tank",             aura:"ice blue",           passive:"Reduces quest penalty severity by 10%",       lore:"Evolved from Iron. Colder now. More deliberate.",                     statBoost:{Strength:2,Endurance:1},evolutionTo:"sh_titan"   },
   { id:"sh_blade",    name:"Blade",        rank:"Knight",        rarity:"UNCOMMON",  icon:"◈", color:"#a05df5", specialty:"Assassin",         aura:"violet mist",        passive:"+2 Agility on streak ≥ 3",                    lore:"Silent. Precise. Never misses a target you set.",                     statBoost:{Agility:2,Discipline:1},evolutionTo:"sh_void"    },
-  { id:"sh_shade",    name:"Shade",        rank:"Knight",        rarity:"UNCOMMON",  icon:"◈", color:"#9b30ff", specialty:"Shadow Walker",    aura:"shifting dark",      passive:"Intelligence +1 on meditation",               lore:"Moves between moments. Hard to track even for you.",                  statBoost:{Intelligence:2},       evolutionTo:"sh_void"    },
+  { id:"sh_shade",    name:"Shade",        rank:"Knight",        rarity:"UNCOMMON",  icon:"◈", color:"#a08dff", specialty:"Shadow Walker",    aura:"shifting dark",      passive:"Intelligence +1 on meditation",               lore:"Moves between moments. Hard to track even for you.",                  statBoost:{Intelligence:2},       evolutionTo:"sh_void"    },
   { id:"sh_crag",     name:"Crag",         rank:"Knight",        rarity:"UNCOMMON",  icon:"❖", color:"#5d7cf5", specialty:"Defender",         aura:"stone grey",         passive:"Endurance +2 when dungeon cleared",           lore:"Built from the pressure you put on yourself.",                        statBoost:{Endurance:2,Strength:1},evolutionTo:"sh_titan"   },
   { id:"sh_fang",     name:"Fang",         rank:"Knight",        rarity:"UNCOMMON",  icon:"➤", color:"#f53d3d", specialty:"Hunter",           aura:"blood trace",        passive:"+1 Strength on boss encounter",               lore:"Hunts before you give the order.",                                    statBoost:{Strength:2,Agility:1},  evolutionTo:"sh_titan"   },
   { id:"sh_hollow",   name:"Hollow",       rank:"Knight",        rarity:"UNCOMMON",  icon:"✦", color:"#8a8f98", specialty:"Void Knight",      aura:"empty black",        passive:"Aura +1 on deep focus session",               lore:"Empty inside. That emptiness is its weapon.",                         statBoost:{Aura:2,Intelligence:1}, evolutionTo:"sh_phantom" },
@@ -2234,22 +2240,22 @@ const SHADOW_TEMPLATES = [
   { id:"sh_void",     name:"Void",         rank:"Elite Knight",  rarity:"RARE",      icon:"✦", color:"#f55d8a", specialty:"Mage",             aura:"crimson shadow fire", passive:"+2 Intelligence on focus sessions",           lore:"Speaks only in silence. Teaches through absence.",                    statBoost:{Intelligence:3,Aura:2}, evolutionTo:"sh_phantom" },
   { id:"sh_igris",    name:"Igris",        rank:"Elite Knight",  rarity:"RARE",      icon:"⚔", color:"#f53d3d", specialty:"Vanguard",         aura:"blood red",          passive:"Discipline +2 each day active",               lore:"Once your laziness. Now your most loyal vanguard.",                   statBoost:{Discipline:3,Strength:2},evolutionTo:null         },
   { id:"sh_tusk",     name:"Tusk",         rank:"Elite Knight",  rarity:"RARE",      icon:"◈", color:"#a05df5", specialty:"Focus Sentinel",   aura:"purple static",      passive:"Blocks distraction — +2 Intelligence daily",  lore:"Once your distraction. Now your focus guardian.",                     statBoost:{Intelligence:2,Discipline:2},evolutionTo:null     },
-  { id:"sh_vex",      name:"Vex",          rank:"Elite Knight",  rarity:"RARE",      icon:"✦", color:"#9b30ff", specialty:"Chaos Knight",     aura:"fractured violet",   passive:"Aura +2 after dungeon clear",                 lore:"Unpredictable. Effective. Difficult to command.",                     statBoost:{Aura:3,Agility:2},      evolutionTo:"sh_phantom" },
+  { id:"sh_vex",      name:"Vex",          rank:"Elite Knight",  rarity:"RARE",      icon:"✦", color:"#a08dff", specialty:"Chaos Knight",     aura:"fractured violet",   passive:"Aura +2 after dungeon clear",                 lore:"Unpredictable. Effective. Difficult to command.",                     statBoost:{Aura:3,Agility:2},      evolutionTo:"sh_phantom" },
   { id:"sh_ruin",     name:"Ruin",         rank:"Elite Knight",  rarity:"RARE",      icon:"⚔", color:"#f5b65d", specialty:"Siege Breaker",    aura:"amber shockwave",    passive:"+2 Strength on boss damage dealt",            lore:"Specializes in breaking things that were supposed to be unbreakable.", statBoost:{Strength:3,Discipline:1},evolutionTo:"sh_warlord" },
-  { id:"sh_null",     name:"Null",         rank:"Elite Knight",  rarity:"RARE",      icon:"◈", color:"#5b7aa0", specialty:"Negator",          aura:"absolute stillness", passive:"Prevents one quest penalty per week",          lore:"Cancels effects. Nullifies outcomes. Exists in the gap.",             statBoost:{Discipline:3,Recovery:2},evolutionTo:null         },
+  { id:"sh_null",     name:"Null",         rank:"Elite Knight",  rarity:"RARE",      icon:"◈", color:"#8fb7d9", specialty:"Negator",          aura:"absolute stillness", passive:"Prevents one quest penalty per week",          lore:"Cancels effects. Nullifies outcomes. Exists in the gap.",             statBoost:{Discipline:3,Recovery:2},evolutionTo:null         },
   /* Commanders */
   { id:"sh_warlord",  name:"Warlord",      rank:"Commander",     rarity:"EPIC",      icon:"⚔", color:"#f5b65d", specialty:"Siege",            aura:"golden war aura",    passive:"+5 Strength on boss defeat",                  lore:"Commands entire battalions. Obeys only you.",                         statBoost:{Strength:4,Endurance:3},evolutionTo:"sh_marshal" },
-  { id:"sh_phantom",  name:"Phantom",      rank:"Commander",     rarity:"EPIC",      icon:"✦", color:"#9b30ff", specialty:"Shadow Mage",      aura:"pulsing violet",     passive:"All shadow stats +1 when dungeon cleared",    lore:"Evolved from the void. Cannot be tracked. Cannot be stopped.",        statBoost:{Intelligence:4,Aura:3}, evolutionTo:"sh_marshal" },
+  { id:"sh_phantom",  name:"Phantom",      rank:"Commander",     rarity:"EPIC",      icon:"✦", color:"#a08dff", specialty:"Shadow Mage",      aura:"pulsing violet",     passive:"All shadow stats +1 when dungeon cleared",    lore:"Evolved from the void. Cannot be tracked. Cannot be stopped.",        statBoost:{Intelligence:4,Aura:3}, evolutionTo:"sh_marshal" },
   { id:"sh_kargal",   name:"Kargal",       rank:"Commander",     rarity:"EPIC",      icon:"✦", color:"#5d7cf5", specialty:"Fear Amplifier",   aura:"deep indigo pressure",passive:"Aura +3 when streak ≥ 5",                    lore:"Once your fear. Now it amplifies your enemies' terror.",              statBoost:{Aura:4,Discipline:3},   evolutionTo:null         },
   { id:"sh_baruka",   name:"Baruka",       rank:"Commander",     rarity:"EPIC",      icon:"❖", color:"#f5b65d", specialty:"Routine Enforcer", aura:"amber discipline field",passive:"Prevents streak loss once per week",         lore:"Once your inconsistency. Now the enforcer of every routine.",         statBoost:{Discipline:5,Recovery:2},evolutionTo:null         },
   { id:"sh_sovereign",name:"Sovereign",    rank:"Commander",     rarity:"EPIC",      icon:"◉", color:MONARCH_PURP,specialty:"Void Commander",  aura:"absolute black",    passive:"Aura +5 on streak ≥ 7",                       lore:"It never moved. It never needed to.",                                 statBoost:{Aura:5,Discipline:3},   evolutionTo:"sh_marshal" },
   { id:"sh_ember",    name:"Ember",        rank:"Commander",     rarity:"EPIC",      icon:"✸", color:"#f53d3d", specialty:"Flame Commander",  aura:"volatile red",       passive:"+4 Strength on cold shower completion",       lore:"Burns hotter the more you push.",                                     statBoost:{Strength:4,Aura:2},     evolutionTo:"sh_marshal" },
   /* Marshal */
-  { id:"sh_marshal",  name:"The Marshal",  rank:"Marshal",       rarity:"LEGENDARY", icon:"◉", color:"#ff2244", specialty:"Army General",     aura:"crimson sovereign pulse",passive:"All shadows gain +1 to primary stat",       lore:"Commands the entire shadow army. Speaks rarely. When he does, the dead listen.", statBoost:{Strength:5,Aura:5}, evolutionTo:null },
+  { id:"sh_marshal",  name:"The Marshal",  rank:"Marshal",       rarity:"LEGENDARY", icon:"◉", color:"#ff5964", specialty:"Army General",     aura:"crimson sovereign pulse",passive:"All shadows gain +1 to primary stat",       lore:"Commands the entire shadow army. Speaks rarely. When he does, the dead listen.", statBoost:{Strength:5,Aura:5}, evolutionTo:null },
   { id:"sh_iron_mon", name:"Iron Monarch", rank:"Marshal",       rarity:"LEGENDARY", icon:"⚔", color:"#f5b65d", specialty:"Unbreakable Will", aura:"iron sovereignty",   passive:"All stats +2 permanently",                    lore:"A king who refused to fall. His army is long gone. His will remains.", statBoost:{Strength:6,Endurance:4},evolutionTo:null         },
   /* Monarch-Level */
-  { id:"sh_beru",     name:"Beru",         rank:"Monarch-Level", rarity:"MYTHIC",    icon:"✸", color:"#2ee88a", specialty:"Ant Marshal",      aura:"emerald sovereign field",passive:"All quest XP +10% while active",            lore:"The greatest of the ant generals. Loyal beyond death. Calls you Master.", statBoost:{Strength:6,Agility:4,Aura:5}, evolutionTo:null },
-  { id:"sh_absolute", name:"The First Shadow",rank:"Monarch-Level",rarity:"MYTHIC",  icon:"◉", color:"#2ee88a", specialty:"Echo of Absolute", aura:"primordial void",    passive:"All stats +3 permanently",                    lore:"The System was created by something. That something left this behind.", statBoost:{Strength:5,Intelligence:5,Aura:6}, evolutionTo:null },
+  { id:"sh_beru",     name:"Beru",         rank:"Monarch-Level", rarity:"MYTHIC",    icon:"✸", color:"#3ef29a", specialty:"Ant Marshal",      aura:"emerald sovereign field",passive:"All quest XP +10% while active",            lore:"The greatest of the ant generals. Loyal beyond death. Calls you Master.", statBoost:{Strength:6,Agility:4,Aura:5}, evolutionTo:null },
+  { id:"sh_absolute", name:"The First Shadow",rank:"Monarch-Level",rarity:"MYTHIC",  icon:"◉", color:"#3ef29a", specialty:"Echo of Absolute", aura:"primordial void",    passive:"All stats +3 permanently",                    lore:"The System was created by something. That something left this behind.", statBoost:{Strength:5,Intelligence:5,Aura:6}, evolutionTo:null },
 ];
 
 /* ---------------------------------------------------------------------------
@@ -2262,40 +2268,40 @@ const SHADOW_POOL = [
   { id:"sp_stone_watcher",   name:"Stone Watcher",     tier:"common",     icon:"◈", color:"#8a8f98", baseChance:0.75, trait:"Guardian",   power:12, lore:"Stood at a dungeon gate for centuries. Waiting for someone worth following." },
   { id:"sp_grey_crawler",    name:"Grey Crawler",       tier:"common",     icon:"⚔", color:"#8a8f98", baseChance:0.72, trait:"Brawler",    power:10, lore:"Low rank. High loyalty. Died protecting someone who never knew its name." },
   { id:"sp_hollow_scout",    name:"Hollow Scout",       tier:"common",     icon:"➤", color:"#6fae6f", baseChance:0.78, trait:"Scout",      power:11, lore:"Always ahead. Never caught." },
-  { id:"sp_dim_archer",      name:"Dim Archer",         tier:"common",     icon:"➤", color:"#5b7aa0", baseChance:0.70, trait:"Ranger",     power:10, lore:"Hit targets it couldn't see. A skill it carries into shadow form." },
+  { id:"sp_dim_archer",      name:"Dim Archer",         tier:"common",     icon:"➤", color:"#8fb7d9", baseChance:0.70, trait:"Ranger",     power:10, lore:"Hit targets it couldn't see. A skill it carries into shadow form." },
   { id:"sp_bone_sentinel",   name:"Bone Sentinel",      tier:"common",     icon:"❖", color:"#8a8f98", baseChance:0.73, trait:"Tank",       power:13, lore:"Guarded a dungeon entrance for so long it became part of the architecture." },
-  { id:"sp_mist_wraith",     name:"Mist Wraith",        tier:"common",     icon:"◈", color:"#9b30ff", baseChance:0.68, trait:"Stealth",    power:9,  lore:"Impossible to track in low-light conditions. Yours now." },
+  { id:"sp_mist_wraith",     name:"Mist Wraith",        tier:"common",     icon:"◈", color:"#a08dff", baseChance:0.68, trait:"Stealth",    power:9,  lore:"Impossible to track in low-light conditions. Yours now." },
   { id:"sp_rust_blade",      name:"Rust Blade",         tier:"common",     icon:"⚔", color:"#f5b65d", baseChance:0.71, trait:"Striker",    power:11, lore:"Old weapon. Still lethal." },
   { id:"sp_cave_beast",      name:"Cave Beast",         tier:"common",     icon:"⚔", color:"#6fae6f", baseChance:0.74, trait:"Berserker",  power:14, lore:"Pure instinct. Redirected toward your enemies." },
-  { id:"sp_pale_soldier",    name:"Pale Soldier",       tier:"common",     icon:"⚔", color:"#5b7aa0", baseChance:0.69, trait:"Frontline",  power:10, lore:"A forgotten soldier from a forgotten war." },
+  { id:"sp_pale_soldier",    name:"Pale Soldier",       tier:"common",     icon:"⚔", color:"#8fb7d9", baseChance:0.69, trait:"Frontline",  power:10, lore:"A forgotten soldier from a forgotten war." },
   { id:"sp_shadow_pup",      name:"Shadow Hound",       tier:"common",     icon:"➤", color:"#8a8f98", baseChance:0.80, trait:"Hunter",     power:8,  lore:"Tracks prey across dimensions. Small but relentless." },
-  { id:"sp_iron_shard",      name:"Iron Shard",         tier:"common",     icon:"❖", color:"#4db8ff", baseChance:0.76, trait:"Sentinel",   power:12, lore:"A fragment of something greater. Still useful." },
+  { id:"sp_iron_shard",      name:"Iron Shard",         tier:"common",     icon:"❖", color:"#6fd0ff", baseChance:0.76, trait:"Sentinel",   power:12, lore:"A fragment of something greater. Still useful." },
   { id:"sp_dust_golem",      name:"Dust Golem",         tier:"common",     icon:"❖", color:"#8a8f98", baseChance:0.65, trait:"Tank",       power:15, lore:"Absorbed decades of dungeon mana. Slow. Unstoppable." },
-  { id:"sp_night_crawler",   name:"Night Crawler",      tier:"common",     icon:"◈", color:"#5b7aa0", baseChance:0.77, trait:"Scout",      power:9,  lore:"Thrives in the dark. Your army just got better at night ops." },
+  { id:"sp_night_crawler",   name:"Night Crawler",      tier:"common",     icon:"◈", color:"#8fb7d9", baseChance:0.77, trait:"Scout",      power:9,  lore:"Thrives in the dark. Your army just got better at night ops." },
   { id:"sp_grey_hound",      name:"Grey Hound",         tier:"common",     icon:"➤", color:"#6fae6f", baseChance:0.73, trait:"Tracker",    power:10, lore:"Never loses a trail." },
-  { id:"sp_worn_guardian",   name:"Worn Guardian",      tier:"common",     icon:"❖", color:"#5b7aa0", baseChance:0.70, trait:"Defender",   power:13, lore:"Damaged but loyal. Has refused death many times." },
+  { id:"sp_worn_guardian",   name:"Worn Guardian",      tier:"common",     icon:"❖", color:"#8fb7d9", baseChance:0.70, trait:"Defender",   power:13, lore:"Damaged but loyal. Has refused death many times." },
   /* ── ELITE ── */
-  { id:"sp_silver_fang",     name:"Silver Fang",        tier:"elite",      icon:"➤", color:"#4db8ff", baseChance:0.55, trait:"Assassin",   power:22, lore:"Fastest thing in the dungeon. Now it serves the fastest hunter." },
-  { id:"sp_black_wolf",      name:"Black Wolf",         tier:"elite",      icon:"➤", color:"#5b7aa0", baseChance:0.52, trait:"Hunter",     power:24, lore:"Hunted alone. Adapted to any environment. Yours now." },
+  { id:"sp_silver_fang",     name:"Silver Fang",        tier:"elite",      icon:"➤", color:"#6fd0ff", baseChance:0.55, trait:"Assassin",   power:22, lore:"Fastest thing in the dungeon. Now it serves the fastest hunter." },
+  { id:"sp_black_wolf",      name:"Black Wolf",         tier:"elite",      icon:"➤", color:"#8fb7d9", baseChance:0.52, trait:"Hunter",     power:24, lore:"Hunted alone. Adapted to any environment. Yours now." },
   { id:"sp_stone_knight",    name:"Stone Knight",       tier:"elite",      icon:"❖", color:"#5d7cf5", baseChance:0.50, trait:"Tank",       power:28, lore:"Built to take punishment. Has never fallen in combat." },
   { id:"sp_ember_mage",      name:"Ember Mage",         tier:"elite",      icon:"✦", color:"#f53d3d", baseChance:0.48, trait:"Mage",       power:26, lore:"Burned its way through seventeen dungeons before you found it." },
-  { id:"sp_ice_wraith",      name:"Ice Wraith",         tier:"elite",      icon:"◈", color:"#4db8ff", baseChance:0.53, trait:"Stealth",    power:20, lore:"Temperature drops when it enters a room. Enemies panic." },
+  { id:"sp_ice_wraith",      name:"Ice Wraith",         tier:"elite",      icon:"◈", color:"#6fd0ff", baseChance:0.53, trait:"Stealth",    power:20, lore:"Temperature drops when it enters a room. Enemies panic." },
   { id:"sp_bone_knight",     name:"Bone Knight",        tier:"elite",      icon:"❖", color:"#8a8f98", baseChance:0.51, trait:"Vanguard",   power:25, lore:"Has led charges in a hundred dungeons. Leads yours now." },
   { id:"sp_shade_duelist",   name:"Shade Duelist",      tier:"elite",      icon:"◈", color:"#a05df5", baseChance:0.54, trait:"Duelist",    power:23, lore:"One-on-one, it has never lost." },
   { id:"sp_storm_striker",   name:"Storm Striker",      tier:"elite",      icon:"⚔", color:"#f5b65d", baseChance:0.49, trait:"Berserker",  power:27, lore:"Fights like weather. Unpredictable. Destructive." },
   { id:"sp_twin_blade",      name:"Twin Blade",         tier:"elite",      icon:"◈", color:"#f53d3d", baseChance:0.50, trait:"Striker",    power:24, lore:"Two weapons. One mind. Yours." },
-  { id:"sp_iron_guardian",   name:"Iron Guardian",      tier:"elite",      icon:"❖", color:"#4db8ff", baseChance:0.56, trait:"Guardian",   power:30, lore:"Nothing gets past it. You don't want anything to." },
-  { id:"sp_void_stalker",    name:"Void Stalker",       tier:"elite",      icon:"✦", color:"#9b30ff", baseChance:0.45, trait:"Predator",   power:29, lore:"Moves through gaps in reality. Emerged in your dungeon by accident. Or choice." },
+  { id:"sp_iron_guardian",   name:"Iron Guardian",      tier:"elite",      icon:"❖", color:"#6fd0ff", baseChance:0.56, trait:"Guardian",   power:30, lore:"Nothing gets past it. You don't want anything to." },
+  { id:"sp_void_stalker",    name:"Void Stalker",       tier:"elite",      icon:"✦", color:"#a08dff", baseChance:0.45, trait:"Predator",   power:29, lore:"Moves through gaps in reality. Emerged in your dungeon by accident. Or choice." },
   { id:"sp_red_fang",        name:"Red Fang",           tier:"elite",      icon:"➤", color:"#f53d3d", baseChance:0.52, trait:"Hunter",     power:22, lore:"Hunted high-rank hunters. Failed for the first time against you." },
-  { id:"sp_crystal_mage",    name:"Crystal Mage",       tier:"elite",      icon:"✦", color:"#4db8ff", baseChance:0.47, trait:"Mage",       power:25, lore:"Converts dungeon mana into offensive crystals. Instantly." },
+  { id:"sp_crystal_mage",    name:"Crystal Mage",       tier:"elite",      icon:"✦", color:"#6fd0ff", baseChance:0.47, trait:"Mage",       power:25, lore:"Converts dungeon mana into offensive crystals. Instantly." },
   { id:"sp_war_golem",       name:"War Golem",          tier:"elite",      icon:"❖", color:"#f5b65d", baseChance:0.44, trait:"Siege",      power:32, lore:"Built by hunters who no longer exist. Adopted by your army." },
-  { id:"sp_night_assassin",  name:"Night Assassin",     tier:"elite",      icon:"◈", color:"#5b7aa0", baseChance:0.53, trait:"Assassin",   power:21, lore:"Operates exclusively after midnight. Precise. Invisible." },
+  { id:"sp_night_assassin",  name:"Night Assassin",     tier:"elite",      icon:"◈", color:"#8fb7d9", baseChance:0.53, trait:"Assassin",   power:21, lore:"Operates exclusively after midnight. Precise. Invisible." },
   /* ── KNIGHT ── */
   { id:"sp_shadow_knight",   name:"Shadow Knight",      tier:"knight",     icon:"❖", color:MONARCH_PURP, baseChance:0.38, trait:"Vanguard",  power:40, lore:"A knight-class shadow. Carries the weight of a thousand battles." },
   { id:"sp_blood_templar",   name:"Blood Templar",      tier:"knight",     icon:"⚔", color:"#f53d3d",    baseChance:0.36, trait:"Berserker", power:44, lore:"Sanctified in battle. Consecrated in blood. Yours now." },
-  { id:"sp_frost_paladin",   name:"Frost Paladin",      tier:"knight",     icon:"❖", color:"#4db8ff",    baseChance:0.40, trait:"Tank",      power:42, lore:"Slows everything around it. Your enemies included." },
+  { id:"sp_frost_paladin",   name:"Frost Paladin",      tier:"knight",     icon:"❖", color:"#6fd0ff",    baseChance:0.40, trait:"Tank",      power:42, lore:"Slows everything around it. Your enemies included." },
   { id:"sp_arcane_knight",   name:"Arcane Knight",      tier:"knight",     icon:"✦", color:"#a05df5",    baseChance:0.35, trait:"Mage",      power:46, lore:"Carries ancient combat spells in its blade. Rare combination." },
-  { id:"sp_void_knight",     name:"Void Knight",        tier:"knight",     icon:"◈", color:"#9b30ff",    baseChance:0.33, trait:"Predator",  power:48, lore:"Existed before the gates. A remnant of something older." },
+  { id:"sp_void_knight",     name:"Void Knight",        tier:"knight",     icon:"◈", color:"#a08dff",    baseChance:0.33, trait:"Predator",  power:48, lore:"Existed before the gates. A remnant of something older." },
   { id:"sp_iron_templar",    name:"Iron Templar",       tier:"knight",     icon:"❖", color:"#5d7cf5",    baseChance:0.37, trait:"Guardian",  power:43, lore:"Defended a lost kingdom for four hundred years. Still standing." },
   { id:"sp_phantom_blade",   name:"Phantom Blade",      tier:"knight",     icon:"◈", color:"#f55d8a",    baseChance:0.34, trait:"Assassin",  power:45, lore:"Invisible in combat. Kills before being detected." },
   { id:"sp_storm_knight",    name:"Storm Knight",       tier:"knight",     icon:"⚔", color:"#f5b65d",    baseChance:0.38, trait:"Striker",   power:41, lore:"Commands a storm presence that destabilizes enemy formations." },
@@ -2304,25 +2310,25 @@ const SHADOW_POOL = [
   /* ── COMMANDER ── */
   { id:"sp_dark_commander",  name:"Dark Commander",     tier:"commander",  icon:"◉", color:MONARCH_PURP, baseChance:0.22, trait:"Commander", power:62, lore:"Led armies in the void for centuries. Chose you over nothingness." },
   { id:"sp_war_commander",   name:"War Commander",      tier:"commander",  icon:"⚔", color:"#f53d3d",    baseChance:0.20, trait:"Siege",     power:65, lore:"Has never lost a siege. Not once." },
-  { id:"sp_frost_commander", name:"Frost Commander",    tier:"commander",  icon:"❖", color:"#4db8ff",    baseChance:0.24, trait:"Tank",      power:60, lore:"Turns cold strategy into cold dominance." },
+  { id:"sp_frost_commander", name:"Frost Commander",    tier:"commander",  icon:"❖", color:"#6fd0ff",    baseChance:0.24, trait:"Tank",      power:60, lore:"Turns cold strategy into cold dominance." },
   { id:"sp_chaos_lord",      name:"Chaos Lord",         tier:"commander",  icon:"✸", color:"#f55d8a",    baseChance:0.18, trait:"Chaos",     power:70, lore:"Thrives in disorder. Your army just became unpredictable." },
-  { id:"sp_night_commander", name:"Night Commander",    tier:"commander",  icon:"◈", color:"#5b7aa0",    baseChance:0.21, trait:"Stealth",   power:64, lore:"Controls the darkness. Your enemies will never see the attack coming." },
-  { id:"sp_phantom_general", name:"Phantom General",    tier:"commander",  icon:"✦", color:"#9b30ff",    baseChance:0.19, trait:"Mage",      power:68, lore:"Commands shadow forces from a place that doesn't exist." },
+  { id:"sp_night_commander", name:"Night Commander",    tier:"commander",  icon:"◈", color:"#8fb7d9",    baseChance:0.21, trait:"Stealth",   power:64, lore:"Controls the darkness. Your enemies will never see the attack coming." },
+  { id:"sp_phantom_general", name:"Phantom General",    tier:"commander",  icon:"✦", color:"#a08dff",    baseChance:0.19, trait:"Mage",      power:68, lore:"Commands shadow forces from a place that doesn't exist." },
   { id:"sp_iron_commander",  name:"Iron Commander",     tier:"commander",  icon:"❖", color:"#5d7cf5",    baseChance:0.23, trait:"Vanguard",  power:63, lore:"Iron discipline. Iron results." },
   { id:"sp_ancient_keeper",  name:"Ancient Keeper",     tier:"commander",  icon:"✦", color:"#f5b65d",    baseChance:0.17, trait:"Guardian",  power:72, lore:"Kept something ancient locked away. Now keeps your enemies out." },
   { id:"sp_blood_general",   name:"Blood General",      tier:"commander",  icon:"⚔", color:"#f53d3d",    baseChance:0.20, trait:"Berserker", power:67, lore:"Bled for every victory. Still does." },
   /* ── GENERAL ── */
   { id:"sp_void_general",    name:"Void General",       tier:"general",    icon:"◉", color:MONARCH_PURP, baseChance:0.12, trait:"Commander", power:82, lore:"Commands an army that only exists when you need it." },
-  { id:"sp_shadow_sovereign",name:"Shadow Sovereign",   tier:"general",    icon:"✸", color:"#9b30ff",    baseChance:0.10, trait:"Monarch",   power:88, lore:"Was once a ruler of the dead. Now answers to one ruler only." },
+  { id:"sp_shadow_sovereign",name:"Shadow Sovereign",   tier:"general",    icon:"✸", color:"#a08dff",    baseChance:0.10, trait:"Monarch",   power:88, lore:"Was once a ruler of the dead. Now answers to one ruler only." },
   { id:"sp_war_sovereign",   name:"War Sovereign",      tier:"general",    icon:"⚔", color:"#f53d3d",    baseChance:0.11, trait:"Siege",     power:85, lore:"Never lost a war. Made you its first general." },
-  { id:"sp_frost_sovereign", name:"Frost Sovereign",    tier:"general",    icon:"❖", color:"#4db8ff",    baseChance:0.13, trait:"Dominator", power:80, lore:"Cold authority. Cold loyalty." },
+  { id:"sp_frost_sovereign", name:"Frost Sovereign",    tier:"general",    icon:"❖", color:"#6fd0ff",    baseChance:0.13, trait:"Dominator", power:80, lore:"Cold authority. Cold loyalty." },
   { id:"sp_ancient_general", name:"Ancient General",    tier:"general",    icon:"✦", color:"#f5b65d",    baseChance:0.09, trait:"Legend",    power:90, lore:"A name spoken in hushed tones in the Association. Now under your command." },
   /* ── MARSHAL ── */
-  { id:"sp_iron_marshal",    name:"Iron Marshal",       tier:"marshal",    icon:"◉", color:"#ff2244",    baseChance:0.05, trait:"Army",      power:96, lore:"Commands entire shadow armies. Takes orders from no one. Except you." },
+  { id:"sp_iron_marshal",    name:"Iron Marshal",       tier:"marshal",    icon:"◉", color:"#ff5964",    baseChance:0.05, trait:"Army",      power:96, lore:"Commands entire shadow armies. Takes orders from no one. Except you." },
   { id:"sp_void_marshal",    name:"Void Marshal",       tier:"marshal",    icon:"✸", color:MONARCH_PURP, baseChance:0.04, trait:"Void",      power:99, lore:"Exists at the border between presence and absence. A weapon you barely understand." },
   /* ── LEGENDARY ── */
   { id:"sp_first_knight",    name:"The First Knight",   tier:"legendary",  icon:"⚔", color:"#f5b65d",    baseChance:0.025,trait:"Legend",    power:110,lore:"The first shadow ever created. It waited until someone worthy appeared." },
-  { id:"sp_silent_one",      name:"The Silent One",     tier:"legendary",  icon:"◉", color:"#2ee88a",    baseChance:0.02, trait:"Unknown",   power:120,lore:"No classification. No record. The System cannot describe it.", unique:true },
+  { id:"sp_silent_one",      name:"The Silent One",     tier:"legendary",  icon:"◉", color:"#3ef29a",    baseChance:0.02, trait:"Unknown",   power:120,lore:"No classification. No record. The System cannot describe it.", unique:true },
   /* ── MONARCH-CLASS (hidden conditions) ── */
   { id:"sp_shadow_king",     name:"Shadow King Fragment",tier:"monarch",   icon:"◉", color:MONARCH_PURP, baseChance:0.01, trait:"Monarch",   power:150,lore:"A fragment of Monarch-level authority. Attracted to hunters on the edge of something great.", unique:true, hiddenCondition:"monarchInterest" },
 ];
@@ -2355,7 +2361,7 @@ function getAvailableShadows(player, count) {
   return shuffled.slice(0, count||3);
 }
 
-const RARITY_COLOR = { COMMON:"#8a8f98", UNCOMMON:"#4db8ff", RARE:"#a05df5", EPIC:"#f5b65d", LEGENDARY:"#f53d3d", MYTHIC:"#2ee88a" };
+const RARITY_COLOR = { COMMON:"#8a8f98", UNCOMMON:"#6fd0ff", RARE:"#a05df5", EPIC:"#f5b65d", LEGENDARY:"#f53d3d", MYTHIC:"#3ef29a" };
 
 /* ---------------------------------------------------------------------------
    ENERGY SYSTEM
@@ -2364,8 +2370,8 @@ const ENERGY_LEVELS = [
   { id: "exhausted",  label: "Exhausted",     color: "#f53d3d", threshold: 0,  uiDim: 0.5,  xpMod: 0.7,  desc: "Critical fatigue. Recovery mandatory before training." },
   { id: "drained",    label: "Drained",       color: "#f5b65d", threshold: 20, uiDim: 0.7,  xpMod: 0.85, desc: "Below optimal. Light recovery recommended." },
   { id: "stable",     label: "Stable",        color: "#8a8f98", threshold: 40, uiDim: 1.0,  xpMod: 1.0,  desc: "Normal operating capacity. Ready to train." },
-  { id: "energized",  label: "Energized",     color: "#4db8ff", threshold: 65, uiDim: 1.0,  xpMod: 1.1,  desc: "Above baseline. Performance outputs elevated." },
-  { id: "peak",       label: "Peak Condition", color: "#2ee88a", threshold: 85, uiDim: 1.0, xpMod: 1.25, desc: "Maximum output. Every rep counts double." },
+  { id: "energized",  label: "Energized",     color: "#6fd0ff", threshold: 65, uiDim: 1.0,  xpMod: 1.1,  desc: "Above baseline. Performance outputs elevated." },
+  { id: "peak",       label: "Peak Condition", color: "#3ef29a", threshold: 85, uiDim: 1.0, xpMod: 1.25, desc: "Maximum output. Every rep counts double." },
 ];
 
 function getEnergyLevel(score) {
@@ -2383,15 +2389,15 @@ const CHEST_REWARDS = [
   { id: "coins_sm",    type: "coins",    label: "50 Coins",         value: 50,   weight: 30, icon: "🪙", color: "#f5b65d" },
   { id: "coins_md",    type: "coins",    label: "150 Coins",        value: 150,  weight: 20, icon: "🪙", color: "#f5b65d" },
   { id: "coins_lg",    type: "coins",    label: "300 Coins",        value: 300,  weight: 8,  icon: "🪙", color: "#f5b65d" },
-  { id: "key_normal",  type: "key",      label: "Dungeon Key",      value: "normal",  weight: 15, icon: "🗝", color: "#4db8ff", desc: "Unlocks a standard dungeon gate." },
+  { id: "key_normal",  type: "key",      label: "Dungeon Key",      value: "normal",  weight: 15, icon: "🗝", color: "#6fd0ff", desc: "Unlocks a standard dungeon gate." },
   { id: "key_elite",   type: "key",      label: "Elite Dungeon Key",value: "elite",   weight: 5,  icon: "🗝", color: "#a05df5", desc: "Unlocks an elite gate event." },
   { id: "key_red",     type: "key",      label: "Red Gate Key",     value: "red",     weight: 2,  icon: "🗝", color: "#f53d3d", desc: "Forces a Red Gate encounter." },
   { id: "stat_str",    type: "stat",     label: "Strength Relic",   value: "Strength",   weight: 10, icon: "⚔", color: "#f53d3d", gain: 2 },
-  { id: "stat_agi",    type: "stat",     label: "Speed Relic",      value: "Agility",    weight: 10, icon: "➤", color: "#4db8ff", gain: 2 },
+  { id: "stat_agi",    type: "stat",     label: "Speed Relic",      value: "Agility",    weight: 10, icon: "➤", color: "#6fd0ff", gain: 2 },
   { id: "stat_end",    type: "stat",     label: "Endurance Relic",  value: "Endurance",  weight: 10, icon: "❖", color: "#6fae6f", gain: 2 },
   { id: "stat_disc",   type: "stat",     label: "Discipline Relic", value: "Discipline", weight: 10, icon: "◈", color: "#a05df5", gain: 2 },
-  { id: "stat_aura",   type: "stat",     label: "Aura Fragment",    value: "Aura",       weight: 5,  icon: "✸", color: "#9b30ff", gain: 3 },
-  { id: "boost_xp",    type: "boost",    label: "XP Surge (×1.5)", value: "xp",    weight: 6, icon: "⬆", color: "#2ee88a", desc: "Next quest gives 1.5× XP." },
+  { id: "stat_aura",   type: "stat",     label: "Aura Fragment",    value: "Aura",       weight: 5,  icon: "✸", color: "#a08dff", gain: 3 },
+  { id: "boost_xp",    type: "boost",    label: "XP Surge (×1.5)", value: "xp",    weight: 6, icon: "⬆", color: "#3ef29a", desc: "Next quest gives 1.5× XP." },
   { id: "hidden_key",  type: "hidden",   label: "Hidden Quest Trigger", value: "hidden", weight: 3, icon: "?", color: "#f5b65d", desc: "Forces a hidden quest to appear." },
 ];
 
@@ -2416,10 +2422,10 @@ function rollChestReward() {
    FAME TIERS — fame is now a major progression mechanic
 --------------------------------------------------------------------------- */
 const FAME_TIERS = [
-  { min:0,    name:"Unknown",          color:"#5b7aa0", guildAccess:[] },
+  { min:0,    name:"Unknown",          color:"#8fb7d9", guildAccess:[] },
   { min:50,   name:"Noticed",          color:"#8a8f98", guildAccess:["hunters_assoc"] },
   { min:150,  name:"Rising Hunter",    color:"#6fae6f", guildAccess:["hunters_assoc","crimson_raid"] },
-  { min:300,  name:"Known Hunter",     color:"#4db8ff", guildAccess:["hunters_assoc","crimson_raid","phantom_hunters"] },
+  { min:300,  name:"Known Hunter",     color:"#6fd0ff", guildAccess:["hunters_assoc","crimson_raid","phantom_hunters"] },
   { min:600,  name:"Elite Hunter",     color:"#a05df5", guildAccess:["hunters_assoc","crimson_raid","phantom_hunters","white_tiger"] },
   { min:1000, name:"Legendary Hunter", color:"#f5b65d", guildAccess:["hunters_assoc","crimson_raid","phantom_hunters","white_tiger","shadow_legion"] },
   { min:2000, name:"Sovereign",        color:"#f53d3d", guildAccess:["all"] },
@@ -2437,7 +2443,7 @@ function getFameTier(fame) {
 --------------------------------------------------------------------------- */
 const GUILDS = [
   {
-    id:"hunters_assoc", name:"Hunters Association", icon:"❖", color:"#4db8ff",
+    id:"hunters_assoc", name:"Hunters Association", icon:"❖", color:"#6fd0ff",
     motto:"Order in chaos. Protocol above all.", fameReq:50, rankReq:0,
     recruitMsg:"The Hunters Association has reviewed your performance record. Your classification qualifies you for registration.",
     questLabel:"Association Weekly Dispatch",
@@ -2488,7 +2494,7 @@ const GUILDS = [
   },
   /* ── ELITE GUILDS ──────────────────────────────────────────── */
   {
-    id:"national_hunter",  name:"National Hunter Guild",   icon:"✦", color:"#2ee88a",
+    id:"national_hunter",  name:"National Hunter Guild",   icon:"✦", color:"#3ef29a",
     motto:"The final line between gates and extinction.", fameReq:1500, rankReq:5,
     recruitMsg:"The National Hunter Guild maintains a strict registry. You have been flagged for exceptional performance in classified gate activity. This is not a recruitment letter. It is a formal observation notice. We will be watching.",
     questLabel:"National Incident Response",
@@ -2539,7 +2545,7 @@ const RIVALS_DATA = [
     desc:"Classified record. No public gate logs. Appears and disappears without registration.",
     dialogue:{ ahead:"You should not be able to see me on this list.", behind:"Stay in your lane.", surpassed:"This was not supposed to happen." } },
   { id:"nova_ashford", name:"Nova Ashford",  specialty:"Balanced",    personality:"analytical",
-    guild:"national_hunter", color:"#2ee88a",     icon:"✦",
+    guild:"national_hunter", color:"#3ef29a",     icon:"✦",
     baseLevel:22, baseFame:510,  combatRating:77,
     desc:"Consistently in the top percentile across all stat categories. No single weakness.",
     dialogue:{ ahead:"You have optimized well.", behind:"Your data is interesting.", surpassed:"My projections were incorrect. Updating." } },
@@ -2554,7 +2560,7 @@ const RIVALS_DATA = [
     desc:"Clears gates through preparation and analysis rather than power.",
     dialogue:{ ahead:"Knowledge is rank.", behind:"You are ahead. Interesting.", surpassed:"I misjudged your growth curve." } },
   { id:"sol_raines",   name:"Sol Raines",    specialty:"Mage",        personality:"eccentric",
-    guild:"phantom_hunters", color:"#4db8ff",     icon:"◉",
+    guild:"phantom_hunters", color:"#6fd0ff",     icon:"◉",
     baseLevel:20, baseFame:440,  combatRating:72,
     desc:"Unclassified ability type. The System has attempted to categorize it four times and failed.",
     dialogue:{ ahead:"The numbers do not explain you.", behind:"I see something building in your data.", surpassed:"There it is." } },
@@ -2581,7 +2587,7 @@ function getAuraType(stats, isMonarch, rankName) {
     desc: "The aura of one who rules over death itself.",
   };
   if (!stats) return {
-    name: "Dormant Aura", color: "#5b7aa0", tier: 0,
+    name: "Dormant Aura", color: "#8fb7d9", tier: 0,
     glow: "none", pulse: "", particles: false,
     desc: "Awakening has not yet begun.",
   };
@@ -2595,14 +2601,14 @@ function getAuraType(stats, isMonarch, rankName) {
     desc:"A darkness that bends light. Even other hunters feel it.",
   };
   if (aur>=25 || rank==="A")  return {
-    name:"Shadow Aura", color:"#9b30ff", tier:5,
-    glow:"0 0 20px #9b30ff55, 0 0 40px #9b30ff22",
+    name:"Shadow Aura", color:"#a08dff", tier:5,
+    glow:"0 0 20px #a08dff55, 0 0 40px #a08dff22",
     pulse:"pulse-glow", particles:false,
     desc:"Shadow mana bleeds into the visible spectrum.",
   };
   if (d>=30 || rank==="B")    return {
-    name:"Iron Will Aura", color:"#4db8ff", tier:4,
-    glow:"0 0 16px #4db8ff44, 0 0 32px #4db8ff11",
+    name:"Iron Will Aura", color:"#6fd0ff", tier:4,
+    glow:"0 0 16px #6fd0ff44, 0 0 32px #6fd0ff11",
     pulse:"pulse-glow", particles:false,
     desc:"Forged through refusal. Your will is becoming tangible.",
   };
@@ -2665,7 +2671,7 @@ const RELIC_SETS = [
   {
     id: "phantom_speed",
     name: "Phantom Speed Set",
-    color: "#4db8ff",
+    color: "#6fd0ff",
     pieces: ["dagger","armor_light","relic_focus"],
     bonuses: [
       { pieces: 2, label: "2-Piece: Agility +6 · Intelligence +2", stats: { Agility:6, Intelligence:2 } },
@@ -2708,7 +2714,7 @@ const MONARCH_ITEMS = [
     desc:"A shard of compressed shadow authority. The System cannot fully classify it.",
     effect:"Monarch interest +5 when obtained. Aura +3 permanent.",
     statKey:"Aura", statGain:3, monarchGain:5 },
-  { id:"shadow_core",      name:"Shadow Core",          icon:"◉", color:"#2ee88a",
+  { id:"shadow_core",      name:"Shadow Core",          icon:"◉", color:"#3ef29a",
     desc:"Extracted from a defeated shadow of extraordinary rank. Pulses with residual will.",
     effect:"Shadow army loyalty +20. Aura +5 permanent.",
     statKey:"Aura", statGain:5, shadowLoyalty:20 },
@@ -2724,7 +2730,7 @@ const MONARCH_ITEMS = [
     desc:"A relic recovered from a corrupted gate. Its mana signature doesn't match any known source.",
     effect:"Dungeon XP +15%. Monarch interest +6.",
     monarchGain:6 },
-  { id:"rulers_rune",      name:"Ruler's Rune",         icon:"✸", color:"#2ee88a",
+  { id:"rulers_rune",      name:"Ruler's Rune",         icon:"✸", color:"#3ef29a",
     desc:"A pre-System artifact. The inscription translates to a single word: ARISE.",
     effect:"Shadow army size +1 passive. Aura +8 permanent.",
     statKey:"Aura", statGain:8 },
@@ -2745,7 +2751,7 @@ const SHOP_ITEMS = [
      Boost XP, energy, and workout performance
   ══════════════════════════════════════════ */
   { id:"recovery_meal",   name:"Recovery Meal",      category:"training",    cost:80,
-    icon:"🍖", color:"#2ee88a",
+    icon:"🍖", color:"#3ef29a",
     effect:"+10 Recovery Stat",       effectKey:"Recovery",  effectGain:10,
     desc:"High-protein recovery meal. Accelerates muscle repair between sessions." },
   { id:"energy_pack",     name:"Energy Pack",         category:"training",    cost:120,
@@ -2761,7 +2767,7 @@ const SHOP_ITEMS = [
     effect:"Next 3 quests: +50% XP",  effectKey:"xp_boost3", effectGain:3,
     desc:"A full training cycle documented by a National Level hunter. Rare." },
   { id:"stamina_crystal", name:"Stamina Crystal",     category:"training",    cost:300,
-    icon:"💎", color:"#4db8ff",
+    icon:"💎", color:"#6fd0ff",
     effect:"Endurance +5",            effectKey:"Endurance", effectGain:5,
     desc:"Stores compressed physical output data. Absorbed by the body over time." },
 
@@ -2770,7 +2776,7 @@ const SHOP_ITEMS = [
      Gate access, raid probability, dungeon tools
   ══════════════════════════════════════════ */
   { id:"key_n",           name:"Dungeon Key",         category:"dungeon",     cost:300,
-    icon:"🗝", color:"#4db8ff",
+    icon:"🗝", color:"#6fd0ff",
     effect:"Opens a standard gate",   effectKey:null,        effectGain:0, keyType:"normal",
     desc:"Grants access to a standard-rank dungeon event." },
   { id:"key_e",           name:"Elite Key",            category:"dungeon",     cost:700,
@@ -2799,7 +2805,7 @@ const SHOP_ITEMS = [
     effect:"Shadow loyalty +15",      effectKey:"shadow_loyalty", effectGain:15,
     desc:"Raw mana extracted from the void. Accelerates shadow growth and bonding." },
   { id:"shadow_core",     name:"Shadow Core",           category:"shadow",      cost:500,
-    icon:"✸", color:"#9b30ff",
+    icon:"✸", color:"#a08dff",
     effect:"Shadow power +20",        effectKey:"shadow_power",   effectGain:20,
     desc:"A dense mana crystal harvested from defeated shadow-class entities." },
   { id:"name_crystal",    name:"Name Crystal",          category:"shadow",      cost:150,
@@ -2820,7 +2826,7 @@ const SHOP_ITEMS = [
     effect:"Strength +4",             effectKey:"Strength",   effectGain:4,
     desc:"Condensed physical output data. Applied directly to muscle memory." },
   { id:"agi_token",       name:"Agility Token",         category:"stats",       cost:200,
-    icon:"➤", color:"#4db8ff",
+    icon:"➤", color:"#6fd0ff",
     effect:"Agility +4",              effectKey:"Agility",    effectGain:4,
     desc:"Reaction-speed compound used by S-Rank hunters in training." },
   { id:"sense_token",     name:"Sense Token",            category:"stats",       cost:200,
@@ -2832,7 +2838,7 @@ const SHOP_ITEMS = [
     effect:"Endurance +4",            effectKey:"Endurance",  effectGain:4,
     desc:"Increases aerobic threshold. Reduces performance drop under sustained output." },
   { id:"aura_token",      name:"Aura Token",             category:"stats",       cost:350,
-    icon:"✸", color:"#9b30ff",
+    icon:"✸", color:"#a08dff",
     effect:"Aura +5",                 effectKey:"Aura",       effectGain:5,
     desc:"Extracted from a high-density mana zone. Rare. Sought after." },
   { id:"disc_token",      name:"Discipline Token",       category:"stats",       cost:200,
@@ -2853,7 +2859,7 @@ const SHOP_ITEMS = [
     effect:"Unlocks hidden lore entry", effectKey:"lore_unlock", effectGain:1,
     desc:"A recovered data fragment. Contains partial records from the early gate events." },
   { id:"sys_decoder",     name:"System Decoder",          category:"system",      cost:500,
-    icon:"⬡", color:"#4db8ff",
+    icon:"⬡", color:"#6fd0ff",
     effect:"Reveals hidden system info", effectKey:"sys_decode",  effectGain:1,
     desc:"A tool that bypasses standard read-permission on system files. The system has not authorized this." },
   /* Existing functional items */
@@ -2862,7 +2868,7 @@ const SHOP_ITEMS = [
     effect:"Intelligence +3",          effectKey:"Intelligence", effectGain:3,
     desc:"Ancient. Resonates with disciplined minds." },
   { id:"relic_rec",       name:"Recovery Talisman",       category:"system",      cost:200,
-    icon:"✚", color:"#2ee88a",
+    icon:"✚", color:"#3ef29a",
     effect:"Recovery +3",              effectKey:"Recovery",    effectGain:3,
     desc:"The system's way of saying: rest is not weakness." },
 
@@ -2883,7 +2889,7 @@ const SHOP_ITEMS = [
     effect:"[CLASSIFIED]",             effectKey:"Aura",       effectGain:12,
     desc:"Origin: unknown. Classification: denied. Acquisition: not recommended.", rotating:true },
   { id:"bm_relic",        name:"Shadow Relic",            category:"blackmarket", cost:1800,
-    icon:"◈", color:"#9b30ff",
+    icon:"◈", color:"#a08dff",
     effect:"[CLASSIFIED]",             effectKey:"shadow_power", effectGain:25,
     desc:"A relic from the first monarch. How it ended up here is not recorded.", rotating:true },
   { id:"bm_shadow",       name:"Corrupted Shadow",        category:"blackmarket", cost:1500,
@@ -2951,7 +2957,7 @@ const SPEC_TREE = [
 
 /* Paths for display order */
 const SPEC_PATHS = ["Strength","Agility","Endurance","Intelligence","Aura"];
-const SPEC_PATH_COLORS = { Strength:"#f53d3d", Agility:"#4db8ff", Endurance:"#6fae6f", Intelligence:"#f5b65d", Aura:MONARCH_PURP };
+const SPEC_PATH_COLORS = { Strength:"#f53d3d", Agility:"#6fd0ff", Endurance:"#6fae6f", Intelligence:"#f5b65d", Aura:MONARCH_PURP };
 
 /* Return unlocked nodes */
 function getUnlockedSpecNodes(playerStats, unlockedIds) {
@@ -3006,7 +3012,7 @@ const DISCIPLINE_PROTOCOLS = [
 
 const ENERGY_DRAG_METRICS = [
   { id: "sleepReserve", label: "Sleep Reserve", short: "SLP", color: "#6be3ff", invert: false, hint: "How restored you actually feel waking up." },
-  { id: "hydrationReserve", label: "Hydration Reserve", short: "HYD", color: "#4db8ff", invert: false, hint: "Fluid level, electrolytes, and overall body readiness." },
+  { id: "hydrationReserve", label: "Hydration Reserve", short: "HYD", color: "#6fd0ff", invert: false, hint: "Fluid level, electrolytes, and overall body readiness." },
   { id: "nutritionReserve", label: "Fuel Reserve", short: "FUEL", color: "#8cffd8", invert: false, hint: "How fed and usable your energy stores are." },
   { id: "focusBandwidth", label: "Focus Bandwidth", short: "FOC", color: "#b9f7ff", invert: false, hint: "Attention capacity available for work or training." },
   { id: "muscleFatigue", label: "Muscle Load", short: "MUS", color: "#ffc66b", invert: true, hint: "Peripheral fatigue and soreness dragging power output down." },
@@ -3174,7 +3180,7 @@ const GLOBAL_CSS = `
   html { background: #01040b; }
   body {
     background:
-      radial-gradient(125% 80% at 50% -12%, rgba(77,184,255,0.11) 0%, transparent 46%),
+      radial-gradient(125% 80% at 50% -12%, rgba(111,208,255,0.11) 0%, transparent 46%),
       radial-gradient(100% 100% at 50% 118%, rgba(22,44,96,0.20) 0%, transparent 56%),
       linear-gradient(180deg, #02080f 0%, #010610 58%, #01040b 100%);
     background-attachment: fixed;
@@ -3192,15 +3198,15 @@ const GLOBAL_CSS = `
     z-index: 60;
     background: radial-gradient(135% 130% at 50% 42%, transparent 54%, rgba(0,2,8,0.6) 100%);
   }
-  ::selection { background: rgba(77,184,255,0.32); color: #eaf8ff; }
+  ::selection { background: rgba(111,208,255,0.32); color: #eaf8ff; }
 
   /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: rgba(0,8,20,0.45); }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(77,184,255,0.6), rgba(77,184,255,0.18));
+    background: linear-gradient(180deg, rgba(111,208,255,0.6), rgba(111,208,255,0.18));
     border-radius: 0;
-    box-shadow: 0 0 8px rgba(77,184,255,0.5);
+    box-shadow: 0 0 8px rgba(111,208,255,0.5);
   }
   ::-webkit-scrollbar-thumb:hover { background: rgba(120,210,255,0.8); }
 
@@ -3216,7 +3222,7 @@ const GLOBAL_CSS = `
   @keyframes glitch-shift     { 0%,100%{transform:translateX(0) skewX(0deg)} 15%{transform:translateX(-4px) skewX(-2deg)} 30%{transform:translateX(4px) skewX(2deg)} 45%{transform:translateX(-2px) skewX(-1deg)} 60%{transform:translateX(2px) skewX(1deg)} 75%{transform:translateX(-1px) skewX(-.5deg)} }
   @keyframes scan-line        { 0%{top:-4%} 100%{top:104%} }
   @keyframes scan-pass        { 0%{transform:translateY(-100%)} 100%{transform:translateY(3000%)} }
-  @keyframes monarch-breathe  { 0%,100%{box-shadow:0 0 18px #9b30ff33,inset 0 0 18px #9b30ff0d} 50%{box-shadow:0 0 48px #9b30ff77,inset 0 0 36px #9b30ff22} }
+  @keyframes monarch-breathe  { 0%,100%{box-shadow:0 0 18px #a08dff33,inset 0 0 18px #a08dff0d} 50%{box-shadow:0 0 48px #a08dff77,inset 0 0 36px #a08dff22} }
   @keyframes aura-eruption    { 0%{transform:scale(.5);opacity:0} 40%{transform:scale(1.15);opacity:1} 100%{transform:scale(1);opacity:1} }
   @keyframes aura-ring-2      { 0%{transform:scale(.3);opacity:0} 50%{opacity:.7} 100%{transform:scale(1.3);opacity:0} }
   @keyframes shake            { 0%,100%{transform:translate(0,0)} 10%{transform:translate(-3px,-1px)} 20%{transform:translate(3px,2px)} 30%{transform:translate(-2px,3px)} 40%{transform:translate(2px,-2px)} 50%{transform:translate(-1px,1px)} 60%{transform:translate(1px,-3px)} 70%{transform:translate(-3px,1px)} 80%{transform:translate(3px,3px)} 90%{transform:translate(-1px,-1px)} }
@@ -3224,8 +3230,8 @@ const GLOBAL_CSS = `
   @keyframes fade-in          { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
   @keyframes fade-in-up       { from{opacity:0;transform:translateY(28px) scale(.96)} to{opacity:1;transform:translateY(0) scale(1)} }
   @keyframes toast-in         { from{transform:translateX(-50%) translateY(16px);opacity:0} to{transform:translateX(-50%) translateY(0);opacity:1} }
-  @keyframes monarch-text-flicker { 0%,100%{text-shadow:0 0 18px #9b30ff,0 0 36px #9b30ff77} 30%{text-shadow:0 0 6px #9b30ff,0 0 2px #9b30ff} 60%{text-shadow:0 0 28px #9b30ff,0 0 56px #9b30ffaa} }
-  @keyframes cyan-text-glow   { 0%,100%{text-shadow:0 0 8px #4db8ff88,0 0 20px #4db8ff33} 50%{text-shadow:0 0 16px #4db8ffcc,0 0 40px #4db8ff55} }
+  @keyframes monarch-text-flicker { 0%,100%{text-shadow:0 0 18px #a08dff,0 0 36px #a08dff77} 30%{text-shadow:0 0 6px #a08dff,0 0 2px #a08dff} 60%{text-shadow:0 0 28px #a08dff,0 0 56px #a08dffaa} }
+  @keyframes cyan-text-glow   { 0%,100%{text-shadow:0 0 8px #6fd0ff88,0 0 20px #6fd0ff33} 50%{text-shadow:0 0 16px #6fd0ffcc,0 0 40px #6fd0ff55} }
   @keyframes blink            { 0%,49%{opacity:1} 50%,100%{opacity:0} }
   @keyframes level-up-burst   { 0%{opacity:1;transform:scale(0)} 60%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1.15)} }
   @keyframes level-up-ray     { 0%{opacity:1;transform:scaleY(0)} 60%{opacity:1;transform:scaleY(1)} 100%{opacity:0;transform:scaleY(1.1)} }
@@ -3234,7 +3240,7 @@ const GLOBAL_CSS = `
   @keyframes log-entry-in     { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
   @keyframes dialogue-in      { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
   @keyframes shadow-appear    { from{opacity:0;transform:scale(.8) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
-  @keyframes arise-pulse      { 0%,100%{box-shadow:0 0 0 0 rgba(155,48,255,0.7)} 50%{box-shadow:0 0 0 18px rgba(155,48,255,0)} }
+  @keyframes arise-pulse      { 0%,100%{box-shadow:0 0 0 0 rgba(160,141,255,0.7)} 50%{box-shadow:0 0 0 18px rgba(160,141,255,0)} }
   @keyframes eval-progress    { from{width:0} to{width:100%} }
   @keyframes chest-reveal     { 0%{opacity:0;transform:scale(0.5) translateY(18px)} 60%{transform:scale(1.08) translateY(-3px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
   @keyframes energy-pulse     { 0%,100%{opacity:0.65;transform:scale(1)} 50%{opacity:1;transform:scale(1.015)} }
@@ -3282,15 +3288,15 @@ const GLOBAL_CSS = `
   .sl-panel {
     position: relative;
     background:
-      radial-gradient(120% 65% at 50% 0%, rgba(77,184,255,0.08) 0%, transparent 60%),
-      linear-gradient(160deg, rgba(5,14,32,0.97) 0%, rgba(2,8,18,0.99) 100%);
-    border: 1px solid rgba(77,184,255,0.35);
+      radial-gradient(120% 65% at 50% 0%, rgba(111,208,255,0.08) 0%, transparent 60%),
+      linear-gradient(165deg, rgba(8,20,38,0.9) 0%, rgba(3,8,16,0.94) 100%);
+    border: 1px solid rgba(96,180,255,0.4);
     box-shadow:
-      0 0 0 1px rgba(77,184,255,0.08),
-      0 0 24px rgba(77,184,255,0.10),
+      0 0 0 1px rgba(111,208,255,0.08),
+      0 0 30px rgba(30,120,230,0.22),
       0 16px 44px rgba(0,0,0,0.55),
       inset 0 1px 0 rgba(120,200,255,0.18),
-      inset 0 0 30px rgba(77,184,255,0.03);
+      inset 0 0 40px rgba(30,120,255,0.07);
     overflow: hidden;
   }
   .sl-panel::before {
@@ -3301,8 +3307,8 @@ const GLOBAL_CSS = `
       0deg,
       transparent,
       transparent 3px,
-      rgba(77,184,255,0.022) 3px,
-      rgba(77,184,255,0.022) 4px
+      rgba(111,208,255,0.022) 3px,
+      rgba(111,208,255,0.022) 4px
     );
     pointer-events: none;
     z-index: 0;
@@ -3313,7 +3319,7 @@ const GLOBAL_CSS = `
     position: absolute;
     left: 0; right: 0;
     height: 60px;
-    background: linear-gradient(to bottom, transparent, rgba(77,184,255,0.04), transparent);
+    background: linear-gradient(to bottom, transparent, rgba(111,208,255,0.04), transparent);
     animation: scan-pass 8s linear infinite;
     pointer-events: none;
     z-index: 1;
@@ -3322,27 +3328,34 @@ const GLOBAL_CSS = `
 
   /* Glitch variant */
   .sl-panel.glitching::before {
-    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,34,68,0.04) 2px,rgba(255,34,68,0.04) 4px);
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,89,100,0.04) 2px,rgba(255,89,100,0.04) 4px);
   }
 
-  /* ── Corner accents ── */
+  /* ── Corner accents — all 4 corners, 2px L-brackets, kit bracket color #7cd6ff ── */
   .sl-corners {
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 3;
-  }
-  .sl-corners::before, .sl-corners::after {
-    content: '';
-    position: absolute;
-    width: 16px; height: 16px;
-    border-color: rgba(120,210,255,0.9);
-    border-style: solid;
-    filter: drop-shadow(0 0 4px rgba(77,184,255,0.85));
+    background-repeat: no-repeat;
+    background-image:
+      linear-gradient(90deg,  #7cd6ff, #7cd6ff), linear-gradient(180deg, #7cd6ff, #7cd6ff),
+      linear-gradient(90deg,  #7cd6ff, #7cd6ff), linear-gradient(180deg, #7cd6ff, #7cd6ff),
+      linear-gradient(90deg,  #7cd6ff, #7cd6ff), linear-gradient(180deg, #7cd6ff, #7cd6ff),
+      linear-gradient(90deg,  #7cd6ff, #7cd6ff), linear-gradient(180deg, #7cd6ff, #7cd6ff);
+    background-size:
+      15px 2px, 2px 15px,
+      15px 2px, 2px 15px,
+      15px 2px, 2px 15px,
+      15px 2px, 2px 15px;
+    background-position:
+      top    left,  top    left,
+      top    right, top    right,
+      bottom left,  bottom left,
+      bottom right, bottom right;
+    filter: drop-shadow(0 0 4px rgba(124,214,255,0.85));
     animation: corner-blink 3.5s ease-in-out infinite;
   }
-  .sl-corners::before { top: 0; left: 0; border-width: 2px 0 0 2px; }
-  .sl-corners::after  { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
 
   /* ═══════════════════════════════════════════════════
      SECTION HEADER — .sl-header-bar
@@ -3353,11 +3366,11 @@ const GLOBAL_CSS = `
     align-items: center;
     gap: 10px;
     position: relative;
-    background: linear-gradient(90deg, rgba(77,184,255,0.18), rgba(77,184,255,0.03) 72%, transparent);
-    border-bottom: 1px solid rgba(77,184,255,0.3);
-    border-left: 2px solid rgba(77,184,255,0.85);
+    background: linear-gradient(90deg, rgba(111,208,255,0.18), rgba(111,208,255,0.03) 72%, transparent);
+    border-bottom: 1px solid rgba(111,208,255,0.3);
+    border-left: 2px solid rgba(111,208,255,0.85);
     padding: 8px 14px;
-    box-shadow: inset 0 0 18px rgba(77,184,255,0.05);
+    box-shadow: inset 0 0 18px rgba(111,208,255,0.05);
   }
   .sl-header-bar::after {
     content: '';
@@ -3375,7 +3388,7 @@ const GLOBAL_CSS = `
     font-weight: 700;
     letter-spacing: 0.25em;
     color: #c8eeff;
-    text-shadow: 0 0 14px rgba(77,184,255,0.85), 0 0 30px rgba(77,184,255,0.4);
+    text-shadow: 0 0 14px rgba(111,208,255,0.85), 0 0 30px rgba(111,208,255,0.4);
     text-transform: uppercase;
   }
 
@@ -3387,16 +3400,17 @@ const GLOBAL_CSS = `
     align-items: center;
     justify-content: space-between;
     padding: 9px 0;
-    border-bottom: 1px solid rgba(77,184,255,0.08);
+    border-bottom: 1px solid rgba(111,208,255,0.08);
     cursor: default;
     transition: background 0.15s;
   }
   .sl-goal-row.tappable { cursor: pointer; }
-  .sl-goal-row.tappable:active { background: rgba(77,184,255,0.06); }
+  .sl-goal-row.tappable:active { background: rgba(111,208,255,0.06); }
 
   /* ═══════════════════════════════════════════════════
      SYSTEM BUTTONS — .sl-btn
   ═══════════════════════════════════════════════════ */
+  /* Base = kit CANCEL/ghost button */
   .sl-btn {
     font-family: 'Orbitron', sans-serif;
     font-size: 11px;
@@ -3404,8 +3418,8 @@ const GLOBAL_CSS = `
     letter-spacing: 0.18em;
     text-transform: uppercase;
     background: transparent;
-    border: 1px solid rgba(77,184,255,0.6);
-    color: #4db8ff;
+    border: 1px solid rgba(120,180,220,0.35);
+    color: #9db8cf;
     padding: 10px 18px;
     cursor: pointer;
     position: relative;
@@ -3417,15 +3431,15 @@ const GLOBAL_CSS = `
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(77,184,255,0);
+    background: rgba(111,208,255,0);
     transition: background 0.15s;
   }
-  .sl-btn:active::before { background: rgba(77,184,255,0.12); }
-  .sl-btn:active { box-shadow: 0 0 14px rgba(77,184,255,0.4); }
+  .sl-btn:active::before { background: rgba(111,208,255,0.12); }
+  .sl-btn:active { box-shadow: 0 0 14px rgba(111,208,255,0.4); }
   .sl-btn:hover {
-    color: #d8f2ff;
-    border-color: rgba(120,210,255,0.95);
-    box-shadow: 0 0 16px rgba(77,184,255,0.35), inset 0 0 12px rgba(77,184,255,0.06);
+    color: #bfe6ff;
+    border-color: #8fe0ff;
+    box-shadow: 0 0 16px rgba(111,208,255,0.35), inset 0 0 12px rgba(111,208,255,0.06);
   }
   /* Diagonal light sweep on hover */
   .sl-btn::after {
@@ -3439,15 +3453,28 @@ const GLOBAL_CSS = `
     pointer-events: none;
   }
   .sl-btn:hover::after { left: 130%; }
+  /* .primary = kit ACCEPT button */
   .sl-btn.primary {
-    background: linear-gradient(135deg, rgba(77,184,255,0.18), rgba(77,184,255,0.06));
-    border-color: rgba(77,184,255,0.9);
-    color: #e0f4ff;
-    box-shadow: 0 0 10px rgba(77,184,255,0.2), inset 0 0 10px rgba(77,184,255,0.04);
+    background: linear-gradient(90deg, rgba(30,110,200,0.4), rgba(60,170,255,0.3));
+    border-color: #6fd0ff;
+    color: #eaf7ff;
+    box-shadow: 0 0 10px rgba(111,208,255,0.2), inset 0 0 10px rgba(111,208,255,0.04);
   }
+  .sl-btn.primary:hover {
+    color: #eaf7ff;
+    border-color: #6fd0ff;
+    box-shadow: 0 0 28px rgba(90,200,255,0.65);
+  }
+  /* .danger = kit REJECT button */
   .sl-btn.danger {
-    border-color: rgba(255,34,68,0.5);
-    color: rgba(255,34,68,0.7);
+    background: rgba(30,10,14,0.4);
+    border-color: rgba(255,90,105,0.5);
+    color: #ffb3ba;
+  }
+  .sl-btn.danger:hover {
+    color: #ffb3ba;
+    border-color: #ff7a88;
+    box-shadow: 0 0 24px rgba(255,90,105,0.45);
   }
 
   /* ═══════════════════════════════════════════════════
@@ -3455,7 +3482,7 @@ const GLOBAL_CSS = `
   ═══════════════════════════════════════════════════ */
   .sl-warning {
     font-size: 11px;
-    color: #ff4444;
+    color: #ff5964;
     font-family: 'Rajdhani', sans-serif;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -3469,7 +3496,7 @@ const GLOBAL_CSS = `
   ═══════════════════════════════════════════════════ */
   .sl-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(77,184,255,0.5), transparent);
+    background: linear-gradient(90deg, transparent, rgba(111,208,255,0.5), transparent);
     margin: 10px 0;
   }
 
@@ -3481,7 +3508,7 @@ const GLOBAL_CSS = `
     align-items: center;
     justify-content: space-between;
     padding: 7px 0;
-    border-bottom: 1px solid rgba(77,184,255,0.07);
+    border-bottom: 1px solid rgba(111,208,255,0.07);
   }
   .sl-stat-label {
     font-family: 'Rajdhani', sans-serif;
@@ -3498,7 +3525,7 @@ const GLOBAL_CSS = `
     font-size: 13px;
     font-weight: 700;
     color: #d0eeff;
-    text-shadow: 0 0 8px rgba(77,184,255,0.5);
+    text-shadow: 0 0 8px rgba(111,208,255,0.5);
   }
 
   /* ═══════════════════════════════════════════════════
@@ -3507,7 +3534,7 @@ const GLOBAL_CSS = `
   .sl-bar-track {
     height: 6px;
     background: rgba(0,10,24,0.7);
-    box-shadow: inset 0 0 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(77,184,255,0.08);
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(111,208,255,0.08);
     overflow: hidden;
     position: relative;
   }
@@ -3535,9 +3562,9 @@ const GLOBAL_CSS = `
     width: min(300px, 85vw);
     background: #020810;
     background: linear-gradient(180deg, #020c1e 0%, #010810 100%);
-    border-left: 1px solid rgba(77,184,255,0.3);
-    box-shadow: -12px 0 60px rgba(0,0,0,0.95), -1px 0 0 rgba(77,184,255,0.15),
-                inset 1px 0 0 rgba(77,184,255,0.05);
+    border-left: 1px solid rgba(111,208,255,0.3);
+    box-shadow: -12px 0 60px rgba(0,0,0,0.95), -1px 0 0 rgba(111,208,255,0.15),
+                inset 1px 0 0 rgba(111,208,255,0.05);
     z-index: 201;
     overflow-y: auto;
     overflow-x: hidden;
@@ -3551,7 +3578,7 @@ const GLOBAL_CSS = `
     width: min(300px, 85vw);
     background: repeating-linear-gradient(
       0deg, transparent, transparent 3px,
-      rgba(77,184,255,0.012) 3px, rgba(77,184,255,0.012) 4px
+      rgba(111,208,255,0.012) 3px, rgba(111,208,255,0.012) 4px
     );
     pointer-events: none;
     z-index: 0;
@@ -3569,7 +3596,7 @@ const GLOBAL_CSS = `
     color: #4a6a88;
     cursor: pointer;
     border: none;
-    border-bottom: 1px solid rgba(77,184,255,0.07);
+    border-bottom: 1px solid rgba(111,208,255,0.07);
     border-left: 2px solid transparent;
     background: transparent;
     text-transform: uppercase;
@@ -3579,14 +3606,14 @@ const GLOBAL_CSS = `
     outline: none;
     -webkit-appearance: none;
   }
-  .sl-menu-item:hover { color: #7a9ab8; background: rgba(77,184,255,0.04); }
+  .sl-menu-item:hover { color: #7a9ab8; background: rgba(111,208,255,0.04); }
   .sl-menu-item.active {
     color: #c8eeff;
-    background: linear-gradient(90deg, rgba(77,184,255,0.10), rgba(77,184,255,0.03));
-    border-left-color: rgba(77,184,255,0.9);
-    text-shadow: 0 0 12px rgba(77,184,255,0.6);
+    background: linear-gradient(90deg, rgba(111,208,255,0.10), rgba(111,208,255,0.03));
+    border-left-color: rgba(111,208,255,0.9);
+    text-shadow: 0 0 12px rgba(111,208,255,0.6);
   }
-  .sl-menu-item:active { background: rgba(77,184,255,0.12); }
+  .sl-menu-item:active { background: rgba(111,208,255,0.12); }
 
   /* ═══════════════════════════════════════════════════
      LEVEL BADGE — .sl-level-badge
@@ -3596,7 +3623,7 @@ const GLOBAL_CSS = `
     font-family: 'Orbitron', sans-serif;
     font-weight: 900;
     color: #eaf8ff;
-    text-shadow: 0 0 24px rgba(77,184,255,0.9), 0 0 60px rgba(77,184,255,0.45), 0 0 2px rgba(255,255,255,0.6);
+    text-shadow: 0 0 24px rgba(111,208,255,0.9), 0 0 60px rgba(111,208,255,0.45), 0 0 2px rgba(255,255,255,0.6);
     line-height: 1;
   }
 
@@ -3605,8 +3632,8 @@ const GLOBAL_CSS = `
   ═══════════════════════════════════════════════════ */
   .sl-circuit-bg {
     background-image:
-      linear-gradient(rgba(77,184,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(77,184,255,0.04) 1px, transparent 1px);
+      linear-gradient(rgba(111,208,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(111,208,255,0.04) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
@@ -3617,15 +3644,15 @@ const GLOBAL_CSS = `
   .sl-notification {
     position: relative;
     background: linear-gradient(160deg, rgba(3,8,22,0.97), rgba(2,6,16,0.99));
-    border: 1px solid rgba(77,184,255,0.4);
-    box-shadow: 0 0 30px rgba(77,184,255,0.15), inset 0 0 30px rgba(77,184,255,0.03);
+    border: 1px solid rgba(111,208,255,0.4);
+    box-shadow: 0 0 30px rgba(111,208,255,0.15), inset 0 0 30px rgba(111,208,255,0.03);
     overflow: hidden;
   }
   .sl-notification::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(77,184,255,0.015) 3px,rgba(77,184,255,0.015) 4px);
+    background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(111,208,255,0.015) 3px,rgba(111,208,255,0.015) 4px);
     pointer-events: none;
   }
 
@@ -3639,17 +3666,17 @@ const GLOBAL_CSS = `
     letter-spacing: 0.2em;
     cursor: pointer;
     background: transparent;
-    border: 1px solid rgba(77,184,255,0.25);
+    border: 1px solid rgba(111,208,255,0.25);
     color: #5a7a98;
     text-transform: uppercase;
     -webkit-tap-highlight-color: transparent;
     transition: all 0.15s;
   }
   .sl-tab.active {
-    background: rgba(77,184,255,0.12);
-    border-color: rgba(77,184,255,0.7);
+    background: rgba(111,208,255,0.12);
+    border-color: rgba(111,208,255,0.7);
     color: #c8eeff;
-    text-shadow: 0 0 8px rgba(77,184,255,0.5);
+    text-shadow: 0 0 8px rgba(111,208,255,0.5);
   }
 `;
 
@@ -3691,7 +3718,7 @@ function ParticleField({ color, density }) {
     resize(); window.addEventListener("resize", resize);
     const count = density || 50;
     const particles = Array.from({ length: count }, function() { return { x: Math.random()*w, y: Math.random()*h, r: Math.random()*1.6+0.4, vy: -(Math.random()*0.35+0.08), vx: (Math.random()-0.5)*0.12, a: Math.random()*0.45+0.1 }; });
-    function draw() { ctx.clearRect(0,0,w,h); for (let i=0;i<particles.length;i++) { const p=particles[i]; p.y+=p.vy; p.x+=p.vx; if(p.y<-6){p.y=h+6;p.x=Math.random()*w;} if(p.x<-6)p.x=w+6; if(p.x>w+6)p.x=-6; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=color||"rgba(77,184,255,0.5)"; ctx.globalAlpha=p.a; ctx.shadowBlur=6; ctx.shadowColor=color||"rgba(77,184,255,0.8)"; ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0; } rafRef.current=requestAnimationFrame(draw); }
+    function draw() { ctx.clearRect(0,0,w,h); for (let i=0;i<particles.length;i++) { const p=particles[i]; p.y+=p.vy; p.x+=p.vx; if(p.y<-6){p.y=h+6;p.x=Math.random()*w;} if(p.x<-6)p.x=w+6; if(p.x>w+6)p.x=-6; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle=color||"rgba(111,208,255,0.5)"; ctx.globalAlpha=p.a; ctx.shadowBlur=6; ctx.shadowColor=color||"rgba(111,208,255,0.8)"; ctx.fill(); ctx.globalAlpha=1; ctx.shadowBlur=0; } rafRef.current=requestAnimationFrame(draw); }
     draw();
     return function() { cancelAnimationFrame(rafRef.current); window.removeEventListener("resize",resize); };
   }, [color, density]);
@@ -3753,7 +3780,7 @@ function RankUpOverlay({ rank, onDone }) {
    CINEMATIC POPUP
    =========================================================================== */
 function CinematicPopup({ data, onClose, sfx }) {
-  const color = data.kind==="fail"?"#f53d3d":data.kind==="awakening"?"#a05df5":data.kind==="shadow"?MONARCH_PURP:data.kind==="victory"?"#2ee88a":data.kind==="boss"?data.bossColor||"#f53d3d":data.kind==="hidden"?"#f5b65d":SYS_BLUE;
+  const color = data.kind==="fail"?"#f53d3d":data.kind==="awakening"?"#a05df5":data.kind==="shadow"?MONARCH_PURP:data.kind==="victory"?"#3ef29a":data.kind==="boss"?data.bossColor||"#f53d3d":data.kind==="hidden"?"#f5b65d":SYS_BLUE;
   useEffect(function() { if (sfx && typeof sfx.sfxOpen==="function") sfx.sfxOpen(); }, []);
   return (
     <div style={{ position:"fixed",inset:0,zIndex:8500,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(3,5,12,0.88)",backdropFilter:"blur(6px)",padding:"24px 16px" }}>
@@ -3762,7 +3789,7 @@ function CinematicPopup({ data, onClose, sfx }) {
         <div style={{ padding:"32px 28px",position:"relative" }}>
           <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:20 }}>
             <div style={{ width:38,height:38,border:"2px solid "+color,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 0 12px "+color+"88",flexShrink:0 }}><span style={{ color,fontWeight:900,fontSize:18,fontFamily:"'Orbitron',sans-serif",lineHeight:1 }}>!</span></div>
-            <div style={{ padding:"7px 20px",border:"1.5px solid "+color,boxShadow:"0 0 14px "+color+"55" }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:15,fontWeight:700,color:"#eaf2ff",letterSpacing:"0.1em" }}>{data.title||"NOTIFICATION"}</span></div>
+            <div style={{ padding:"7px 20px",border:"1.5px solid "+color,boxShadow:"0 0 14px "+color+"55" }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:15,fontWeight:700,color:"#e6f3ff",letterSpacing:"0.1em" }}>{data.title||"NOTIFICATION"}</span></div>
           </div>
           {data.flavor&&<p style={{ textAlign:"center",fontSize:13,color:"#cfe0f5",marginBottom:16 }}>{data.flavor}</p>}
           {data.bigText&&<div style={{ textAlign:"center",fontFamily:"'Orbitron',sans-serif",fontSize:26,fontWeight:900,color,marginBottom:12,textShadow:"0 0 20px "+color }}>{data.bigText}</div>}
@@ -3786,8 +3813,8 @@ function AccessDeniedScreen({ boss, playerRank, onClose }) {
     <div style={{ position:"fixed",inset:0,zIndex:8600,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(0,0,0,0.95)",backdropFilter:"blur(8px)",padding:"24px 16px" }}>
       <div className="fade-in-up" style={{ maxWidth:440,width:"100%",border:"1px solid "+GLITCH_RED+"88",background:"linear-gradient(160deg,rgba(20,5,5,0.99),rgba(10,0,0,0.99))",boxShadow:"0 0 60px "+GLITCH_RED+"33",padding:"36px 28px",textAlign:"center" }}>
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.5em",color:GLITCH_RED,marginBottom:16 }} className="shake">⚠ ACCESS DENIED ⚠</div>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:900,color:"#eaf2ff",marginBottom:20 }}>{boss.name}</div>
-        <div style={{ padding:"16px",border:"1px solid "+GLITCH_RED+"44",background:"rgba(255,34,68,0.06)",marginBottom:20 }}>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:900,color:"#e6f3ff",marginBottom:20 }}>{boss.name}</div>
+        <div style={{ padding:"16px",border:"1px solid "+GLITCH_RED+"44",background:"rgba(255,89,100,0.06)",marginBottom:20 }}>
           <p style={{ fontSize:13,color:GLITCH_RED,lineHeight:1.8 }}>
             Your current rank is insufficient.<br />
             <strong>Required: {boss.minRankName} (LV {boss.minLevel})</strong><br />
@@ -3833,7 +3860,7 @@ function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx, e
 
   return (
     <div style={{ position:"fixed",inset:0,zIndex:9100,background:"radial-gradient(ellipse at center,#0a0015 0%,#000 100%)",overflow:"auto",padding:"20px 16px 60px" }}>
-      <div style={{ position:"fixed",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(155,48,255,0.05) 2px,rgba(155,48,255,0.05) 4px)" }} />
+      <div style={{ position:"fixed",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(160,141,255,0.05) 2px,rgba(160,141,255,0.05) 4px)" }} />
       <div style={{ position:"fixed",left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+MONARCH_PURP+"88,transparent)",animation:"scan-line 2.5s linear infinite" }} />
 
       <div style={{ position:"relative",zIndex:2,maxWidth:540,margin:"0 auto",paddingTop:24 }}>
@@ -3846,14 +3873,14 @@ function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx, e
             <span style={{ color:attemptsLeft<=1?GLITCH_RED:"#8a6ab0" }}>{attemptsLeft} attempt{attemptsLeft!==1?"s":""} remaining after this</span>
           </div>
           {extractionChance!==undefined&&(
-            <div style={{ marginTop:10,display:"inline-block",padding:"4px 12px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.08)",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:MONARCH_PURP }}>
+            <div style={{ marginTop:10,display:"inline-block",padding:"4px 12px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(160,141,255,0.08)",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:MONARCH_PURP }}>
               EXTRACTION RATE: {Math.round(extractionChance*100)}%
             </div>
           )}
         </div>
 
         {/* Warning */}
-        <div style={{ border:"1px solid "+MONARCH_PURP+"55",background:"rgba(155,48,255,0.06)",padding:"12px 16px",marginBottom:20,fontSize:12,color:"#8a6ab0",lineHeight:1.7 }}>
+        <div style={{ border:"1px solid "+MONARCH_PURP+"55",background:"rgba(160,141,255,0.06)",padding:"12px 16px",marginBottom:20,fontSize:12,color:"#8a6ab0",lineHeight:1.7 }}>
           Complete the challenge below to extract {boss.name}'s shadow. Failure costs one attempt. Three failures and the shadow is gone.
         </div>
 
@@ -3867,11 +3894,11 @@ function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx, e
               const cur = progress[g.id]||0; const gdone = cur >= g.target; const canTap = !gdone && !done;
               return (
                 <div key={g.id} onClick={function(){tapGoal(g.id);}}
-                  style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(155,48,255,0.1)",cursor:canTap?"pointer":"default" }}>
+                  style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(160,141,255,0.1)",cursor:canTap?"pointer":"default" }}>
                   <span style={{ fontSize:14,fontWeight:600,color:gdone?"#5a3a7a":"#dbe6ff" }}>{g.name}</span>
                   <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <span style={{ fontSize:12,color:gdone?"#2ee88a":"#8a6ab0" }}>[{cur}/{g.target}{g.unit}]</span>
-                    <div style={{ width:20,height:20,border:"1.5px solid "+(gdone?"#2ee88a":MONARCH_PURP+"77"),background:gdone?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#2ee88a" }}>{gdone?"✓":""}</div>
+                    <span style={{ fontSize:12,color:gdone?"#3ef29a":"#8a6ab0" }}>[{cur}/{g.target}{g.unit}]</span>
+                    <div style={{ width:20,height:20,border:"1.5px solid "+(gdone?"#3ef29a":MONARCH_PURP+"77"),background:gdone?"#3ef29a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#3ef29a" }}>{gdone?"✓":""}</div>
                   </div>
                 </div>
               );
@@ -3892,7 +3919,7 @@ function AriseScreen({ boss, attemptNumber, onSuccess, onFail, onAbandon, sfx, e
             <button onClick={onFail} style={{ width:"100%",padding:"12px",background:"transparent",border:"1px solid #f53d3d55",color:"#f53d3d88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.2em" }}>
               FAIL ATTEMPT — I could not complete this
             </button>
-            <button onClick={onAbandon} style={{ width:"100%",padding:"10px",background:"transparent",border:"1px solid #2a3a55",color:"#5b7aa0",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10 }}>
+            <button onClick={onAbandon} style={{ width:"100%",padding:"10px",background:"transparent",border:"1px solid #2a3a55",color:"#8fb7d9",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10 }}>
               Abandon extraction (attempt not consumed)
             </button>
           </div>
@@ -3976,7 +4003,7 @@ function Toast({ message, kind, ac, isMonarch }) {
   const c = isMonarch ? MONARCH_PURP
     : kind==="xp"      ? "#f5b65d"
     : kind==="ach"     ? "#a05df5"
-    : kind==="evolve"  ? "#2ee88a"
+    : kind==="evolve"  ? "#3ef29a"
     : kind==="glitch"  ? GLITCH_RED
     : kind==="warning" ? "#ff8800"
     : kind==="denied"  ? "#f53d3d"
@@ -4008,13 +4035,13 @@ function Toast({ message, kind, ac, isMonarch }) {
 }
 function GlitchOverlay({ intensity }) {
   if (!intensity) return null;
-  return (<div style={{ position:"fixed",inset:0,zIndex:5000,pointerEvents:"none" }}><div style={{ position:"absolute",left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+GLITCH_RED+"44,transparent)",animation:"scan-line 3s linear infinite",opacity:intensity*0.6 }} /><div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at center,transparent 60%,"+MONARCH_PURP+Math.round(intensity*0.12*255).toString(16).padStart(2,"0")+" 100%)" }} />{intensity>0.5&&<div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(155,48,255,0.015) 3px,rgba(155,48,255,0.015) 4px)" }} />}</div>);
+  return (<div style={{ position:"fixed",inset:0,zIndex:5000,pointerEvents:"none" }}><div style={{ position:"absolute",left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+GLITCH_RED+"44,transparent)",animation:"scan-line 3s linear infinite",opacity:intensity*0.6 }} /><div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at center,transparent 60%,"+MONARCH_PURP+Math.round(intensity*0.12*255).toString(16).padStart(2,"0")+" 100%)" }} />{intensity>0.5&&<div style={{ position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(160,141,255,0.015) 3px,rgba(160,141,255,0.015) 4px)" }} />}</div>);
 }
 function CrypticNote({ message, onDismiss }) {
   return (
     <div style={{ position:"fixed",inset:0,zIndex:8000,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(3,0,8,0.88)",backdropFilter:"blur(4px)",padding:24 }}>
       <div className="fade-in-up" style={{ maxWidth:440,width:"100%",border:"1px solid "+GLITCH_RED+"88",background:"linear-gradient(160deg,rgba(20,5,30,0.99),rgba(5,0,10,0.99))",padding:"32px 28px",position:"relative",overflow:"hidden" }}>
-        <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(155,48,255,0.04) 2px,rgba(155,48,255,0.04) 4px)" }} />
+        <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(160,141,255,0.04) 2px,rgba(160,141,255,0.04) 4px)" }} />
         <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:20 }}>
           <div className="pulse-glow" style={{ width:36,height:36,border:"2px solid "+GLITCH_RED,display:"flex",alignItems:"center",justifyContent:"center" }}><span style={{ color:GLITCH_RED,fontWeight:900,fontSize:16,fontFamily:"'Orbitron',sans-serif" }}>!</span></div>
           <div style={{ padding:"6px 16px",border:"1px solid "+GLITCH_RED+"66" }}><span className="flicker" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:GLITCH_RED,letterSpacing:"0.2em" }}>UNKNOWN SYSTEM ACTIVITY</span></div>
@@ -4156,8 +4183,8 @@ function AwakeningRegistration({ onComplete }) {
     });
   }
 
-  const accentMap = { 0:"#4db8ff", 1:"#4db8ff", 2:"#4db8ff", 3:"#a05df5", 4:"#f5b65d" };
-  const accent = currentTest ? currentTest.stat === "Strength" ? "#f53d3d" : currentTest.stat === "Agility" ? "#4db8ff" : currentTest.stat === "Discipline" ? "#a05df5" : "#6fae6f" : accentMap[Math.min(step,4)] || SYS_BLUE;
+  const accentMap = { 0:"#6fd0ff", 1:"#6fd0ff", 2:"#6fd0ff", 3:"#a05df5", 4:"#f5b65d" };
+  const accent = currentTest ? currentTest.stat === "Strength" ? "#f53d3d" : currentTest.stat === "Agility" ? "#6fd0ff" : currentTest.stat === "Discipline" ? "#a05df5" : "#6fae6f" : accentMap[Math.min(step,4)] || SYS_BLUE;
 
   if (!introDone) return <FirstContactPrelude onDone={function(){ setIntroDone(true); }} />;
 
@@ -4172,13 +4199,13 @@ function AwakeningRegistration({ onComplete }) {
               <div style={{ textAlign:"center",marginBottom:32 }}>
                 <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.4em",color:SYS_BLUE,marginBottom:12 }}>SYSTEM NOTIFICATION</div>
                 <div style={{ height:1,background:"linear-gradient(90deg,transparent,"+SYS_BLUE+",transparent)",marginBottom:24 }} />
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:700,color:"#eaf2ff",lineHeight:1.4,marginBottom:16 }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:700,color:"#e6f3ff",lineHeight:1.4,marginBottom:16 }}>
                   You have acquired the qualification to become a Player.
                 </div>
                 <p style={{ fontSize:14,color:"#9fb8d8",lineHeight:1.8,marginBottom:8 }}>
                   The System has detected latent potential within your physical vessel. A Hunter Awakening event has been triggered.
                 </p>
-                <p style={{ fontSize:13,color:"#5b7aa0",lineHeight:1.7 }}>
+                <p style={{ fontSize:13,color:"#8fb7d9",lineHeight:1.7 }}>
                   From this point forward, all physical effort will be tracked, measured, and rewarded. Nothing is given freely. Everything must be earned.
                 </p>
               </div>
@@ -4202,8 +4229,8 @@ function AwakeningRegistration({ onComplete }) {
               </div>
               <p style={{ color:"#9fb8d8",fontSize:15,textAlign:"center",marginBottom:20 }}>Designate your hunter name.</p>
               <input autoFocus value={name} onChange={function(e){setName(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter"&&name.trim())setStep(2);}} placeholder="Enter name..."
-                style={{ width:"100%",background:"transparent",border:"none",borderBottom:"2px solid "+SYS_BLUE,color:"#eaf2ff",fontSize:22,textAlign:"center",padding:"8px 0",outline:"none",fontFamily:"'Orbitron',sans-serif",marginBottom:24 }} />
-              <button disabled={!name.trim()} onClick={function(){setStep(2);}} style={{ width:"100%",padding:"12px",background:name.trim()?SYS_BLUE:"#1a2438",color:name.trim()?"#03050c":"#5b7aa0",fontWeight:700,fontSize:13,letterSpacing:"0.2em",border:"none",cursor:name.trim()?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM</button>
+                style={{ width:"100%",background:"transparent",border:"none",borderBottom:"2px solid "+SYS_BLUE,color:"#e6f3ff",fontSize:22,textAlign:"center",padding:"8px 0",outline:"none",fontFamily:"'Orbitron',sans-serif",marginBottom:24 }} />
+              <button disabled={!name.trim()} onClick={function(){setStep(2);}} style={{ width:"100%",padding:"12px",background:name.trim()?SYS_BLUE:"#1a2438",color:name.trim()?"#03050c":"#8fb7d9",fontWeight:700,fontSize:13,letterSpacing:"0.2em",border:"none",cursor:name.trim()?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM</button>
             </div>
           )}
 
@@ -4220,15 +4247,15 @@ function AwakeningRegistration({ onComplete }) {
                   const sel = chosenClass===cls.id;
                   return (
                     <button key={cls.id} onClick={function(){setChosenClass(cls.id);}}
-                      style={{ padding:"12px 10px",background:sel?"rgba(77,184,255,0.12)":"transparent",border:sel?"1px solid "+SYS_BLUE:"1px solid rgba(77,184,255,0.2)",color:sel?"#eaf2ff":"#9fb8d8",cursor:"pointer",textAlign:"left" }}>
+                      style={{ padding:"12px 10px",background:sel?"rgba(111,208,255,0.12)":"transparent",border:sel?"1px solid "+SYS_BLUE:"1px solid rgba(111,208,255,0.2)",color:sel?"#e6f3ff":"#9fb8d8",cursor:"pointer",textAlign:"left" }}>
                       <div style={{ fontSize:16,marginBottom:2 }}>{cls.icon}</div>
                       <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:sel?SYS_BLUE:"#9fb8d8" }}>{cls.name}</div>
-                      <div style={{ fontSize:10,color:"#5b7aa0",marginTop:2,lineHeight:1.4 }}>{cls.desc.split(".")[0]}</div>
+                      <div style={{ fontSize:10,color:"#8fb7d9",marginTop:2,lineHeight:1.4 }}>{cls.desc.split(".")[0]}</div>
                     </button>
                   );
                 })}
               </div>
-              <button disabled={!chosenClass} onClick={function(){setStep(3);}} style={{ width:"100%",padding:"12px",background:chosenClass?SYS_BLUE:"#1a2438",color:chosenClass?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenClass?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM CLASS</button>
+              <button disabled={!chosenClass} onClick={function(){setStep(3);}} style={{ width:"100%",padding:"12px",background:chosenClass?SYS_BLUE:"#1a2438",color:chosenClass?"#03050c":"#8fb7d9",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenClass?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM CLASS</button>
             </div>
           )}
 
@@ -4248,14 +4275,14 @@ function AwakeningRegistration({ onComplete }) {
                       style={{ padding:"12px 14px",background:sel?"rgba(160,93,245,0.1)":"transparent",border:sel?"1px solid #a05df5":"1px solid rgba(160,93,245,0.2)",color:"#dbe6ff",cursor:"pointer",textAlign:"left",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
                       <div>
                         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:sel?"#a05df5":"#9fb8d8" }}>{p.name}</div>
-                        <div style={{ fontSize:11,color:"#5b7aa0",marginTop:2 }}>{p.desc}</div>
+                        <div style={{ fontSize:11,color:"#8fb7d9",marginTop:2 }}>{p.desc}</div>
                       </div>
                       {sel&&<span style={{ color:"#a05df5",fontSize:16 }}>✓</span>}
                     </button>
                   );
                 })}
               </div>
-              <button disabled={!chosenPhysique} onClick={function(){setStep(4);}} style={{ width:"100%",padding:"12px",background:chosenPhysique?"#a05df5":"#1a2438",color:chosenPhysique?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenPhysique?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM PHYSIQUE</button>
+              <button disabled={!chosenPhysique} onClick={function(){setStep(4);}} style={{ width:"100%",padding:"12px",background:chosenPhysique?"#a05df5":"#1a2438",color:chosenPhysique?"#03050c":"#8fb7d9",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenPhysique?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>CONFIRM PHYSIQUE</button>
             </div>
           )}
 
@@ -4272,7 +4299,7 @@ function AwakeningRegistration({ onComplete }) {
                   const sel = chosenGoals.includes(g.id);
                   return (
                     <button key={g.id} onClick={function(){toggleGoal(g.id);}}
-                      style={{ padding:"10px 12px",background:sel?"rgba(245,182,93,0.1)":"transparent",border:sel?"1px solid #f5b65d":"1px solid rgba(245,182,93,0.2)",color:sel?"#eaf2ff":"#9fb8d8",cursor:"pointer",display:"flex",alignItems:"center",gap:8 }}>
+                      style={{ padding:"10px 12px",background:sel?"rgba(245,182,93,0.1)":"transparent",border:sel?"1px solid #f5b65d":"1px solid rgba(245,182,93,0.2)",color:sel?"#e6f3ff":"#9fb8d8",cursor:"pointer",display:"flex",alignItems:"center",gap:8 }}>
                       <span style={{ fontSize:16 }}>{g.icon}</span>
                       <span style={{ fontSize:13,fontWeight:sel?700:400 }}>{g.name}</span>
                       {sel&&<span style={{ color:"#f5b65d",marginLeft:"auto" }}>✓</span>}
@@ -4280,8 +4307,8 @@ function AwakeningRegistration({ onComplete }) {
                   );
                 })}
               </div>
-              <div style={{ fontSize:11,color:"#5b7aa0",textAlign:"center",marginBottom:16 }}>{chosenGoals.length}/3 selected</div>
-              <button disabled={chosenGoals.length===0} onClick={function(){setStep(5);}} style={{ width:"100%",padding:"12px",background:chosenGoals.length>0?"#f5b65d":"#1a2438",color:chosenGoals.length>0?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenGoals.length>0?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>BEGIN EVALUATION</button>
+              <div style={{ fontSize:11,color:"#8fb7d9",textAlign:"center",marginBottom:16 }}>{chosenGoals.length}/3 selected</div>
+              <button disabled={chosenGoals.length===0} onClick={function(){setStep(5);}} style={{ width:"100%",padding:"12px",background:chosenGoals.length>0?"#f5b65d":"#1a2438",color:chosenGoals.length>0?"#03050c":"#8fb7d9",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:chosenGoals.length>0?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>BEGIN EVALUATION</button>
             </div>
           )}
 
@@ -4292,20 +4319,20 @@ function AwakeningRegistration({ onComplete }) {
                 <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.35em",color:accent,marginBottom:8 }}>PHYSICAL EVALUATION</div>
                 <div style={{ height:1,background:"linear-gradient(90deg,transparent,"+accent+",transparent)",marginBottom:16 }} />
                 <div style={{ display:"flex",justifyContent:"center",gap:6,marginBottom:16 }}>
-                  {EVAL_TESTS.map(function(_,i) { return <div key={i} style={{ width:8,height:8,borderRadius:"50%",background:i<currentTestIndex?"#2ee88a":i===currentTestIndex?accent:"#1a2438" }} />; })}
+                  {EVAL_TESTS.map(function(_,i) { return <div key={i} style={{ width:8,height:8,borderRadius:"50%",background:i<currentTestIndex?"#3ef29a":i===currentTestIndex?accent:"#1a2438" }} />; })}
                 </div>
               </div>
               <div style={{ textAlign:"center",marginBottom:20 }}>
                 <div style={{ fontSize:28,marginBottom:8 }}>{currentTest.icon}</div>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:"#eaf2ff",marginBottom:6 }}>{currentTest.name}</div>
-                <div style={{ fontSize:12,color:"#5b7aa0" }}>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:"#e6f3ff",marginBottom:6 }}>{currentTest.name}</div>
+                <div style={{ fontSize:12,color:"#8fb7d9" }}>
                   {currentTest.invert ? "Enter your time in seconds (lower = better)" : "Enter your maximum reps / hold time"}
                 </div>
               </div>
               <input autoFocus type="number" min="0" value={evalInput} onChange={function(e){setEvalInput(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter"&&evalInput)submitEvalScore();}}
                 placeholder="0"
-                style={{ width:"100%",background:"transparent",border:"none",borderBottom:"2px solid "+accent,color:"#eaf2ff",fontSize:32,textAlign:"center",padding:"8px 0",outline:"none",fontFamily:"'Orbitron',sans-serif",marginBottom:24 }} />
-              <button disabled={!evalInput} onClick={submitEvalScore} style={{ width:"100%",padding:"12px",background:evalInput?accent:"#1a2438",color:evalInput?"#03050c":"#5b7aa0",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:evalInput?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>
+                style={{ width:"100%",background:"transparent",border:"none",borderBottom:"2px solid "+accent,color:"#e6f3ff",fontSize:32,textAlign:"center",padding:"8px 0",outline:"none",fontFamily:"'Orbitron',sans-serif",marginBottom:24 }} />
+              <button disabled={!evalInput} onClick={submitEvalScore} style={{ width:"100%",padding:"12px",background:evalInput?accent:"#1a2438",color:evalInput?"#03050c":"#8fb7d9",fontWeight:700,fontSize:12,letterSpacing:"0.2em",border:"none",cursor:evalInput?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif" }}>
                 {currentTestIndex+1<EVAL_TESTS.length?"SUBMIT & CONTINUE":"COMPLETE EVALUATION"}
               </button>
             </div>
@@ -4316,7 +4343,7 @@ function AwakeningRegistration({ onComplete }) {
             <div className="fade-in" style={{ textAlign:"center",padding:"20px 0" }}>
               <div style={{ width:80,height:80,borderRadius:"50%",border:"3px solid "+SYS_BLUE,borderTopColor:"transparent",animation:"shake 0.3s linear infinite",margin:"0 auto 24px",boxShadow:"0 0 30px "+SYS_BLUE }} />
               <div className="flicker" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,color:SYS_BLUE,letterSpacing:"0.2em",marginBottom:12 }}>EVALUATING HUNTER...</div>
-              <div style={{ fontFamily:"monospace",fontSize:11,color:"#5b7aa0",lineHeight:2 }}>
+              <div style={{ fontFamily:"monospace",fontSize:11,color:"#8fb7d9",lineHeight:2 }}>
                 <div className="fade-in">Analyzing combat potential...</div>
                 <div className="fade-in" style={{ animationDelay:"0.8s" }}>Measuring aura output...</div>
                 <div className="fade-in" style={{ animationDelay:"1.6s" }}>Classifying latent abilities...</div>
@@ -4373,7 +4400,7 @@ function QuestCard({ quest, progress, isDone, onGoalTap, ac }) {
         <p style={{ textAlign:"center",fontSize:13,color:"#9ab8d4",marginBottom:4,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
           [Daily Quest: <strong style={{ color:"#d0eeff",textShadow:"0 0 8px "+color+"88" }}>{quest.label}</strong> has arrived.]
           {quest.tier>0&&<span style={{ fontSize:10,color:color,marginLeft:6 }}>[TIER {quest.tier}]</span>}
-          {quest.dayType&&<span style={{ fontSize:9,color:quest.dayType==="rest"?"#f5b65d":quest.dayType==="recovery"?"#2ee88a":color,marginLeft:8,letterSpacing:"0.1em",fontFamily:"'Orbitron',sans-serif" }}>[{quest.dayType.toUpperCase()}]</span>}
+          {quest.dayType&&<span style={{ fontSize:9,color:quest.dayType==="rest"?"#f5b65d":quest.dayType==="recovery"?"#3ef29a":color,marginLeft:8,letterSpacing:"0.1em",fontFamily:"'Orbitron',sans-serif" }}>[{quest.dayType.toUpperCase()}]</span>}
         </p>
 
         {/* Cyan divider */}
@@ -4394,14 +4421,14 @@ function QuestCard({ quest, progress, isDone, onGoalTap, ac }) {
                 className={"sl-goal-row" + (canTap?" tappable":"")}>
                 <span style={{ fontSize:15,fontFamily:"'Rajdhani',sans-serif",fontWeight:600,color:done?"#3a6a4a":"#d8eeff",letterSpacing:"0.05em" }}>{goal.name}</span>
                 <div style={{ display:"flex",alignItems:"center",gap:8,flexShrink:0 }}>
-                  <span style={{ fontSize:13,fontFamily:"'Rajdhani',sans-serif",fontWeight:700,color:done?"#2ee88a":"#7ab8d4",letterSpacing:"0.05em" }}>[{cur}/{goal.target}{goal.unit}]</span>
+                  <span style={{ fontSize:13,fontFamily:"'Rajdhani',sans-serif",fontWeight:700,color:done?"#3ef29a":"#7ab8d4",letterSpacing:"0.05em" }}>[{cur}/{goal.target}{goal.unit}]</span>
                   <div style={{
                     width:22, height:22,
-                    border:"1.5px solid "+(done?"#2ee88a":color+"66"),
-                    background:done?"rgba(46,232,138,0.12)":"transparent",
+                    border:"1.5px solid "+(done?"#3ef29a":color+"66"),
+                    background:done?"rgba(62,242,154,0.12)":"transparent",
                     display:"flex",alignItems:"center",justifyContent:"center",
-                    fontSize:12,color:"#2ee88a",
-                    boxShadow:done?"0 0 8px rgba(46,232,138,0.4)":"none",
+                    fontSize:12,color:"#3ef29a",
+                    boxShadow:done?"0 0 8px rgba(62,242,154,0.4)":"none",
                     transition:"all 0.2s",
                   }}>{done?"✓":""}</div>
                 </div>
@@ -4413,7 +4440,7 @@ function QuestCard({ quest, progress, isDone, onGoalTap, ac }) {
         {/* Bottom divider + warning */}
         <div style={{ height:1,margin:"16px 0 12px",background:"linear-gradient(90deg,transparent,"+color+"44,transparent)" }} />
         {isDone
-          ? <p style={{ textAlign:"center",fontSize:13,fontWeight:700,color:"#2ee88a",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em",textShadow:"0 0 10px rgba(46,232,138,0.5)" }}>◈ QUEST COMPLETE — Rewards granted.</p>
+          ? <p style={{ textAlign:"center",fontSize:13,fontWeight:700,color:"#3ef29a",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.1em",textShadow:"0 0 10px rgba(62,242,154,0.5)" }}>◈ QUEST COMPLETE — Rewards granted.</p>
           : <p className="sl-warning" style={{ textAlign:"center" }}>
               WARNING: Failure to complete the daily quest will result in an appropriate <strong>penalty.</strong>
             </p>
@@ -4427,23 +4454,23 @@ function QuestCard({ quest, progress, isDone, onGoalTap, ac }) {
    HIDDEN QUEST POPUP
    =========================================================================== */
 function HiddenQuestPopup({ quest, onAccept, onDecline }) {
-  const rc = quest.rarity==="LEGENDARY"?"#f5b65d":quest.rarity==="RARE"?"#a05df5":"#4db8ff";
+  const rc = quest.rarity==="LEGENDARY"?"#f5b65d":quest.rarity==="RARE"?"#a05df5":"#6fd0ff";
   return (
     <div style={{ position:"fixed",inset:0,zIndex:8600,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(3,5,12,0.9)",backdropFilter:"blur(8px)",padding:"24px 16px" }}>
       <div className="fade-in-up" style={{ maxWidth:480,width:"100%",border:"1px solid "+rc+"88",background:"linear-gradient(160deg,rgba(10,14,26,0.99),rgba(5,8,18,0.99))",boxShadow:"0 0 60px "+rc+"33",position:"relative",overflow:"hidden" }}>
         <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,0.012) 2px,rgba(255,255,255,0.012) 4px)" }} />
         <div style={{ padding:"28px 26px",position:"relative" }}>
           <div style={{ display:"flex",justifyContent:"flex-end",marginBottom:12 }}><span style={{ fontSize:10,padding:"2px 10px",border:"1px solid "+rc,color:rc,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em" }}>{quest.rarity}</span></div>
-          <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:16 }}><Bang size={36} color={rc} /><div style={{ padding:"6px 18px",border:"1.5px solid "+rc }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff" }}>HIDDEN QUEST</span></div></div>
+          <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:16 }}><Bang size={36} color={rc} /><div style={{ padding:"6px 18px",border:"1.5px solid "+rc }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#e6f3ff" }}>HIDDEN QUEST</span></div></div>
           <p style={{ textAlign:"center",fontSize:13,color:"#cfe0f5",marginBottom:6 }}>[Hidden Quest: <strong style={{ color:rc }}>{quest.label}</strong> has appeared.]</p>
           <p style={{ textAlign:"center",fontSize:12,color:"#7e98ba",lineHeight:1.6,marginBottom:16 }}>{quest.flavor}</p>
           <div style={{ height:1,margin:"14px 0",background:"linear-gradient(90deg,transparent,"+rc+"88,transparent)" }} />
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,textAlign:"center",marginBottom:12,color:"#eaf2ff",letterSpacing:"0.2em" }}>GOALS</div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,textAlign:"center",marginBottom:12,color:"#e6f3ff",letterSpacing:"0.2em" }}>GOALS</div>
           <div style={{ marginBottom:16 }}>
-            {quest.goals.map(function(g) { return (<div key={g.id} style={{ display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid rgba(77,184,255,0.08)" }}><span style={{ fontSize:13,color:"#dbe6ff" }}>{g.name}</span><span style={{ fontSize:12,color:"#9fb8d8" }}>[0/{g.target}{g.unit}]</span></div>); })}
+            {quest.goals.map(function(g) { return (<div key={g.id} style={{ display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid rgba(111,208,255,0.08)" }}><span style={{ fontSize:13,color:"#dbe6ff" }}>{g.name}</span><span style={{ fontSize:12,color:"#9fb8d8" }}>[0/{g.target}{g.unit}]</span></div>); })}
           </div>
           <div style={{ padding:"8px 14px",marginBottom:16,border:"1px solid "+rc+"44",background:rc+"11",textAlign:"center",fontSize:13,fontWeight:700,color:rc }}>+{quest.xp} XP · {quest.statKey} +{quest.statGain}</div>
-          <p style={{ textAlign:"center",fontSize:11,color:"#5b7aa0",marginBottom:16 }}>This quest will not wait. Accept now or it disappears.</p>
+          <p style={{ textAlign:"center",fontSize:11,color:"#8fb7d9",marginBottom:16 }}>This quest will not wait. Accept now or it disappears.</p>
           <div style={{ display:"flex",gap:10 }}>
             <button onClick={onAccept} style={{ flex:1,padding:"11px",background:rc,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.15em" }}>ACCEPT</button>
             <button onClick={onDecline} style={{ flex:1,padding:"11px",background:"transparent",border:"1px solid "+rc+"55",color:rc+"99",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11 }}>DECLINE</button>
@@ -4458,19 +4485,19 @@ function HiddenQuestPopup({ quest, onAccept, onDecline }) {
    ACTIVE HIDDEN QUEST CARD
    =========================================================================== */
 function HiddenQuestCard({ quest, progress, onGoalTap, ac }) {
-  const rc = quest.rarity==="LEGENDARY"?"#f5b65d":quest.rarity==="RARE"?"#a05df5":"#4db8ff";
+  const rc = quest.rarity==="LEGENDARY"?"#f5b65d":quest.rarity==="RARE"?"#a05df5":"#6fd0ff";
   const allDone = quest.goals.every(function(g){return (progress[g.id]||0)>=g.target;});
   return (
     <Win ac={rc} style={{ marginBottom:16 }}>
       <div style={{ padding:"16px 20px" }}>
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:8 }}><Bang size={24} color={rc} /><div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:"#eaf2ff" }}>{quest.label}</div><div style={{ fontSize:10,color:rc }}>HIDDEN · {quest.rarity}</div></div></div>
-          {allDone&&<span style={{ fontSize:11,color:"#2ee88a",fontWeight:700 }}>COMPLETE ✓</span>}
+          <div style={{ display:"flex",alignItems:"center",gap:8 }}><Bang size={24} color={rc} /><div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:"#e6f3ff" }}>{quest.label}</div><div style={{ fontSize:10,color:rc }}>HIDDEN · {quest.rarity}</div></div></div>
+          {allDone&&<span style={{ fontSize:11,color:"#3ef29a",fontWeight:700 }}>COMPLETE ✓</span>}
         </div>
         <div style={{ height:1,background:rc+"33",marginBottom:10 }} />
         {quest.goals.map(function(g){
           const cur=progress[g.id]||0; const done=cur>=g.target; const canTap=!done&&!allDone;
-          return (<div key={g.id} onClick={function(){if(canTap&&typeof onGoalTap==="function")onGoalTap(quest.id,g.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(77,184,255,0.07)",cursor:canTap?"pointer":"default" }}><span style={{ fontSize:13,fontWeight:600,color:done?"#5a7a5a":"#dbe6ff" }}>{g.name}</span><div style={{ display:"flex",alignItems:"center",gap:6 }}><span style={{ fontSize:11,color:done?"#2ee88a":"#9fb8d8" }}>[{cur}/{g.target}{g.unit}]</span><div style={{ width:14,height:14,border:"1.5px solid "+(done?"#2ee88a":rc+"66"),background:done?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#2ee88a" }}>{done?"✓":""}</div></div></div>);
+          return (<div key={g.id} onClick={function(){if(canTap&&typeof onGoalTap==="function")onGoalTap(quest.id,g.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(111,208,255,0.07)",cursor:canTap?"pointer":"default" }}><span style={{ fontSize:13,fontWeight:600,color:done?"#5a7a5a":"#dbe6ff" }}>{g.name}</span><div style={{ display:"flex",alignItems:"center",gap:6 }}><span style={{ fontSize:11,color:done?"#3ef29a":"#9fb8d8" }}>[{cur}/{g.target}{g.unit}]</span><div style={{ width:14,height:14,border:"1.5px solid "+(done?"#3ef29a":rc+"66"),background:done?"#3ef29a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#3ef29a" }}>{done?"✓":""}</div></div></div>);
         })}
       </div>
     </Win>
@@ -4522,7 +4549,7 @@ function DungeonChain({ gate, onComplete, onAbandon, sfx, modifier }) {
             <div style={{ padding:"5px 12px", marginBottom:12, border:"1px solid "+mod.color+"88", background:mod.color+"0d", display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ fontFamily:"'Orbitron',sans-serif", fontSize:9, letterSpacing:"0.2em", color:mod.color, fontWeight:700 }}>⚠ {mod.label}</span>
               <span style={{ fontSize:11, color:"#9fb8d8" }}>{mod.desc}</span>
-              {mod.xpMod > 1 && <span style={{ fontSize:9, color:"#2ee88a", marginLeft:"auto", whiteSpace:"nowrap" }}>XP ×{mod.xpMod}</span>}
+              {mod.xpMod > 1 && <span style={{ fontSize:9, color:"#3ef29a", marginLeft:"auto", whiteSpace:"nowrap" }}>XP ×{mod.xpMod}</span>}
             </div>
           )}
 
@@ -4545,7 +4572,7 @@ function DungeonChain({ gate, onComplete, onAbandon, sfx, modifier }) {
             <>
               <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:16,paddingBottom:14,borderBottom:"1px solid "+gate.color+"44" }}>
                 <div style={{ padding:"3px 10px",border:"1px solid "+gate.color,fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:gate.color,letterSpacing:"0.15em" }}>{gate.rank}-RANK</div>
-                <div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff" }}>{gate.name}</div><div style={{ fontSize:11,color:"#5b7aa0" }}>Room {roomIndex+1} of {rooms.length}</div></div>
+                <div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#e6f3ff" }}>{gate.name}</div><div style={{ fontSize:11,color:"#8fb7d9" }}>Room {roomIndex+1} of {rooms.length}</div></div>
               </div>
               {!done&&currentRoom&&(
                 <div className="fade-in" key={roomIndex}>
@@ -4553,7 +4580,7 @@ function DungeonChain({ gate, onComplete, onAbandon, sfx, modifier }) {
                   <p style={{ fontSize:13,color:"#9fb8d8",lineHeight:1.7,marginBottom:20 }}>{currentRoom.desc}</p>
                   <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
                     {currentRoom.choices.map(function(c){
-                      return (<button key={c.id} onClick={function(){handleChoice(c);}} style={{ textAlign:"left",padding:"14px 16px",background:"rgba(77,184,255,0.04)",border:"1px solid "+gate.color+"44",color:"#dbe6ff",cursor:"pointer",fontSize:13,lineHeight:1.5 }}><div>{c.text}</div><div style={{ fontSize:11,color:gate.color,marginTop:4 }}>→ {c.outcome}</div></button>);
+                      return (<button key={c.id} onClick={function(){handleChoice(c);}} style={{ textAlign:"left",padding:"14px 16px",background:"rgba(111,208,255,0.04)",border:"1px solid "+gate.color+"44",color:"#dbe6ff",cursor:"pointer",fontSize:13,lineHeight:1.5 }}><div>{c.text}</div><div style={{ fontSize:11,color:gate.color,marginTop:4 }}>→ {c.outcome}</div></button>);
                     })}
                   </div>
                 </div>
@@ -4585,7 +4612,7 @@ function MonarchTrialScreen({ progress, onGoalTap, onForfeit }) {
   const allDone = completedCount===MONARCH_TRIAL_GOALS.length;
   return (
     <div style={{ position:"fixed",inset:0,zIndex:9000,background:"radial-gradient(ellipse at center,"+MONARCH_DARK+" 0%,#000 100%)",overflow:"auto",padding:"20px 16px 60px" }}>
-      <div style={{ position:"fixed",inset:0,pointerEvents:"none",zIndex:1,background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(155,48,255,0.06) 2px,rgba(155,48,255,0.06) 4px)" }} />
+      <div style={{ position:"fixed",inset:0,pointerEvents:"none",zIndex:1,background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(160,141,255,0.06) 2px,rgba(160,141,255,0.06) 4px)" }} />
       <div style={{ position:"fixed",left:0,right:0,height:2,zIndex:2,background:"linear-gradient(90deg,transparent,"+MONARCH_PURP+"88,transparent)",animation:"scan-line 2s linear infinite" }} />
       <div style={{ position:"relative",zIndex:3,maxWidth:600,margin:"0 auto" }}>
         <div style={{ textAlign:"center",marginBottom:32,paddingTop:16 }}>
@@ -4593,22 +4620,22 @@ function MonarchTrialScreen({ progress, onGoalTap, onForfeit }) {
           <div className="monarch-text" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:28,fontWeight:900,color:MONARCH_PURP,lineHeight:1.2,marginBottom:8 }}>MONARCH TRIAL</div>
           <div style={{ fontSize:14,color:"#8a6ab0",lineHeight:1.7,maxWidth:400,margin:"0 auto" }}>You have met the minimum conditions.<br />A hidden path has revealed itself.<br />Complete all objectives within this session.</div>
         </div>
-        <div style={{ border:"1px solid "+GLITCH_RED+"66",background:"rgba(255,34,68,0.06)",padding:"12px 16px",marginBottom:24 }}>
+        <div style={{ border:"1px solid "+GLITCH_RED+"66",background:"rgba(255,89,100,0.06)",padding:"12px 16px",marginBottom:24 }}>
           <p style={{ color:GLITCH_RED,fontSize:12,lineHeight:1.7 }}><strong>WARNING:</strong> One-day only. Failure removes this path. You will not know when — or if — it returns.</p>
         </div>
-        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,padding:"10px 16px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)" }}>
+        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,padding:"10px 16px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(160,141,255,0.06)" }}>
           <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,color:MONARCH_DIM }}>TRIAL PROGRESS</span>
           <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:MONARCH_PURP }}>{completedCount} / {MONARCH_TRIAL_GOALS.length}</span>
         </div>
         <div style={{ border:"1px solid "+MONARCH_PURP+"55",background:"linear-gradient(160deg,rgba(20,5,35,0.98),rgba(8,0,16,0.99))",marginBottom:20 }}>
-          <div style={{ display:"flex",alignItems:"center",gap:12,padding:"14px 20px",borderBottom:"1px solid "+MONARCH_PURP+"44" }}><Bang size={34} color={MONARCH_PURP} /><div style={{ padding:"5px 18px",border:"1px solid "+MONARCH_PURP }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff" }}>QUEST INFO</span></div></div>
+          <div style={{ display:"flex",alignItems:"center",gap:12,padding:"14px 20px",borderBottom:"1px solid "+MONARCH_PURP+"44" }}><Bang size={34} color={MONARCH_PURP} /><div style={{ padding:"5px 18px",border:"1px solid "+MONARCH_PURP }}><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#e6f3ff" }}>QUEST INFO</span></div></div>
           <div style={{ padding:"12px 20px 4px",textAlign:"center" }}><p style={{ color:"#c8a0e8",fontSize:13 }}>[Emergency Quest: <strong style={{ color:MONARCH_PURP }}>Monarch Trial</strong> has arrived.]</p></div>
           <div style={{ height:1,margin:"12px 20px",background:"linear-gradient(90deg,transparent,"+MONARCH_PURP+"88,transparent)" }} />
-          <div style={{ textAlign:"center",padding:"0 20px 12px",fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,letterSpacing:"0.22em",color:"#eaf2ff" }}>GOALS</div>
+          <div style={{ textAlign:"center",padding:"0 20px 12px",fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,letterSpacing:"0.22em",color:"#e6f3ff" }}>GOALS</div>
           <div style={{ padding:"0 20px 20px" }}>
             {MONARCH_TRIAL_GOALS.map(function(goal){
               const cur=progress[goal.id]||0; const done=cur>=goal.target; const canTap=!done&&!allDone;
-              return (<div key={goal.id} onClick={function(){if(canTap&&typeof onGoalTap==="function")onGoalTap(goal.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(155,48,255,0.12)",cursor:canTap?"pointer":"default" }}><span style={{ fontSize:14,fontWeight:600,color:done?"#5a3a7a":"#dbe6ff" }}>{goal.name}</span><div style={{ display:"flex",alignItems:"center",gap:8 }}><span style={{ fontSize:12,color:done?"#2ee88a":"#8a6ab0" }}>[{cur}/{goal.target}{goal.unit}]</span><div style={{ width:20,height:20,border:"1.5px solid "+(done?"#2ee88a":MONARCH_PURP+"77"),background:done?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#2ee88a" }}>{done?"✓":""}</div></div></div>);
+              return (<div key={goal.id} onClick={function(){if(canTap&&typeof onGoalTap==="function")onGoalTap(goal.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(160,141,255,0.12)",cursor:canTap?"pointer":"default" }}><span style={{ fontSize:14,fontWeight:600,color:done?"#5a3a7a":"#dbe6ff" }}>{goal.name}</span><div style={{ display:"flex",alignItems:"center",gap:8 }}><span style={{ fontSize:12,color:done?"#3ef29a":"#8a6ab0" }}>[{cur}/{goal.target}{goal.unit}]</span><div style={{ width:20,height:20,border:"1.5px solid "+(done?"#3ef29a":MONARCH_PURP+"77"),background:done?"#3ef29a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,color:"#3ef29a" }}>{done?"✓":""}</div></div></div>);
             })}
           </div>
           <div style={{ borderTop:"1px solid "+MONARCH_PURP+"33",padding:"12px 20px" }}>
@@ -4631,7 +4658,7 @@ function ReawakeningSequence({ playerName, onComplete }) {
   useEffect(function(){ if(step>=phases.length){if(typeof onComplete==="function")onComplete();return;} t.current=setTimeout(function(){setStep(function(s){return s+1;});},phases[step].dur); return function(){clearTimeout(t.current);}; },[step]);
   return (
     <div style={{ position:"fixed",inset:0,zIndex:10000,background:step<2?"radial-gradient(ellipse at center,#0d0010 0%,#000 100%)":"radial-gradient(ellipse at center,#1a0030 0%,#0a0015 60%,#000 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",transition:"background 1.5s ease",overflow:"hidden" }}>
-      <div style={{ position:"fixed",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(155,48,255,0.06) 2px,rgba(155,48,255,0.06) 4px)" }} />
+      <div style={{ position:"fixed",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(160,141,255,0.06) 2px,rgba(160,141,255,0.06) 4px)" }} />
       {step>=2&&<div style={{ position:"absolute",width:500,height:500,borderRadius:"50%",border:"2px solid "+MONARCH_PURP+"33",animation:"aura-eruption 1s ease forwards, monarch-breathe 3s ease-in-out 1s infinite" }} />}
       {step>=3&&<div style={{ position:"absolute",width:350,height:350,borderRadius:"50%",border:"1px solid "+MONARCH_PURP+"55",animation:"aura-ring-2 1.5s ease forwards" }} />}
       <div className={step===1?"shake":""} style={{ position:"relative",textAlign:"center",padding:"0 32px" }}>
@@ -4747,7 +4774,7 @@ function Sidebar({ activeView, onSelect, onClose, ac, playerName, isMonarch, sto
         })}
 
         {isMonarch&&(
-          <div style={{ margin:"20px 16px 0",padding:"12px 14px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)" }}>
+          <div style={{ margin:"20px 16px 0",padding:"12px 14px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(160,141,255,0.06)" }}>
             <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.35em",color:MONARCH_DIM,marginBottom:8 }}>MONARCH REGISTRY</div>
             <div style={{ fontSize:11,color:"#8a5ab0",lineHeight:2,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
               Class: Shadow Monarch<br/>Authority: Confirmed<br/>Aura: Dominant
@@ -4771,7 +4798,7 @@ function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, is
   return (
     <div className="fade-in system-dashboard">
       <SL text={isMonarch?"Monarch Command Center":"Command Center"} ac={c} />
-      {isMonarch&&(<div className="monarch-breathe fade-in" style={{ padding:"14px 20px",marginBottom:20,border:"1px solid "+MONARCH_PURP+"66",background:"linear-gradient(90deg,rgba(155,48,255,0.08),rgba(13,0,16,0.8))",display:"flex",alignItems:"center",gap:12 }}><span className="pulse-glow" style={{ fontSize:20,color:MONARCH_PURP }}>◉</span><div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,color:MONARCH_PURP,letterSpacing:"0.2em" }}>MONARCH AURA — ACTIVE</div><div style={{ fontSize:12,color:"#8a5ab0",marginTop:2 }}>The shadows obey.</div></div></div>)}
+      {isMonarch&&(<div className="monarch-breathe fade-in" style={{ padding:"14px 20px",marginBottom:20,border:"1px solid "+MONARCH_PURP+"66",background:"linear-gradient(90deg,rgba(160,141,255,0.08),rgba(13,0,16,0.8))",display:"flex",alignItems:"center",gap:12 }}><span className="pulse-glow" style={{ fontSize:20,color:MONARCH_PURP }}>◉</span><div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,color:MONARCH_PURP,letterSpacing:"0.2em" }}>MONARCH AURA — ACTIVE</div><div style={{ fontSize:12,color:"#8a5ab0",marginTop:2 }}>The shadows obey.</div></div></div>)}
 
       {/* Daily reset countdown */}
       <ResetCountdownBanner accentColor={c} isMonarch={isMonarch} onReset={onReset} />
@@ -4793,10 +4820,10 @@ function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, is
 
       {/* Wave 3: Awakening day */}
       {awakeningDay&&(
-        <div style={{ padding:"8px 14px",marginBottom:14,border:"1px solid #2ee88a66",background:"rgba(46,232,138,0.06)",display:"flex",alignItems:"center",gap:10,animation:"energy-pulse 2s ease-in-out infinite" }}>
+        <div style={{ padding:"8px 14px",marginBottom:14,border:"1px solid #3ef29a66",background:"rgba(62,242,154,0.06)",display:"flex",alignItems:"center",gap:10,animation:"energy-pulse 2s ease-in-out infinite" }}>
           <span style={{ fontSize:16 }}>✸</span>
           <div>
-            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:"#2ee88a" }}>AWAKENING DAY ACTIVE</div>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:"#3ef29a" }}>AWAKENING DAY ACTIVE</div>
             <div style={{ fontSize:10,color:"#9fb8d8",marginTop:1 }}>All rewards elevated. Hidden events more likely. Push harder today.</div>
           </div>
         </div>
@@ -4810,7 +4837,7 @@ function DashboardView({ player, rank, dailyProgress, isDailyDone, onGoalTap, is
           { label:"QUEST",  v:doneCount+"/"+dailyQuest.goals.length, sub:"goals cleared today" },
           { label:"ENERGY", v:String(energyScore), sub:"usable output" },
           { label:"DISCIPLINE", v:String(disciplineScore||0), sub:"stability score" },
-        ].map(function(s){ return (<Win key={s.label} ac={c}><div style={{ padding:"14px 16px" }}><div style={{ fontSize:10,letterSpacing:"0.25em",color:"#5b7aa0",marginBottom:4 }}>{s.label}</div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:900,color:c }}>{s.v}</div><div style={{ fontSize:10,color:"#7e98ba",marginTop:2 }}>{s.sub}</div></div></Win>); })}
+        ].map(function(s){ return (<Win key={s.label} ac={c}><div style={{ padding:"14px 16px" }}><div style={{ fontSize:10,letterSpacing:"0.25em",color:"#8fb7d9",marginBottom:4 }}>{s.label}</div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:22,fontWeight:900,color:c }}>{s.v}</div><div style={{ fontSize:10,color:"#7e98ba",marginTop:2 }}>{s.sub}</div></div></Win>); })}
       </div>
       {activeHiddenQuest&&<HiddenQuestCard quest={activeHiddenQuest} progress={hiddenQuestProgress} onGoalTap={onHiddenGoalTap} ac={c} />}
       <QuestCard quest={dailyQuest} progress={dailyProgress} isDone={isDailyDone} onGoalTap={onGoalTap} ac={c} />
@@ -4831,7 +4858,7 @@ function TitlesPanel({ player, streak, clearedGates, shadowCount, onSelectTitle,
         HUNTER TITLES
       </div>
       {unlocked.length === 0 ? (
-        <div style={{ padding:"16px", border:"1px solid #1a2438", fontSize:12, color:"#5b7aa0" }}>
+        <div style={{ padding:"16px", border:"1px solid #1a2438", fontSize:12, color:"#8fb7d9" }}>
           No titles unlocked yet. Train. Clear gates. Build your streak.
         </div>
       ) : (
@@ -4844,11 +4871,11 @@ function TitlesPanel({ player, streak, clearedGates, shadowCount, onSelectTitle,
                 style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:isActive?tc+"14":"transparent", border:isActive?"1px solid "+tc:"1px solid #1a2438", cursor:"pointer", textAlign:"left" }}>
                 <div>
                   <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:11, fontWeight:700, color:tc }}>{title.name}</div>
-                  <div style={{ fontSize:10, color:"#5b7aa0", marginTop:2 }}>{title.desc}</div>
+                  <div style={{ fontSize:10, color:"#8fb7d9", marginTop:2 }}>{title.desc}</div>
                 </div>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:4, flexShrink:0, marginLeft:12 }}>
                   <span style={{ fontSize:9, padding:"2px 8px", border:"1px solid "+tc+"55", color:tc, letterSpacing:"0.15em" }}>{title.rarity}</span>
-                  {isActive && <span style={{ fontSize:9, color:"#2ee88a" }}>ACTIVE</span>}
+                  {isActive && <span style={{ fontSize:9, color:"#3ef29a" }}>ACTIVE</span>}
                 </div>
               </button>
             );
@@ -4959,7 +4986,7 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
         overflow: "hidden",
       }}>
         {/* Corrupted scanline effect */}
-        {isCorrupted && <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(155,48,255,0.04) 3px,rgba(155,48,255,0.04) 4px)" }} />}
+        {isCorrupted && <div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(160,141,255,0.04) 3px,rgba(160,141,255,0.04) 4px)" }} />}
 
         {/* Header */}
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8,gap:8 }}>
@@ -4969,12 +4996,12 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
           </div>
           <div style={{ display:"flex",alignItems:"center",gap:6,flexShrink:0 }}>
             <span style={{ fontSize:9,padding:"2px 8px",border:"1px solid "+rc.color+"55",color:rc.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em" }}>{quest.rarity}</span>
-            {done && <span style={{ fontSize:9,color:"#2ee88a",fontWeight:700 }}>✓</span>}
+            {done && <span style={{ fontSize:9,color:"#3ef29a",fontWeight:700 }}>✓</span>}
           </div>
         </div>
 
         {/* Flavor */}
-        <p style={{ fontSize:11,color:"#5b7aa0",lineHeight:1.5,marginBottom:10,fontStyle:"italic" }}>{quest.flavor}</p>
+        <p style={{ fontSize:11,color:"#8fb7d9",lineHeight:1.5,marginBottom:10,fontStyle:"italic" }}>{quest.flavor}</p>
 
         {/* Goals */}
         {quest.goals.map(function(goal) {
@@ -4984,11 +5011,11 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
           return (
             <div key={goal.id}
               onClick={function(){ if(canTap && typeof onExtGoalTap==="function") onExtGoalTap(quest.id, goal.id); }}
-              style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid rgba(77,184,255,0.07)",cursor:canTap?"pointer":"default" }}>
+              style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid rgba(111,208,255,0.07)",cursor:canTap?"pointer":"default" }}>
               <span style={{ fontSize:13,color:complete?"#5a7a5a":"#dbe6ff",fontWeight:complete?400:600 }}>{goal.name}</span>
               <div style={{ display:"flex",alignItems:"center",gap:6,flexShrink:0 }}>
-                <span style={{ fontSize:11,color:complete?"#2ee88a":"#9fb8d8" }}>{goal.target}{goal.unit}</span>
-                <div style={{ width:16,height:16,border:"1.5px solid "+(complete?"#2ee88a":rc.color+"66"),background:complete?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#2ee88a" }}>{complete?"✓":""}</div>
+                <span style={{ fontSize:11,color:complete?"#3ef29a":"#9fb8d8" }}>{goal.target}{goal.unit}</span>
+                <div style={{ width:16,height:16,border:"1.5px solid "+(complete?"#3ef29a":rc.color+"66"),background:complete?"#3ef29a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#3ef29a" }}>{complete?"✓":""}</div>
               </div>
             </div>
           );
@@ -5002,7 +5029,7 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
             {quest.energyGain ? " · +energy" : ""}
             {quest.shadowLoyaltyGain ? " · +shadow loyalty" : ""}
           </span>
-          <span style={{ color:"#5b7aa0" }}>{quest.cat}</span>
+          <span style={{ color:"#8fb7d9" }}>{quest.cat}</span>
         </div>
       </div>
     );
@@ -5025,7 +5052,7 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16 }}>
           {SIDE_QUESTS.map(function(quest,qi){
             const done=sideDone[qi]===true;
-            return (<div key={quest.id} style={{ border:"1px solid "+c+"55",background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))",padding:"20px 20px 16px" }}><div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:12 }}><Bang size={28} color={c} /><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:"#eaf2ff" }}>{quest.label}</span></div><div style={{ height:1,background:c+"33",marginBottom:12 }} />{quest.goals.map(function(goal){ const cur=(sideProgress[qi]&&sideProgress[qi][goal.id])||0; const complete=cur>=goal.target; const canTap=!complete&&!done; return (<div key={goal.id} onClick={function(){if(canTap&&typeof onSideGoalTap==="function")onSideGoalTap(qi,goal.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid rgba(77,184,255,0.07)",cursor:canTap?"pointer":"default" }}><span style={{ fontSize:13,fontWeight:600,color:complete?"#5a7a5a":"#dbe6ff" }}>{goal.name}</span><div style={{ display:"flex",alignItems:"center",gap:8 }}><span style={{ fontSize:12,color:complete?"#2ee88a":"#9fb8d8" }}>[{cur}/{goal.target}{goal.unit}]</span><div style={{ width:16,height:16,border:"1.5px solid "+(complete?"#2ee88a":c+"66"),background:complete?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#2ee88a" }}>{complete?"✓":""}</div></div></div>); })}<div style={{ marginTop:12,textAlign:"right",fontSize:11,color:done?"#2ee88a":"#f5b65d",fontWeight:600 }}>{done?"CLEARED ✓":"+"+quest.xp+" XP"}</div></div>);
+            return (<div key={quest.id} style={{ border:"1px solid "+c+"55",background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))",padding:"20px 20px 16px" }}><div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:12 }}><Bang size={28} color={c} /><span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:"#e6f3ff" }}>{quest.label}</span></div><div style={{ height:1,background:c+"33",marginBottom:12 }} />{quest.goals.map(function(goal){ const cur=(sideProgress[qi]&&sideProgress[qi][goal.id])||0; const complete=cur>=goal.target; const canTap=!complete&&!done; return (<div key={goal.id} onClick={function(){if(canTap&&typeof onSideGoalTap==="function")onSideGoalTap(qi,goal.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid rgba(111,208,255,0.07)",cursor:canTap?"pointer":"default" }}><span style={{ fontSize:13,fontWeight:600,color:complete?"#5a7a5a":"#dbe6ff" }}>{goal.name}</span><div style={{ display:"flex",alignItems:"center",gap:8 }}><span style={{ fontSize:12,color:complete?"#3ef29a":"#9fb8d8" }}>[{cur}/{goal.target}{goal.unit}]</span><div style={{ width:16,height:16,border:"1.5px solid "+(complete?"#3ef29a":c+"66"),background:complete?"#3ef29a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#3ef29a" }}>{complete?"✓":""}</div></div></div>); })}<div style={{ marginTop:12,textAlign:"right",fontSize:11,color:done?"#3ef29a":"#f5b65d",fontWeight:600 }}>{done?"CLEARED ✓":"+"+quest.xp+" XP"}</div></div>);
           })}
         </div>
       )}
@@ -5033,7 +5060,7 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
       {/* Extended quests */}
       {tab==="extended" && (
         <div>
-          <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>
+          <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:12 }}>
             Today's extended quests — rotates daily based on rank, class, and energy. {extQuests.length} available.
           </div>
           {extQuests.length===0 ? (
@@ -5048,7 +5075,7 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
       {/* Anomaly quests tab */}
       {tab==="anomaly" && (
         <div>
-          <div style={{ padding:"9px 14px",marginBottom:14,border:"1px solid "+MONARCH_PURP+"55",background:"rgba(155,48,255,0.06)",display:"flex",alignItems:"center",gap:10 }}>
+          <div style={{ padding:"9px 14px",marginBottom:14,border:"1px solid "+MONARCH_PURP+"55",background:"rgba(160,141,255,0.06)",display:"flex",alignItems:"center",gap:10 }}>
             <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:MONARCH_PURP,flexShrink:0 }}>SYSTEM ANOMALY</span>
             <span style={{ fontSize:11,color:"#9fb8d8" }}>Real-world directives from the System. Complete them. The System is watching.</span>
           </div>
@@ -5063,7 +5090,7 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
                 const canComplete = !done;
                 return (
                   <div key={quest.id} style={{ border:"1px solid "+rc.border, background:rc.bg, padding:"16px 18px", position:"relative", overflow:"hidden" }}>
-                    {isCorrupted&&<div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(155,48,255,0.04) 3px,rgba(155,48,255,0.04) 4px)" }} />}
+                    {isCorrupted&&<div style={{ position:"absolute",inset:0,pointerEvents:"none",background:"repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(160,141,255,0.04) 3px,rgba(160,141,255,0.04) 4px)" }} />}
                     {/* Header */}
                     <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8,gap:8,position:"relative" }}>
                       <div style={{ display:"flex",alignItems:"center",gap:8 }}>
@@ -5072,15 +5099,15 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
                       </div>
                       <div style={{ display:"flex",alignItems:"center",gap:6,flexShrink:0 }}>
                         <span style={{ fontSize:9,padding:"2px 8px",border:"1px solid "+rc.color+"55",color:rc.color,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.12em" }}>{quest.rarity}</span>
-                        {done&&<span style={{ fontSize:10,color:"#2ee88a",fontWeight:700 }}>✓</span>}
+                        {done&&<span style={{ fontSize:10,color:"#3ef29a",fontWeight:700 }}>✓</span>}
                       </div>
                     </div>
                     {/* System message */}
                     <div style={{ fontSize:10,color:rc.color+"aa",fontStyle:"italic",marginBottom:6,fontFamily:"monospace",lineHeight:1.4 }}>{quest.sys}</div>
                     {/* Task */}
-                    <p style={{ fontSize:13,color:done?"#5b7aa0":"#dbe6ff",lineHeight:1.7,marginBottom:12 }}>{quest.task}</p>
+                    <p style={{ fontSize:13,color:done?"#8fb7d9":"#dbe6ff",lineHeight:1.7,marginBottom:12 }}>{quest.task}</p>
                     {/* Lore */}
-                    {quest.lore&&<p style={{ fontSize:10,color:"#5b7aa0",fontStyle:"italic",marginBottom:10,borderLeft:"2px solid "+rc.color+"44",paddingLeft:8,lineHeight:1.5 }}>{quest.lore}</p>}
+                    {quest.lore&&<p style={{ fontSize:10,color:"#8fb7d9",fontStyle:"italic",marginBottom:10,borderLeft:"2px solid "+rc.color+"44",paddingLeft:8,lineHeight:1.5 }}>{quest.lore}</p>}
                     {/* Reward + action */}
                     <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,flexWrap:"wrap" }}>
                       <span style={{ fontSize:10,color:rc.color }}>
@@ -5093,7 +5120,7 @@ function SideQuestsView({ rank, sideProgress, sideDone, onSideGoalTap, isMonarch
                           COMPLETE
                         </button>
                       ) : (
-                        <span style={{ fontSize:10,color:"#2ee88a",fontWeight:700 }}>MISSION COMPLETE</span>
+                        <span style={{ fontSize:10,color:"#3ef29a",fontWeight:700 }}>MISSION COMPLETE</span>
                       )}
                     </div>
                   </div>
@@ -5115,7 +5142,7 @@ function getAdaptiveDungeonRec(player, energyScore) {
 
   if (safe < 30) return { label:"Recovery Mode", note:"Energy too low for dungeon entry. Rest first.", color:"#f53d3d" };
   if (str > agi && str > end) return { label:"Brute-Force Gate", note:"Your strength profile suits high-resistance dungeons. The Gate of Awakening is optimal.", color:"#f53d3d" };
-  if (agi > str && agi > end) return { label:"Speed Gate",      note:"Agility-dominant hunters clear dungeon rooms fastest. Prioritize the Gate of Awakening.", color:"#4db8ff" };
+  if (agi > str && agi > end) return { label:"Speed Gate",      note:"Agility-dominant hunters clear dungeon rooms fastest. Prioritize the Gate of Awakening.", color:"#6fd0ff" };
   if (end > str && end > agi) return { label:"Endurance Raid",  note:"High stamina — Red Gate or multi-room dungeons are recommended.", color:"#6fae6f" };
   return { label:"Balanced Protocol", note:"Well-rounded stats. Any gate is viable. Push toward the highest rank available.", color:SYS_BLUE };
 }
@@ -5150,8 +5177,8 @@ function DungeonGatesView({ rank, isMonarch, clearedGates, onEnterGate, ac, play
 
       {/* No open gates */}
       {openGates.length === 0 && (
-        <div style={{ padding:"40px 24px",textAlign:"center",border:"1px solid rgba(77,184,255,0.15)",background:"rgba(2,6,18,0.8)",marginBottom:16 }}>
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,color:"#4db8ff55",letterSpacing:"0.3em",marginBottom:8 }}>NO OPEN GATES</div>
+        <div style={{ padding:"40px 24px",textAlign:"center",border:"1px solid rgba(111,208,255,0.15)",background:"rgba(2,6,18,0.8)",marginBottom:16 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,color:"#6fd0ff55",letterSpacing:"0.3em",marginBottom:8 }}>NO OPEN GATES</div>
           <div style={{ fontSize:12,color:"#2a3a55" }}>All available gates have been cleared. New gates open as you advance in rank.</div>
         </div>
       )}
@@ -5209,7 +5236,7 @@ function DungeonGatesView({ rank, isMonarch, clearedGates, onEnterGate, ac, play
                     <div>
                       <div style={{ fontSize:10,color:"#3a5a78",marginBottom:3 }}>
                         MIN LEVEL: <span style={{ color:gc }}>{gate.minLevel}</span>
-                        {"  ·  "}SURVIVAL: <span style={{ color: gate.survivalChance < 35 ? "#f53d3d" : gate.survivalChance < 60 ? "#f5b65d" : "#2ee88a" }}>{gate.survivalChance}%</span>
+                        {"  ·  "}SURVIVAL: <span style={{ color: gate.survivalChance < 35 ? "#f53d3d" : gate.survivalChance < 60 ? "#f5b65d" : "#3ef29a" }}>{gate.survivalChance}%</span>
                       </div>
                       <div style={{ fontSize:11,color:gc,fontWeight:600 }}>REWARD: {gate.reward}</div>
                     </div>
@@ -5242,10 +5269,10 @@ function DungeonGatesView({ rank, isMonarch, clearedGates, onEnterGate, ac, play
           <div style={{ display:"flex",flexDirection:"column",gap:6 }}>
             {clearedList.map(function(gate){
               return (
-                <div key={gate.id} style={{ padding:"10px 16px",border:"1px solid rgba(46,232,138,0.15)",background:"rgba(46,232,138,0.03)",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:0.6 }}>
+                <div key={gate.id} style={{ padding:"10px 16px",border:"1px solid rgba(62,242,154,0.15)",background:"rgba(62,242,154,0.03)",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:0.6 }}>
                   <div style={{ display:"flex",alignItems:"center",gap:10 }}>
-                    <span style={{ color:"#2ee88a",fontSize:11 }}>✓</span>
-                    <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,color:"#2ee88a66",letterSpacing:"0.1em" }}>{gate.name}</span>
+                    <span style={{ color:"#3ef29a",fontSize:11 }}>✓</span>
+                    <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,color:"#3ef29a66",letterSpacing:"0.1em" }}>{gate.name}</span>
                   </div>
                   <span style={{ fontSize:9,color:"#2a3a55",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em" }}>CLEARED</span>
                 </div>
@@ -5285,13 +5312,13 @@ function RaidPrepScreen({ boss, data, onLaunch, onCancel, accentColor, inventory
           <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:18,paddingBottom:14,borderBottom:"1px solid "+c+"33" }}>
             <div style={{ width:44,height:44,border:"2px solid "+c,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:c+"11",flexShrink:0 }}>{boss?boss.icon:"⚔"}</div>
             <div>
-              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#eaf2ff" }}>{boss?boss.name:"Boss Raid"}</div>
+              <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:"#e6f3ff" }}>{boss?boss.name:"Boss Raid"}</div>
               <div style={{ fontSize:11,color:c }}>HP: {boss?boss.currentHp+"/"+boss.maxHp:"—"}</div>
             </div>
           </div>
 
           {/* Approach selector */}
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.25em",color:"#5b7aa0",marginBottom:10 }}>COMBAT APPROACH</div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.25em",color:"#8fb7d9",marginBottom:10 }}>COMBAT APPROACH</div>
           <div style={{ display:"flex",flexDirection:"column",gap:6,marginBottom:16 }}>
             {approaches.map(function(a){
               const sel = approach===a.id;
@@ -5299,10 +5326,10 @@ function RaidPrepScreen({ boss, data, onLaunch, onCancel, accentColor, inventory
                 <button key={a.id} onClick={function(){setApproach(a.id);}}
                   style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:sel?c+"15":"transparent",border:"1px solid "+(sel?c:c+"33"),cursor:"pointer",textAlign:"left" }}>
                   <div>
-                    <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:sel?"#eaf2ff":"#9fb8d8" }}>{a.label}</div>
-                    <div style={{ fontSize:10,color:"#5b7aa0",marginTop:2 }}>{a.desc}</div>
+                    <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:sel?"#e6f3ff":"#9fb8d8" }}>{a.label}</div>
+                    <div style={{ fontSize:10,color:"#8fb7d9",marginTop:2 }}>{a.desc}</div>
                   </div>
-                  <div style={{ fontSize:10,color:sel?c:"#5b7aa0",flexShrink:0,marginLeft:10 }}>
+                  <div style={{ fontSize:10,color:sel?c:"#8fb7d9",flexShrink:0,marginLeft:10 }}>
                     {a.survivalMod>0?"+"+a.survivalMod+"%":a.survivalMod<0?a.survivalMod+"%":"—"}
                   </div>
                 </button>
@@ -5312,7 +5339,7 @@ function RaidPrepScreen({ boss, data, onLaunch, onCancel, accentColor, inventory
 
           {/* Shadow army count */}
           {safeShadows.length>0 && (
-            <div style={{ padding:"8px 12px",border:"1px solid "+MONARCH_PURP+"33",background:"rgba(155,48,255,0.06)",fontSize:11,color:MONARCH_PURP,marginBottom:14 }}>
+            <div style={{ padding:"8px 12px",border:"1px solid "+MONARCH_PURP+"33",background:"rgba(160,141,255,0.06)",fontSize:11,color:MONARCH_PURP,marginBottom:14 }}>
               ◉ {safeShadows.length} shadow{safeShadows.length!==1?"s":""} available for deployment
             </div>
           )}
@@ -5336,10 +5363,10 @@ function RaidPrepScreen({ boss, data, onLaunch, onCancel, accentColor, inventory
    RAID PERFORMANCE CARD — shown after raid completion
    =========================================================================== */
 const RAID_RANKS = [
-  { min:90, label:"MONARCH-LEVEL", color:"#2ee88a", fameMod:3.0 },
+  { min:90, label:"MONARCH-LEVEL", color:"#3ef29a", fameMod:3.0 },
   { min:70, label:"S-RANK",        color:"#f5b65d", fameMod:2.0 },
   { min:50, label:"A-RANK",        color:"#a05df5", fameMod:1.5 },
-  { min:30, label:"B-RANK",        color:"#4db8ff", fameMod:1.2 },
+  { min:30, label:"B-RANK",        color:"#6fd0ff", fameMod:1.2 },
   { min:0,  label:"F-RANK",        color:"#f53d3d", fameMod:0.8 },
 ];
 
@@ -5380,11 +5407,11 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
               { label:"PERFORMANCE RANK", value:r.rankLabel,  color:r.color   },
               { label:"XP EARNED",        value:"+"+r.xp,     color:"#f5b65d" },
               { label:"COINS EARNED",     value:"+"+r.coins,  color:"#f5b65d" },
-              { label:"FAME GAINED",      value:"+"+r.fame,   color:"#2ee88a" },
+              { label:"FAME GAINED",      value:"+"+r.fame,   color:"#3ef29a" },
               { label:"APPROACH",         value:r.approach,   color:SYS_BLUE  },
             ].map(function(row){
               return (
-                <div key={row.label} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid rgba(77,184,255,0.07)" }}>
+                <div key={row.label} style={{ display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid rgba(111,208,255,0.07)" }}>
                   <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:"#3a5a78" }}>{row.label}</span>
                   <span style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:14,fontWeight:700,color:row.color }}>{row.value}</span>
                 </div>
@@ -5392,17 +5419,17 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
             })}
             {/* Shadow extraction opportunity */}
             {r.shadowExtracted ? (
-              <div style={{ marginTop:12,padding:"12px 14px",border:"2px solid "+MONARCH_PURP+"88",background:"rgba(155,48,255,0.10)" }}>
+              <div style={{ marginTop:12,padding:"12px 14px",border:"2px solid "+MONARCH_PURP+"88",background:"rgba(160,141,255,0.10)" }}>
                 <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:MONARCH_PURP,marginBottom:6 }}>◉ SHADOW EXTRACTED</div>
                 <div style={{ fontSize:14,color:"#c8a0e8",fontWeight:700 }}>{r.shadowExtracted}</div>
               </div>
             ) : r.shadowCandidate ? (
-              <div style={{ marginTop:12,padding:"12px 14px",border:"1px solid "+MONARCH_PURP+"55",background:"rgba(155,48,255,0.06)" }}>
+              <div style={{ marginTop:12,padding:"12px 14px",border:"1px solid "+MONARCH_PURP+"55",background:"rgba(160,141,255,0.06)" }}>
                 <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.25em",color:MONARCH_PURP,marginBottom:6 }}>SHADOW CANDIDATE AVAILABLE</div>
                 <div style={{ fontSize:12,color:"#8a6ab0" }}>An extraction attempt is available. Initiate ARISE to proceed.</div>
               </div>
             ) : (
-              <div style={{ marginTop:12,padding:"10px 14px",border:"1px solid rgba(77,184,255,0.1)",background:"rgba(77,184,255,0.04)" }}>
+              <div style={{ marginTop:12,padding:"10px 14px",border:"1px solid rgba(111,208,255,0.1)",background:"rgba(111,208,255,0.04)" }}>
                 <div style={{ fontSize:11,color:"#3a5a78" }}>No extraction opportunity on this attempt.</div>
               </div>
             )}
@@ -5418,7 +5445,7 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
   return (
     <div className="fade-in">
       <SL text="Boss Raids" ac={ac} />
-      <p style={{ fontSize:12,color:"#5b7aa0",marginBottom:20 }}>
+      <p style={{ fontSize:12,color:"#8fb7d9",marginBottom:20 }}>
         Bosses have rank requirements. Goals cleared today: <span style={{ color:ac,fontWeight:700 }}>{questGoalsCleared}</span> — each deals 1 damage.
       </p>
       <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16 }}>
@@ -5426,7 +5453,7 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
           const data=bossData[i];
           const hpPct=clamp((boss.currentHp/boss.maxHp)*100,0,100);
           const defeated=boss.currentHp<=0;
-          const threatColor = hpPct>60?"#f53d3d":hpPct>30?"#f5b65d":"#2ee88a";
+          const threatColor = hpPct>60?"#f53d3d":hpPct>30?"#f5b65d":"#3ef29a";
 
           /* Shadow silhouette data */
           const hasShadow = !!(data && data.shadow);
@@ -5434,15 +5461,15 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
           const shadowLost = !!boss.shadowLost;
 
           return (
-            <div key={boss.id} style={{ border:"1px solid "+(defeated?"#2ee88a44":boss.color+"88"),background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",padding:"20px",opacity:defeated?0.65:1,position:"relative",overflow:"hidden" }}>
+            <div key={boss.id} style={{ border:"1px solid "+(defeated?"#3ef29a44":boss.color+"88"),background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))",padding:"20px",opacity:defeated?0.65:1,position:"relative",overflow:"hidden" }}>
               {!defeated&&<div style={{ position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,"+boss.color+"0d,transparent 70%)",pointerEvents:"none" }}/>}
 
               {/* Boss header */}
               <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:12,position:"relative" }}>
-                <div className={defeated?"":hpPct<40?"dng-warn":""} style={{ width:44,height:44,border:"2px solid "+(defeated?"#2ee88a":boss.color),display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:boss.color+"11",flexShrink:0,boxShadow:defeated?"none":"0 0 12px "+boss.color+"44" }}>{defeated?"☠":boss.icon}</div>
+                <div className={defeated?"":hpPct<40?"dng-warn":""} style={{ width:44,height:44,border:"2px solid "+(defeated?"#3ef29a":boss.color),display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:boss.color+"11",flexShrink:0,boxShadow:defeated?"none":"0 0 12px "+boss.color+"44" }}>{defeated?"☠":boss.icon}</div>
                 <div style={{ flex:1,minWidth:0 }}>
-                  <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:defeated?"#2ee88a":"#e0f4ff" }}>{boss.name}</div>
-                  <div style={{ fontSize:10,color:"#5b7aa0",letterSpacing:"0.1em" }}>{boss.title}</div>
+                  <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:defeated?"#3ef29a":"#e0f4ff" }}>{boss.name}</div>
+                  <div style={{ fontSize:10,color:"#8fb7d9",letterSpacing:"0.1em" }}>{boss.title}</div>
                 </div>
                 {!defeated&&<div style={{ padding:"2px 8px",border:"1px solid "+threatColor+"66",fontSize:9,color:threatColor,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",flexShrink:0 }}>{hpPct>60?"HIGH THREAT":hpPct>30?"MID THREAT":"WEAKENED"}</div>}
               </div>
@@ -5451,20 +5478,20 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
 
               {/* HP bar */}
               <div style={{ marginBottom:10 }}>
-                <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,color:"#5b7aa0",marginBottom:4 }}><span>HP</span><span style={{ color:defeated?"#2ee88a":boss.color }}>{boss.currentHp}/{boss.maxHp}</span></div>
-                <div style={{ height:6,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}><div style={{ height:"100%",width:hpPct+"%",background:defeated?"#2ee88a":"linear-gradient(90deg,"+boss.color+",#fff8)",transition:"width 0.5s ease",boxShadow:"0 0 6px "+boss.color+"88" }}/></div>
+                <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,color:"#8fb7d9",marginBottom:4 }}><span>HP</span><span style={{ color:defeated?"#3ef29a":boss.color }}>{boss.currentHp}/{boss.maxHp}</span></div>
+                <div style={{ height:6,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}><div style={{ height:"100%",width:hpPct+"%",background:defeated?"#3ef29a":"linear-gradient(90deg,"+boss.color+",#fff8)",transition:"width 0.5s ease",boxShadow:"0 0 6px "+boss.color+"88" }}/></div>
               </div>
 
-              <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:10 }}>Requires: <span style={{ color:boss.color }}>{boss.minRankName} (LV {boss.minLevel})</span></div>
+              <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:10 }}>Requires: <span style={{ color:boss.color }}>{boss.minRankName} (LV {boss.minLevel})</span></div>
 
               {/* SHADOW SILHOUETTE PANEL */}
-              <div style={{ marginBottom:12,padding:"10px 12px",border:"1px solid "+(alreadyExtracted?"#2ee88a33":shadowLost?"#f53d3d22":MONARCH_PURP+"33"),background:alreadyExtracted?"rgba(46,232,138,0.04)":shadowLost?"rgba(245,61,61,0.04)":"rgba(155,48,255,0.05)",position:"relative",overflow:"hidden" }}>
+              <div style={{ marginBottom:12,padding:"10px 12px",border:"1px solid "+(alreadyExtracted?"#3ef29a33":shadowLost?"#f53d3d22":MONARCH_PURP+"33"),background:alreadyExtracted?"rgba(62,242,154,0.04)":shadowLost?"rgba(245,61,61,0.04)":"rgba(160,141,255,0.05)",position:"relative",overflow:"hidden" }}>
                 {/* Subtle silhouette background */}
                 {!alreadyExtracted&&!shadowLost&&hasShadow&&(
                   <div style={{ position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",fontSize:32,color:MONARCH_PURP,opacity:0.06,fontFamily:"'Orbitron',sans-serif",pointerEvents:"none",userSelect:"none" }}>◉</div>
                 )}
                 <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-                  <div style={{ fontSize:8,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",color:alreadyExtracted?"#2ee88a":shadowLost?"#f53d3d55":MONARCH_PURP+"88",marginBottom:4 }}>
+                  <div style={{ fontSize:8,fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.2em",color:alreadyExtracted?"#3ef29a":shadowLost?"#f53d3d55":MONARCH_PURP+"88",marginBottom:4 }}>
                     {alreadyExtracted?"◉ SHADOW EXTRACTED":shadowLost?"✕ SHADOW LOST":"◉ SHADOW CANDIDATE"}
                   </div>
                   {!alreadyExtracted&&!shadowLost&&hasShadow&&(
@@ -5473,7 +5500,7 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
                   {!hasShadow&&<div style={{ fontSize:8,color:"#2a3a55",fontFamily:"'Orbitron',sans-serif" }}>CAN EXTRACT: NO</div>}
                 </div>
                 {alreadyExtracted&&data&&data.shadow&&(
-                  <div style={{ fontSize:12,color:"#2ee88a",fontWeight:600,fontFamily:"'Rajdhani',sans-serif" }}>◉ {data.shadow.name} — In your army</div>
+                  <div style={{ fontSize:12,color:"#3ef29a",fontWeight:600,fontFamily:"'Rajdhani',sans-serif" }}>◉ {data.shadow.name} — In your army</div>
                 )}
                 {!alreadyExtracted&&!shadowLost&&hasShadow&&data&&data.shadow&&(
                   <div>
@@ -5493,7 +5520,7 @@ function BossRaidsView({ bosses, bossData, onAttack, ac, questGoalsCleared, inve
               <button disabled={defeated||questGoalsCleared<1} onClick={function(){
                 if(defeated||questGoalsCleared<1) return;
                 setPrepTarget({bossIdx:i,boss,data});
-              }} style={{ width:"100%",padding:"10px",background:defeated?"transparent":questGoalsCleared<1?"rgba(10,16,32,0.8)":boss.color,color:defeated?"#2ee88a":questGoalsCleared<1?"#2a3a55":"#03050c",border:defeated?"1px solid #2ee88a44":questGoalsCleared<1?"1px solid #2a3a55":"none",cursor:(defeated||questGoalsCleared<1)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
+              }} style={{ width:"100%",padding:"10px",background:defeated?"transparent":questGoalsCleared<1?"rgba(10,16,32,0.8)":boss.color,color:defeated?"#3ef29a":questGoalsCleared<1?"#2a3a55":"#03050c",border:defeated?"1px solid #3ef29a44":questGoalsCleared<1?"1px solid #2a3a55":"none",cursor:(defeated||questGoalsCleared<1)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.15em" }}>
                 {defeated?"☠ DEFEATED":questGoalsCleared<1?"COMPLETE QUESTS FIRST":"PREPARE RAID"}
               </button>
             </div>
@@ -5521,28 +5548,28 @@ function ShadowArchiveView({ bosses, bossData, ac }) {
   return (
     <div className="fade-in">
       <SL text="Shadow Archive" ac={ac} />
-      <p style={{ fontSize:12,color:"#5b7aa0",marginBottom:20 }}>Shadows extracted from defeated inner-demon bosses. They serve your will now.</p>
+      <p style={{ fontSize:12,color:"#8fb7d9",marginBottom:20 }}>Shadows extracted from defeated inner-demon bosses. They serve your will now.</p>
       {defeated.length===0?(
-        <Win ac={ac}><div style={{ padding:"40px 24px",textAlign:"center" }}><div style={{ fontSize:32,marginBottom:12,opacity:0.3 }}>👤</div><p style={{ color:"#5b7aa0",fontSize:13 }}>No shadows extracted yet. Defeat bosses to grow your army.</p></div></Win>
+        <Win ac={ac}><div style={{ padding:"40px 24px",textAlign:"center" }}><div style={{ fontSize:32,marginBottom:12,opacity:0.3 }}>👤</div><p style={{ color:"#8fb7d9",fontSize:13 }}>No shadows extracted yet. Defeat bosses to grow your army.</p></div></Win>
       ):(
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16 }}>
           {bosses.map(function(boss,i){
             if (boss.currentHp>0) return null;
             const data=bossData[i]; const shadow=data&&data.shadow;
-            const rarityColor=shadow&&shadow.rarity==="LEGENDARY"?"#f5b65d":shadow&&shadow.rarity==="RARE"?"#a05df5":"#4db8ff";
+            const rarityColor=shadow&&shadow.rarity==="LEGENDARY"?"#f5b65d":shadow&&shadow.rarity==="RARE"?"#a05df5":"#6fd0ff";
             return (
               <div key={boss.id} className="shadow-appear" style={{ animationDelay:(i*100)+"ms" }}>
                 <Win ac={MONARCH_PURP}><div style={{ padding:"20px" }}>
                   <div style={{ display:"flex",alignItems:"center",gap:12,marginBottom:14 }}>
-                    <div className="pulse-glow" style={{ width:44,height:44,border:"2px solid "+MONARCH_PURP,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:"rgba(155,48,255,0.1)",flexShrink:0 }}>{boss.icon}</div>
+                    <div className="pulse-glow" style={{ width:44,height:44,border:"2px solid "+MONARCH_PURP,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:"rgba(160,141,255,0.1)",flexShrink:0 }}>{boss.icon}</div>
                     <div>
                       <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:MONARCH_PURP }}>{shadow?shadow.name:boss.name}</div>
                       {shadow&&<div style={{ fontSize:10,color:rarityColor }}>{shadow.rarity} · {shadow.title}</div>}
                     </div>
                   </div>
                   {shadow&&(<>
-                    <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:6 }}>Passive: <span style={{ color:MONARCH_PURP }}>{shadow.passiveBoost}</span></div>
-                    <div style={{ padding:"8px 12px",border:"1px solid "+MONARCH_PURP+"33",background:"rgba(155,48,255,0.06)",fontSize:11,color:"#c8a0e8",fontStyle:"italic",lineHeight:1.6,marginBottom:8 }}>{shadow.lore}</div>
+                    <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:6 }}>Passive: <span style={{ color:MONARCH_PURP }}>{shadow.passiveBoost}</span></div>
+                    <div style={{ padding:"8px 12px",border:"1px solid "+MONARCH_PURP+"33",background:"rgba(160,141,255,0.06)",fontSize:11,color:"#c8a0e8",fontStyle:"italic",lineHeight:1.6,marginBottom:8 }}>{shadow.lore}</div>
                     <div style={{ padding:"8px 12px",border:"1px solid "+MONARCH_PURP+"22",fontSize:11,color:"#8a5ab0",fontStyle:"italic" }}>{data.dialogue.defeat}</div>
                   </>)}
                 </div></Win>
@@ -5734,7 +5761,7 @@ function StreakProtectionModal({ streak, onPreserve, onDecline }) {
             <div style={{ width:36,height:36,border:"2px solid #f5b65d",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18 }}>🔥</div>
             <div>
               <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:"#f5b65d",letterSpacing:"0.1em" }}>STREAK PROTECTION</div>
-              <div style={{ fontSize:11,color:"#5b7aa0" }}>Current streak: {streak} days</div>
+              <div style={{ fontSize:11,color:"#8fb7d9" }}>Current streak: {streak} days</div>
             </div>
           </div>
           <p style={{ fontSize:13,color:"#9fb8d8",lineHeight:1.7,marginBottom:16 }}>{RECOVERY_QUEST.flavor}</p>
@@ -5746,8 +5773,8 @@ function StreakProtectionModal({ streak, onPreserve, onDecline }) {
                 <div key={g.id} onClick={function(){tapGoal(g.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid rgba(245,182,93,0.08)",cursor:done?"default":"pointer" }}>
                   <span style={{ fontSize:13,color:done?"#5a6a3a":"#dbe6ff" }}>{g.name}</span>
                   <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                    <span style={{ fontSize:11,color:done?"#2ee88a":"#9fb8d8" }}>{cur}/{g.target}{g.unit}</span>
-                    <div style={{ width:18,height:18,border:"1.5px solid "+(done?"#2ee88a":"#f5b65d55"),background:done?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#2ee88a" }}>{done?"✓":""}</div>
+                    <span style={{ fontSize:11,color:done?"#3ef29a":"#9fb8d8" }}>{cur}/{g.target}{g.unit}</span>
+                    <div style={{ width:18,height:18,border:"1.5px solid "+(done?"#3ef29a":"#f5b65d55"),background:done?"#3ef29a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#3ef29a" }}>{done?"✓":""}</div>
                   </div>
                 </div>
               );
@@ -5755,14 +5782,14 @@ function StreakProtectionModal({ streak, onPreserve, onDecline }) {
           </div>
 
           {allDone && (
-            <div className="fade-in" style={{ padding:"8px 12px",border:"1px solid #2ee88a44",background:"rgba(46,232,138,0.06)",fontSize:12,color:"#2ee88a",marginBottom:14,textAlign:"center" }}>
+            <div className="fade-in" style={{ padding:"8px 12px",border:"1px solid #3ef29a44",background:"rgba(62,242,154,0.06)",fontSize:12,color:"#3ef29a",marginBottom:14,textAlign:"center" }}>
               Streak preserved. The System acknowledges your recovery.
             </div>
           )}
 
           {!allDone && (
             <div style={{ display:"flex",gap:10 }}>
-              <div style={{ flex:1,fontSize:11,color:"#5b7aa0",lineHeight:1.5 }}>Complete all goals to preserve your streak. Tap each goal when done.</div>
+              <div style={{ flex:1,fontSize:11,color:"#8fb7d9",lineHeight:1.5 }}>Complete all goals to preserve your streak. Tap each goal when done.</div>
               <button onClick={onDecline} style={{ padding:"10px 16px",background:"transparent",border:"1px solid #f53d3d33",color:"#f53d3d66",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.15em",whiteSpace:"nowrap" }}>ACCEPT LOSS</button>
             </div>
           )}
@@ -5777,12 +5804,12 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
   const unlocked = (secretAchievements||[]).filter(function(a){return a.unlocked;});
   const loreEntries = LORE_POOL.filter(function(l){ return (collectedLoreIds||[]).includes(l.id); });
   const earned = earnedAchievements || [];
-  const loreRarityColor = { COMMON:"#8a8f98", UNCOMMON:"#4db8ff", RARE:"#a05df5", EPIC:"#f5b65d", LEGENDARY:"#f53d3d" };
+  const loreRarityColor = { COMMON:"#8a8f98", UNCOMMON:"#6fd0ff", RARE:"#a05df5", EPIC:"#f5b65d", LEGENDARY:"#f53d3d" };
   const tabs = [["log","Event Log"],["achievements","Achiev. ("+earned.length+")"],["secrets","Secrets"],["lore","Lore ("+loreEntries.length+")"],["archives","Archives"]];
 
   return (
     <div className="fade-in">
-      <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>System Log</div>
+      <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>System Log</div>
       <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+ac+",transparent)",marginBottom:16 }} />
 
       {/* Tab selector */}
@@ -5797,11 +5824,11 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
       {tab==="log"&&(
         <div style={{ border:"1px solid "+ac+"33",background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))" }}>
           <div style={{ padding:"4px 0",maxHeight:400,overflowY:"auto" }}>
-            {logs.length===0&&<div style={{ padding:"24px",textAlign:"center",color:"#5b7aa0",fontSize:13 }}>No events logged yet. Begin training.</div>}
+            {logs.length===0&&<div style={{ padding:"24px",textAlign:"center",color:"#8fb7d9",fontSize:13 }}>No events logged yet. Begin training.</div>}
             {[...logs].reverse().map(function(entry,i){
               const isSystem=entry.kind==="system"||entry.kind==="monarch"||entry.kind==="secret";
-              const ec=entry.kind==="evolve"?"#2ee88a":entry.kind==="warning"?"#f53d3d":entry.kind==="monarch"||entry.kind==="secret"?MONARCH_PURP:entry.kind==="ach"?"#a05df5":entry.kind==="xp"?"#f5b65d":ac;
-              return (<div key={i} className="log-entry" style={{ padding:"10px 16px",borderBottom:"1px solid rgba(77,184,255,0.06)",display:"flex",alignItems:"flex-start",gap:12,animationDelay:(i*15)+"ms" }}><span style={{ fontFamily:"monospace",fontSize:10,color:"#5b7aa0",whiteSpace:"nowrap",flexShrink:0,marginTop:2 }}>{entry.time}</span><span style={{ fontSize:11,color:isSystem?MONARCH_DIM:"#5b7aa0",flexShrink:0,marginTop:2 }}>{isSystem?"[SYS]":"[LOG]"}</span><span style={{ fontSize:13,color:ec,lineHeight:1.5 }}>{entry.message}</span></div>);
+              const ec=entry.kind==="evolve"?"#3ef29a":entry.kind==="warning"?"#f53d3d":entry.kind==="monarch"||entry.kind==="secret"?MONARCH_PURP:entry.kind==="ach"?"#a05df5":entry.kind==="xp"?"#f5b65d":ac;
+              return (<div key={i} className="log-entry" style={{ padding:"10px 16px",borderBottom:"1px solid rgba(111,208,255,0.06)",display:"flex",alignItems:"flex-start",gap:12,animationDelay:(i*15)+"ms" }}><span style={{ fontFamily:"monospace",fontSize:10,color:"#8fb7d9",whiteSpace:"nowrap",flexShrink:0,marginTop:2 }}>{entry.time}</span><span style={{ fontSize:11,color:isSystem?MONARCH_DIM:"#8fb7d9",flexShrink:0,marginTop:2 }}>{isSystem?"[SYS]":"[LOG]"}</span><span style={{ fontSize:13,color:ec,lineHeight:1.5 }}>{entry.message}</span></div>);
             })}
           </div>
         </div>
@@ -5820,7 +5847,7 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
                     <span style={{ fontSize:20,color:a.color,flexShrink:0 }}>{a.icon}</span>
                     <div>
                       <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:a.color }}>{a.name}</div>
-                      <div style={{ fontSize:10,color:"#5b7aa0",marginTop:2 }}>{a.desc}</div>
+                      <div style={{ fontSize:10,color:"#8fb7d9",marginTop:2 }}>{a.desc}</div>
                       <div style={{ fontSize:9,color:a.color+"88",marginTop:2 }}>+{a.fameGain} fame</div>
                     </div>
                   </div>
@@ -5841,7 +5868,7 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
             <div style={{ border:"1px solid #1a2438",padding:"32px",textAlign:"center",color:"#2a3a55",fontSize:12,fontStyle:"italic" }}>No secret achievements unlocked. The System is watching.</div>
           ):(
             <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-              {unlocked.map(function(a){ return (<div key={a.id} style={{ padding:"12px 16px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(155,48,255,0.06)",display:"flex",alignItems:"center",gap:12 }}><span style={{ fontSize:18,color:MONARCH_PURP }}>{a.icon}</span><div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:MONARCH_PURP,letterSpacing:"0.1em" }}>{a.name}</div><div style={{ fontSize:11,color:"#8a5ab0" }}>{a.desc}</div></div></div>); })}
+              {unlocked.map(function(a){ return (<div key={a.id} style={{ padding:"12px 16px",border:"1px solid "+MONARCH_PURP+"44",background:"rgba(160,141,255,0.06)",display:"flex",alignItems:"center",gap:12 }}><span style={{ fontSize:18,color:MONARCH_PURP }}>{a.icon}</span><div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:MONARCH_PURP,letterSpacing:"0.1em" }}>{a.name}</div><div style={{ fontSize:11,color:"#8a5ab0" }}>{a.desc}</div></div></div>); })}
             </div>
           )}
         </div>
@@ -5861,7 +5888,7 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
                     <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8 }}>
                       <div>
                         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:rc }}>{entry.title}</div>
-                        <div style={{ fontSize:9,color:"#5b7aa0",marginTop:2,letterSpacing:"0.15em" }}>{entry.category} · {entry.rarity}</div>
+                        <div style={{ fontSize:9,color:"#8fb7d9",marginTop:2,letterSpacing:"0.15em" }}>{entry.category} · {entry.rarity}</div>
                       </div>
                     </div>
                     <p style={{ fontSize:12,color:"#9fb8d8",lineHeight:1.8,fontStyle:"italic" }}>"{entry.text}"</p>
@@ -5883,7 +5910,7 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
         const archiveRows = [
           { label:"Hunter Name",       value:player?player.name:"—",          icon:"◈", color:ac },
           { label:"Current Level",     value:"LV "+level,                      icon:"↑", color:ac },
-          { label:"Highest Streak",    value:streak+" days",                   icon:"🔥",color:streak>=7?"#2ee88a":"#f5b65d" },
+          { label:"Highest Streak",    value:streak+" days",                   icon:"🔥",color:streak>=7?"#3ef29a":"#f5b65d" },
           { label:"Gates Cleared",     value:gateCount+" total",               icon:"⬡", color:SYS_BLUE },
           { label:"Bosses Defeated",   value:bossCount+" defeated",            icon:"☠", color:"#f53d3d" },
           { label:"Shadows Extracted", value:shadowCount+" in army",           icon:"◉", color:MONARCH_PURP },
@@ -5893,13 +5920,13 @@ function SystemLogView({ logs, ac, secretAchievements, collectedLoreIds, earnedA
         ];
         return (
           <div>
-            <div style={{ padding:"10px 14px",border:"1px solid "+ac+"22",background:ac+"06",marginBottom:14,fontSize:11,color:"#5b7aa0",fontFamily:"'Rajdhani',sans-serif",fontWeight:500,lineHeight:1.7 }}>
+            <div style={{ padding:"10px 14px",border:"1px solid "+ac+"22",background:ac+"06",marginBottom:14,fontSize:11,color:"#8fb7d9",fontFamily:"'Rajdhani',sans-serif",fontWeight:500,lineHeight:1.7 }}>
               You are the only registered user of this System. This archive tracks your legend as it is built. Each entry is permanent.
             </div>
             <div style={{ border:"1px solid "+ac+"33",background:"linear-gradient(160deg,rgba(4,10,22,0.98),rgba(2,6,16,0.99))" }}>
               {archiveRows.map(function(row,i){
                 return (
-                  <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"11px 16px",borderBottom:"1px solid rgba(77,184,255,0.07)" }}>
+                  <div key={i} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"11px 16px",borderBottom:"1px solid rgba(111,208,255,0.07)" }}>
                     <div style={{ display:"flex",alignItems:"center",gap:10 }}>
                       <span style={{ fontSize:14,color:row.color,flexShrink:0 }}>{row.icon}</span>
                       <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.2em",color:"#3a5a78" }}>{row.label}</span>
@@ -5936,15 +5963,15 @@ function ReevaluationModal({ onScoreChange, scores, onSubmit, onDismiss, result,
             <span className="sl-header-title" style={{ color:"#c8eeff",textShadow:"0 0 12px "+c+"aa" }}>30-DAY PROGRESS REPORT</span>
           </div>
           <div style={{ padding:"24px" }}>
-            <p style={{ fontSize:12,color:"#5b7aa0",marginBottom:16,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>The System has evaluated your growth over the past 30 days.</p>
+            <p style={{ fontSize:12,color:"#8fb7d9",marginBottom:16,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>The System has evaluated your growth over the past 30 days.</p>
             {gainKeys.length > 0 && (
               <div style={{ marginBottom:14 }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.3em",color:"#2ee88a",marginBottom:8 }}>IMPROVEMENTS DETECTED</div>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.3em",color:"#3ef29a",marginBottom:8 }}>IMPROVEMENTS DETECTED</div>
                 {gainKeys.map(function(k){
                   return (
-                    <div key={k} style={{ display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(46,232,138,0.08)",fontSize:13,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
+                    <div key={k} style={{ display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(62,242,154,0.08)",fontSize:13,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
                       <span style={{ color:"#c8eeff" }}>{k}</span>
-                      <span style={{ color:"#2ee88a",fontWeight:700 }}>+{improvements[k]}</span>
+                      <span style={{ color:"#3ef29a",fontWeight:700 }}>+{improvements[k]}</span>
                     </div>
                   );
                 })}
@@ -5952,9 +5979,9 @@ function ReevaluationModal({ onScoreChange, scores, onSubmit, onDismiss, result,
             )}
             {neutralKeys.length > 0 && (
               <div style={{ marginBottom:16,opacity:0.5 }}>
-                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.3em",color:"#5b7aa0",marginBottom:6 }}>AREAS TO IMPROVE</div>
+                <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.3em",color:"#8fb7d9",marginBottom:6 }}>AREAS TO IMPROVE</div>
                 {neutralKeys.map(function(k){
-                  return (<div key={k} style={{ fontSize:12,color:"#5b7aa0",padding:"4px 0",fontFamily:"'Rajdhani',sans-serif" }}>{k} — no change detected</div>);
+                  return (<div key={k} style={{ fontSize:12,color:"#8fb7d9",padding:"4px 0",fontFamily:"'Rajdhani',sans-serif" }}>{k} — no change detected</div>);
                 })}
               </div>
             )}
@@ -5986,7 +6013,7 @@ function ReevaluationModal({ onScoreChange, scores, onSubmit, onDismiss, result,
           {EVAL_TESTS.map(function(test) {
             return (
               <div key={test.id} style={{ marginBottom:12 }}>
-                <div style={{ fontSize:12,color:"#c8eeff",fontFamily:"'Rajdhani',sans-serif",fontWeight:600,marginBottom:4 }}>{test.name} <span style={{ color:"#5b7aa0",fontSize:10 }}>({test.unit})</span></div>
+                <div style={{ fontSize:12,color:"#c8eeff",fontFamily:"'Rajdhani',sans-serif",fontWeight:600,marginBottom:4 }}>{test.name} <span style={{ color:"#8fb7d9",fontSize:10 }}>({test.unit})</span></div>
                 <input type="number" min="0" max={test.max||9999}
                   value={scores[test.id]||""}
                   onChange={function(e){ onScoreChange(test.id, e.target.value); }}
@@ -6078,7 +6105,7 @@ var GENERATED_POPULATION = (function() {
       specialty: spec,
       guild: guild,
       rankName: getRankForLevel(lvl).name,
-      color: tier >= 6 ? "#f5b65d" : tier >= 5 ? "#a05df5" : tier >= 4 ? "#4db8ff" : tier >= 3 ? "#2ee88a" : "#5b7aa0",
+      color: tier >= 6 ? "#f5b65d" : tier >= 5 ? "#a05df5" : tier >= 4 ? "#6fd0ff" : tier >= 3 ? "#3ef29a" : "#8fb7d9",
       icon: tier >= 5 ? "✦" : tier >= 3 ? "⚔" : "◈",
       isNamed: false,
     });
@@ -6198,7 +6225,7 @@ function RankingsView({ player, fame, rank, rivals, accentColor }) {
       <div key={entry.id+pos} style={{
         display:"grid", gridTemplateColumns:"40px 1fr 56px 36px",
         gap:8, padding:"10px 14px",
-        borderBottom:"1px solid rgba(77,184,255,0.05)",
+        borderBottom:"1px solid rgba(111,208,255,0.05)",
         background: entry.isPlayer
           ? "linear-gradient(90deg,"+c+"18,"+c+"04)"
           : entry.isNamed ? entry.color+"06" : "transparent",
@@ -6237,7 +6264,7 @@ function RankingsView({ player, fame, rank, rivals, accentColor }) {
         <div style={{ position:"relative" }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:8,letterSpacing:"0.4em",color:c+"88",marginBottom:4 }}>YOUR GLOBAL RANK</div>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:28,fontWeight:900,color:c,lineHeight:1,textShadow:"0 0 20px "+c+"66" }}>#{playerPos}</div>
-          <div style={{ fontSize:10,color:"#5b7aa0",marginTop:3 }}>of {totalCount} registered hunters</div>
+          <div style={{ fontSize:10,color:"#8fb7d9",marginTop:3 }}>of {totalCount} registered hunters</div>
         </div>
         {milestoneLabel&&(
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,color:c,letterSpacing:"0.2em",border:"1px solid "+c+"44",padding:"4px 10px",background:c+"0d" }}>{milestoneLabel}</div>
@@ -6245,7 +6272,7 @@ function RankingsView({ player, fame, rank, rivals, accentColor }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display:"flex",gap:0,marginBottom:14,borderBottom:"1px solid rgba(77,184,255,0.12)" }}>
+      <div style={{ display:"flex",gap:0,marginBottom:14,borderBottom:"1px solid rgba(111,208,255,0.12)" }}>
         {[["nearby","NEARBY"],["top20","TOP 20"]].map(function(t){
           var active=tab===t[0];
           return (
@@ -6257,12 +6284,12 @@ function RankingsView({ player, fame, rank, rivals, accentColor }) {
       </div>
 
       {/* Header row */}
-      <div style={{ display:"grid",gridTemplateColumns:"40px 1fr 56px 36px",gap:8,padding:"6px 14px",fontFamily:"'Orbitron',sans-serif",fontSize:7,letterSpacing:"0.2em",color:"#2a3a55",borderBottom:"1px solid rgba(77,184,255,0.08)" }}>
+      <div style={{ display:"grid",gridTemplateColumns:"40px 1fr 56px 36px",gap:8,padding:"6px 14px",fontFamily:"'Orbitron',sans-serif",fontSize:7,letterSpacing:"0.2em",color:"#2a3a55",borderBottom:"1px solid rgba(111,208,255,0.08)" }}>
         <span>RANK</span><span>HUNTER</span><span style={{textAlign:"right"}}>FAME</span><span style={{textAlign:"right"}}>CR</span>
       </div>
 
       {/* Table */}
-      <div style={{ border:"1px solid rgba(77,184,255,0.1)",background:"linear-gradient(160deg,rgba(3,8,20,0.98),rgba(2,6,16,0.99))" }}>
+      <div style={{ border:"1px solid rgba(111,208,255,0.1)",background:"linear-gradient(160deg,rgba(3,8,20,0.98),rgba(2,6,16,0.99))" }}>
         {tab==="nearby" && slice.map(renderRow)}
         {tab==="top20"  && top20.map(renderRow)}
       </div>
@@ -6301,7 +6328,7 @@ function WorldFeedView({ worldFeed, player, fame, accentColor }) {
   return (
     <div className="fade-in">
       <SL text="World Activity Feed" ac={c} />
-      <p style={{ fontSize:11,color:"#5b7aa0",marginBottom:16,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
+      <p style={{ fontSize:11,color:"#8fb7d9",marginBottom:16,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
         Live hunter activity from across the registry. Updates every few minutes.
       </p>
       {allFeed.length===0?(
@@ -6316,7 +6343,7 @@ function WorldFeedView({ worldFeed, player, fame, accentColor }) {
             const rd=RIVALS_DATA.find(function(r){return r.id===entry.rivalId;});
             const ec=isPlayer?c:(rd?rd.color:"#3a5a78");
             return (
-              <div key={entry.id||i} className="log-entry" style={{ padding:"9px 16px",borderBottom:"1px solid rgba(77,184,255,0.04)",display:"flex",alignItems:"flex-start",gap:12 }}>
+              <div key={entry.id||i} className="log-entry" style={{ padding:"9px 16px",borderBottom:"1px solid rgba(111,208,255,0.04)",display:"flex",alignItems:"flex-start",gap:12 }}>
                 <span style={{ fontFamily:"monospace",fontSize:9,color:"#2a3a55",whiteSpace:"nowrap",flexShrink:0,marginTop:2 }}>{entry.ts||"—"}</span>
                 <span style={{ fontSize:11,color:ec,lineHeight:1.6,fontFamily:"'Rajdhani',sans-serif",fontWeight:isPlayer?700:500 }}>{entry.msg}</span>
               </div>
@@ -6333,13 +6360,13 @@ function WorldFeedView({ worldFeed, player, fame, accentColor }) {
    =========================================================================== */
 var GATE_MAP_TYPES = [
   { rank:"E",    color:"#6fae6f",  glow:"rgba(111,174,111,0.6)", icon:"◈", minLevel:0  },
-  { rank:"D",    color:"#4db8ff",  glow:"rgba(77,184,255,0.6)",  icon:"◈", minLevel:5  },
+  { rank:"D",    color:"#6fd0ff",  glow:"rgba(111,208,255,0.6)",  icon:"◈", minLevel:5  },
   { rank:"C",    color:"#a05df5",  glow:"rgba(160,93,245,0.6)",  icon:"◈", minLevel:12 },
   { rank:"B",    color:"#f5b65d",  glow:"rgba(245,182,93,0.6)",  icon:"❖", minLevel:22 },
   { rank:"A",    color:"#f53d3d",  glow:"rgba(245,61,61,0.6)",   icon:"❖", minLevel:34 },
-  { rank:"S",    color:"#9b30ff",  glow:"rgba(155,48,255,0.6)",  icon:"✦", minLevel:48 },
+  { rank:"S",    color:"#a08dff",  glow:"rgba(160,141,255,0.6)",  icon:"✦", minLevel:48 },
   { rank:"RED",  color:"#ff0000",  glow:"rgba(255,0,0,0.8)",     icon:"⚠", minLevel:34 },
-  { rank:"BOSS", color:"#2a0a0a",  glow:"rgba(155,48,255,0.9)",  icon:"◉", minLevel:22 },
+  { rank:"BOSS", color:"#2a0a0a",  glow:"rgba(160,141,255,0.9)",  icon:"◉", minLevel:22 },
 ];
 
 var GATE_MAP_LABELS = [
@@ -6408,10 +6435,10 @@ function GateMapView({ player, accentColor, onEnterGate }) {
   const WALK_KMH = 5.0; /* avg walking speed for ETA */
 
   function getProximityLabel(km) {
-    if (km <= ARRIVAL_RADIUS_KM) return { label:"AT GATE",    color:"#2ee88a", intensity:1.0 };
+    if (km <= ARRIVAL_RADIUS_KM) return { label:"AT GATE",    color:"#3ef29a", intensity:1.0 };
     if (km <= NEARBY_RADIUS_KM)  return { label:"VERY CLOSE", color:"#f5b65d", intensity:0.75 };
     if (km <= CLOSE_RADIUS_KM)   return { label:"NEARBY",     color:SYS_BLUE,  intensity:0.45 };
-    if (km <= 3.0)               return { label:"DETECTED",   color:"#5b7aa0", intensity:0.25 };
+    if (km <= 3.0)               return { label:"DETECTED",   color:"#8fb7d9", intensity:0.25 };
     return                              { label:"FAR",        color:"#2a3a55", intensity:0.1  };
   }
 
@@ -6520,7 +6547,7 @@ function GateMapView({ player, accentColor, onEnterGate }) {
         <div style={{position:"absolute",inset:0,background:"repeating-linear-gradient(0deg,transparent,transparent 3px,"+c+"06 3px,"+c+"06 4px)",pointerEvents:"none"}}/>
         <div className={locState==="requesting"?"arise-pulse":""} style={{width:64,height:64,borderRadius:"50%",border:"2px solid "+c,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",fontSize:24,color:c,background:c+"0d"}}>◉</div>
         <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:12,color:"#c8eeff",marginBottom:10,letterSpacing:"0.2em"}}>{locState==="requesting"?"SCANNING FOR GATES...":"GATE DETECTION OFFLINE"}</div>
-        <p style={{fontSize:12,color:"#5b7aa0",lineHeight:1.7,marginBottom:20}}>{locState==="requesting"?"Acquiring GPS signal. Gates in your area are being detected.":"The System requires your location to detect nearby gates. No data is stored or transmitted."}</p>
+        <p style={{fontSize:12,color:"#8fb7d9",lineHeight:1.7,marginBottom:20}}>{locState==="requesting"?"Acquiring GPS signal. Gates in your area are being detected.":"The System requires your location to detect nearby gates. No data is stored or transmitted."}</p>
         {locState==="idle"&&<button onClick={requestLocation} style={{padding:"12px 28px",background:c,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,letterSpacing:"0.2em"}}>SCAN FOR GATES</button>}
       </div>
     </div>
@@ -6562,15 +6589,15 @@ function GateMapView({ player, accentColor, onEnterGate }) {
 
       {/* GATE ARRIVAL ALERT */}
       {arrivedGate&&(
-        <div className="fade-in" style={{marginBottom:12,padding:"10px 14px",border:"2px solid #2ee88a",background:"rgba(46,232,138,0.07)",position:"relative",overflow:"hidden"}}>
-          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 50%,rgba(46,232,138,0.10),transparent 70%)",animation:"pulse-glow 1.5s ease-in-out infinite",pointerEvents:"none"}}/>
+        <div className="fade-in" style={{marginBottom:12,padding:"10px 14px",border:"2px solid #3ef29a",background:"rgba(62,242,154,0.07)",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 50%,rgba(62,242,154,0.10),transparent 70%)",animation:"pulse-glow 1.5s ease-in-out infinite",pointerEvents:"none"}}/>
           <div style={{display:"flex",alignItems:"center",gap:10,position:"relative"}}>
-            <span className="blink" style={{fontSize:18,color:"#2ee88a"}}>◉</span>
+            <span className="blink" style={{fontSize:18,color:"#3ef29a"}}>◉</span>
             <div style={{flex:1}}>
-              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:"#2ee88a",letterSpacing:"0.25em"}}>GATE DETECTED</div>
+              <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,color:"#3ef29a",letterSpacing:"0.25em"}}>GATE DETECTED</div>
               <div style={{fontSize:10,color:"#9ab8d4"}}>{arrivedGate.label} · {arrivedGate.type.rank}-RANK</div>
             </div>
-            <button onClick={function(){setArrivedGate(null);}} style={{padding:"3px 8px",background:"transparent",border:"1px solid #2ee88a33",color:"#2ee88a66",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:7,flexShrink:0}}>DISMISS</button>
+            <button onClick={function(){setArrivedGate(null);}} style={{padding:"3px 8px",background:"transparent",border:"1px solid #3ef29a33",color:"#3ef29a66",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:7,flexShrink:0}}>DISMISS</button>
           </div>
         </div>
       )}
@@ -6585,7 +6612,7 @@ function GateMapView({ player, accentColor, onEnterGate }) {
           </div>
           <div style={{textAlign:"right",flexShrink:0}}>
             <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:navGate.type.color}}>{fmtDist(navGate.distKm)}</div>
-            <div style={{fontSize:9,color:"#5b7aa0"}}>{fmtETA(navGate.distKm)} walking</div>
+            <div style={{fontSize:9,color:"#8fb7d9"}}>{fmtETA(navGate.distKm)} walking</div>
           </div>
           <button onClick={function(){setNavTarget(null);}} style={{padding:"4px 10px",background:"transparent",border:"1px solid #f53d3d44",color:"#f53d3d88",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:8,flexShrink:0}}>CANCEL</button>
         </div>
@@ -6618,15 +6645,15 @@ function GateMapView({ player, accentColor, onEnterGate }) {
           <svg width={MAP_PX} height={MAP_PX} style={{display:"block"}}>
             <circle cx={MAP_PX/2} cy={MAP_PX/2} r={MAP_PX/2} fill="rgba(2,6,18,0.98)"/>
             {[0.25,0.5,0.75,1].map(function(r,i){
-              return <circle key={i} cx={MAP_PX/2} cy={MAP_PX/2} r={(MAP_PX/2)*r} fill="none" stroke="rgba(77,184,255,0.07)" strokeWidth="1"/>;
+              return <circle key={i} cx={MAP_PX/2} cy={MAP_PX/2} r={(MAP_PX/2)*r} fill="none" stroke="rgba(111,208,255,0.07)" strokeWidth="1"/>;
             })}
-            <line x1={MAP_PX/2} y1={0} x2={MAP_PX/2} y2={MAP_PX} stroke="rgba(77,184,255,0.05)" strokeWidth="1"/>
-            <line x1={0} y1={MAP_PX/2} x2={MAP_PX} y2={MAP_PX/2} stroke="rgba(77,184,255,0.05)" strokeWidth="1"/>
+            <line x1={MAP_PX/2} y1={0} x2={MAP_PX/2} y2={MAP_PX} stroke="rgba(111,208,255,0.05)" strokeWidth="1"/>
+            <line x1={0} y1={MAP_PX/2} x2={MAP_PX} y2={MAP_PX/2} stroke="rgba(111,208,255,0.05)" strokeWidth="1"/>
             {/* Arrival + nearby rings */}
-            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(ARRIVAL_RADIUS_KM/0.8)*(MAP_PX/2)} fill="none" stroke="rgba(46,232,138,0.18)" strokeWidth="1" strokeDasharray="3 3"/>
-            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(NEARBY_RADIUS_KM/0.8)*(MAP_PX/2)}  fill="none" stroke="rgba(77,184,255,0.09)" strokeWidth="1" strokeDasharray="4 4"/>
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(ARRIVAL_RADIUS_KM/0.8)*(MAP_PX/2)} fill="none" stroke="rgba(62,242,154,0.18)" strokeWidth="1" strokeDasharray="3 3"/>
+            <circle cx={MAP_PX/2} cy={MAP_PX/2} r={(NEARBY_RADIUS_KM/0.8)*(MAP_PX/2)}  fill="none" stroke="rgba(111,208,255,0.09)" strokeWidth="1" strokeDasharray="4 4"/>
             {/* Scan line */}
-            <line x1={MAP_PX/2} y1={MAP_PX/2} x2={MAP_PX/2} y2={4} stroke="rgba(77,184,255,0.28)" strokeWidth="1.5">
+            <line x1={MAP_PX/2} y1={MAP_PX/2} x2={MAP_PX/2} y2={4} stroke="rgba(111,208,255,0.28)" strokeWidth="1.5">
               <animateTransform attributeName="transform" type="rotate" from={"0 "+(MAP_PX/2)+" "+(MAP_PX/2)} to={"360 "+(MAP_PX/2)+" "+(MAP_PX/2)} dur="4s" repeatCount="indefinite"/>
             </line>
             {/* Nav path line */}
@@ -6706,11 +6733,11 @@ function GateMapView({ player, accentColor, onEnterGate }) {
               </div>
               {/* Distance + ETA */}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
-                <div style={{padding:"6px 10px",border:"1px solid rgba(77,184,255,0.1)",background:"rgba(77,184,255,0.04)"}}>
+                <div style={{padding:"6px 10px",border:"1px solid rgba(111,208,255,0.1)",background:"rgba(111,208,255,0.04)"}}>
                   <div style={{fontSize:7,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",marginBottom:2}}>DISTANCE</div>
                   <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:prox.color}}>{fmtDist(selectedGate.distKm)}</div>
                 </div>
-                <div style={{padding:"6px 10px",border:"1px solid rgba(77,184,255,0.1)",background:"rgba(77,184,255,0.04)"}}>
+                <div style={{padding:"6px 10px",border:"1px solid rgba(111,208,255,0.1)",background:"rgba(111,208,255,0.04)"}}>
                   <div style={{fontSize:7,color:"#3a5a78",fontFamily:"'Orbitron',sans-serif",letterSpacing:"0.15em",marginBottom:2}}>ETA WALKING</div>
                   <div style={{fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:"#9ab8d4"}}>{fmtETA(selectedGate.distKm)}</div>
                 </div>
@@ -6768,7 +6795,7 @@ function GateMapView({ player, accentColor, onEnterGate }) {
         })}
       </div>
 
-      <div style={{marginTop:10,padding:"7px 12px",border:"1px solid rgba(77,184,255,0.07)",fontSize:9,color:"#2a3a55",lineHeight:1.6}}>
+      <div style={{marginTop:10,padding:"7px 12px",border:"1px solid rgba(111,208,255,0.07)",fontSize:9,color:"#2a3a55",lineHeight:1.6}}>
         Map tracks your position in real time. Tap a gate to view details or navigate. Walk to the gate location to activate entry. Public areas only.
       </div>
     </div>
@@ -6785,8 +6812,8 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
     <div className="fade-in">
       <SL text="Settings" ac={c} />
       <div style={{ display:"flex",flexDirection:"column",gap:10 }}>
-        <Win ac={c}><div style={{ padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between" }}><div><div style={{ fontWeight:600,color:"#dbe6ff",fontSize:14 }}>System Audio</div><div style={{ fontSize:11,color:"#5b7aa0" }}>SFX toggle</div></div><button onClick={onToggleSound} style={{ width:52,height:26,borderRadius:13,background:soundOn?c:"#2a3a55",border:"none",cursor:"pointer",position:"relative",transition:"background 0.2s" }}><div style={{ position:"absolute",top:3,left:soundOn?28:4,width:20,height:20,borderRadius:"50%",background:"#fff",transition:"left 0.2s" }} /></button></div></Win>
-        {["AI Quest Generation (Phase 4)","Supabase Sync (Phase 4)"].map(function(item){ return (<Win key={item} ac={c}><div style={{ padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:0.5 }}><span style={{ color:"#9fb8d8",fontSize:13 }}>{item}</span><span style={{ fontSize:10,padding:"2px 8px",border:"1px solid #5b7aa0",color:"#5b7aa0" }}>LOCKED</span></div></Win>); })}
+        <Win ac={c}><div style={{ padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between" }}><div><div style={{ fontWeight:600,color:"#dbe6ff",fontSize:14 }}>System Audio</div><div style={{ fontSize:11,color:"#8fb7d9" }}>SFX toggle</div></div><button onClick={onToggleSound} style={{ width:52,height:26,borderRadius:13,background:soundOn?c:"#2a3a55",border:"none",cursor:"pointer",position:"relative",transition:"background 0.2s" }}><div style={{ position:"absolute",top:3,left:soundOn?28:4,width:20,height:20,borderRadius:"50%",background:"#fff",transition:"left 0.2s" }} /></button></div></Win>
+        {["AI Quest Generation (Phase 4)","Supabase Sync (Phase 4)"].map(function(item){ return (<Win key={item} ac={c}><div style={{ padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",opacity:0.5 }}><span style={{ color:"#9fb8d8",fontSize:13 }}>{item}</span><span style={{ fontSize:10,padding:"2px 8px",border:"1px solid #8fb7d9",color:"#8fb7d9" }}>LOCKED</span></div></Win>); })}
         {/* Wave 4: Ascension */}
         <div style={{ marginTop:8 }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:GLITCH_RED,marginBottom:8 }}>ASCENSION</div>
@@ -6795,7 +6822,7 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
               Prestige resets: level returns to 1. Preserved: titles, shadows, guild, lore, achievements.<br/>
               Gain: permanent growth rate boost, +200 fame, ascension badge.
             </p>
-            <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>
+            <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:12 }}>
               Requires LV 48+ · Current ascensions: <span style={{ color:GLITCH_RED }}>{ascensionCount||0}</span>
             </div>
             <button
@@ -6809,15 +6836,15 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
 
         {/* INNER DEMON MODE */}
         <div style={{ marginTop:8 }}>
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:innerDemonActive?"#2ee88a":SYS_BLUE,marginBottom:8 }}>INNER DEMON MODE</div>
-          <div style={{ border:"1px solid "+(innerDemonActive?"#2ee88a66":SYS_BLUE+"33"),background:innerDemonActive?"rgba(46,232,138,0.05)":SYS_BLUE+"08",padding:"14px 16px",marginBottom:8 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:innerDemonActive?"#3ef29a":SYS_BLUE,marginBottom:8 }}>INNER DEMON MODE</div>
+          <div style={{ border:"1px solid "+(innerDemonActive?"#3ef29a66":SYS_BLUE+"33"),background:innerDemonActive?"rgba(62,242,154,0.05)":SYS_BLUE+"08",padding:"14px 16px",marginBottom:8 }}>
             <p style={{ fontSize:12,color:"#9ab8d4",lineHeight:1.6,marginBottom:10,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
               Activate a higher-intensity training mode. Workout difficulty increases moderately. XP, coins, and rare reward chances increase.
             </p>
-            <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>
-              Status: <span style={{ color:innerDemonActive?"#2ee88a":"#f53d3d",fontWeight:700 }}>{innerDemonActive?"◈ ACTIVE":"◈ INACTIVE"}</span>
+            <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:12 }}>
+              Status: <span style={{ color:innerDemonActive?"#3ef29a":"#f53d3d",fontWeight:700 }}>{innerDemonActive?"◈ ACTIVE":"◈ INACTIVE"}</span>
             </div>
-            <button onClick={onToggleInnerDemon} style={{ padding:"10px 20px",background:innerDemonActive?"#2ee88a":"transparent",color:innerDemonActive?"#03050c":"#2ee88a",border:"1px solid "+(innerDemonActive?"#2ee88a":"#2ee88a66"),cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,letterSpacing:"0.15em" }}>
+            <button onClick={onToggleInnerDemon} style={{ padding:"10px 20px",background:innerDemonActive?"#3ef29a":"transparent",color:innerDemonActive?"#03050c":"#3ef29a",border:"1px solid "+(innerDemonActive?"#3ef29a":"#3ef29a66"),cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,letterSpacing:"0.15em" }}>
               {innerDemonActive?"DEACTIVATE":"ACTIVATE"}
             </button>
           </div>
@@ -6832,7 +6859,7 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
             <p style={{ fontSize:12,color:"#9ab8d4",lineHeight:1.6,marginBottom:10,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
               {reevalAvailable?"A 30-day re-evaluation is ready. Test your current performance and receive a progress report.":"Re-evaluation becomes available every 30 days. Track your real-world progress over time."}
             </p>
-            <button disabled={!reevalAvailable} onClick={onOpenReeval} style={{ padding:"10px 20px",background:reevalAvailable?"#f5b65d":"transparent",color:reevalAvailable?"#03050c":"#5b7aa0",border:"1px solid "+(reevalAvailable?"#f5b65d":"#5b7aa044"),cursor:reevalAvailable?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,letterSpacing:"0.15em" }}>
+            <button disabled={!reevalAvailable} onClick={onOpenReeval} style={{ padding:"10px 20px",background:reevalAvailable?"#f5b65d":"transparent",color:reevalAvailable?"#03050c":"#8fb7d9",border:"1px solid "+(reevalAvailable?"#f5b65d":"#8fb7d944"),cursor:reevalAvailable?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif",fontSize:10,fontWeight:700,letterSpacing:"0.15em" }}>
               {reevalAvailable?"BEGIN RE-EVALUATION":"NOT YET AVAILABLE"}
             </button>
           </div>
@@ -6846,14 +6873,14 @@ function SettingsView({ rank, soundOn, onToggleSound, isMonarch, playerLevel, as
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:SYS_BLUE,marginBottom:8 }}>SAVE DATA</div>
           <div style={{ border:"1px solid "+SYS_BLUE+"33",background:SYS_BLUE+"08",padding:"14px 16px" }}>
             <div style={{ fontSize:12,color:"#9ab8d4",marginBottom:8,fontFamily:"'Rajdhani',sans-serif",fontWeight:600 }}>
-              Status: <span style={{ color:"#2ee88a",fontWeight:700 }}>◈ AUTO-SAVE ACTIVE</span>
+              Status: <span style={{ color:"#3ef29a",fontWeight:700 }}>◈ AUTO-SAVE ACTIVE</span>
             </div>
             {lastSavedAt ? (
-              <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>
+              <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:12 }}>
                 Last saved: {new Date(lastSavedAt).toLocaleTimeString()}
               </div>
             ) : (
-              <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:12 }}>Progress saves automatically after every action.</div>
+              <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:12 }}>Progress saves automatically after every action.</div>
             )}
             <div className="settings-save-actions">
               <button onClick={onBackupSave}>BACKUP SAVE</button>
@@ -7019,7 +7046,7 @@ function getContextualMessage(player, isDailyDone, rank, isMonarch, energyScore,
 function SystemMessagePanel({ message, accentColor, isMonarch }) {
   if (!message) return null;
   const color = isMonarch ? MONARCH_PURP : (accentColor || SYS_BLUE);
-  const bg = isMonarch ? "rgba(155,48,255,0.06)" : "rgba(77,184,255,0.04)";
+  const bg = isMonarch ? "rgba(160,141,255,0.06)" : "rgba(111,208,255,0.04)";
   return (
     <div style={{
       padding: "12px 16px",
@@ -7086,7 +7113,7 @@ function DailyHunterReport({ player, rank, isDailyDone, dailyQuest, isMonarch, e
     ? "Today's protocol complete."
     : "Protocol in progress. Do not stop.";
 
-  const statusColor = isDailyDone ? "#2ee88a" : "#f5b65d";
+  const statusColor = isDailyDone ? "#3ef29a" : "#f5b65d";
 
   return (
     <div style={{
@@ -7098,7 +7125,7 @@ function DailyHunterReport({ player, rank, isDailyDone, dailyQuest, isMonarch, e
       {/* Report header */}
       <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,paddingBottom:8,borderBottom:"1px solid "+color+"22" }}>
         <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.3em",color }}>HUNTER STATUS REPORT</span>
-        <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,color:"#5b7aa0" }}>
+        <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,color:"#8fb7d9" }}>
           {new Date().toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}).toUpperCase()}
         </span>
       </div>
@@ -7118,7 +7145,7 @@ function DailyHunterReport({ player, rank, isDailyDone, dailyQuest, isMonarch, e
         ].map(function(row){
           return (
             <div key={row.label} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:12 }}>
-              <span style={{ color:"#5b7aa0",letterSpacing:"0.1em",fontSize:10 }}>{row.label}</span>
+              <span style={{ color:"#8fb7d9",letterSpacing:"0.1em",fontSize:10 }}>{row.label}</span>
               <span style={{ color:row.color||"#dbe6ff",fontWeight:row.color?700:400,fontSize:row.orbitron?10:12,letterSpacing:row.orbitron?"0.1em":0,fontFamily:row.orbitron?"'Orbitron',sans-serif":"'Rajdhani',sans-serif" }}>
                 {row.value}
               </span>
@@ -7135,7 +7162,7 @@ function DailyHunterReport({ player, rank, isDailyDone, dailyQuest, isMonarch, e
         <div style={{ fontSize:10,color:color+"bb",fontStyle:"italic" }}>
           Recommended: {recFocus}
         </div>
-        <div style={{ fontSize:10,color:"#5b7aa0",fontStyle:"italic" }}>{progNote}</div>
+        <div style={{ fontSize:10,color:"#8fb7d9",fontStyle:"italic" }}>{progNote}</div>
       </div>
     </div>
   );
@@ -7163,7 +7190,7 @@ function RecoveryStatusStrip({ energyScore, accentColor }) {
     <div style={{
       padding: "10px 14px",
       border: "1px solid " + level.color + (isLow ? "66" : "33"),
-      background: isLow ? "rgba(245,61,61,0.06)" : isPeak ? "rgba(46,232,138,0.05)" : level.color + "06",
+      background: isLow ? "rgba(245,61,61,0.06)" : isPeak ? "rgba(62,242,154,0.05)" : level.color + "06",
       marginBottom: 16,
       animation: isLow ? "energy-pulse 2s ease-in-out infinite" : "none",
     }}>
@@ -7181,7 +7208,7 @@ function RecoveryStatusStrip({ energyScore, accentColor }) {
       <div style={{ position:"relative", height:6, background:"rgba(255,255,255,0.06)", overflow:"hidden", marginBottom:6 }}>
         <div style={{
           height:"100%", width:safe+"%",
-          background:"linear-gradient(90deg," + (safe<30?"#f53d3d":safe<50?"#f5b65d":safe<65?"#8a8f98":safe<85?"#4db8ff":"#2ee88a") + ",#ffffff44)",
+          background:"linear-gradient(90deg," + (safe<30?"#f53d3d":safe<50?"#f5b65d":safe<65?"#8a8f98":safe<85?"#6fd0ff":"#3ef29a") + ",#ffffff44)",
           transition:"width 0.8s ease",
         }} />
         {/* Zone markers */}
@@ -7192,7 +7219,7 @@ function RecoveryStatusStrip({ energyScore, accentColor }) {
 
       {/* Bottom row: score + performance impact */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-        <span style={{ fontSize:10, color:"#5b7aa0" }}>{safe}/100</span>
+        <span style={{ fontSize:10, color:"#8fb7d9" }}>{safe}/100</span>
         <span style={{ fontSize:10, color:level.color, fontStyle:"italic" }}>{impact}</span>
       </div>
 
@@ -7275,7 +7302,7 @@ const ACHIEVEMENT_COLLECTION = [
   /* Progression milestones */
   { id:"ac_lv5",   name:"Awakened",          icon:"◈", color:"#8a8f98",
     desc:"Reached Level 5.",            fameGain:10, check:function(p){ return (p.level||0)>=5; } },
-  { id:"ac_lv12",  name:"C-Rank Hunter",     icon:"❖", color:"#4db8ff",
+  { id:"ac_lv12",  name:"C-Rank Hunter",     icon:"❖", color:"#6fd0ff",
     desc:"Reached Level 12.",           fameGain:25, check:function(p){ return (p.level||0)>=12; } },
   { id:"ac_lv22",  name:"Elite Hunter",      icon:"❖", color:"#5d7cf5",
     desc:"Reached Level 22.",           fameGain:50, check:function(p){ return (p.level||0)>=22; } },
@@ -7284,14 +7311,14 @@ const ACHIEVEMENT_COLLECTION = [
   /* Streak milestones */
   { id:"ac_str3",  name:"Consistent",        icon:"🔥", color:"#f5b65d",
     desc:"Maintained a 3-day streak.",  fameGain:10, check:function(p){ return (p.streak||0)>=3; } },
-  { id:"ac_str7",  name:"Iron Discipline",   icon:"🔥", color:"#2ee88a",
+  { id:"ac_str7",  name:"Iron Discipline",   icon:"🔥", color:"#3ef29a",
     desc:"Maintained a 7-day streak.",  fameGain:30, check:function(p){ return (p.streak||0)>=7; } },
   { id:"ac_str30", name:"Unbreakable",       icon:"🔥", color:"#a05df5",
     desc:"Maintained a 30-day streak.", fameGain:150,check:function(p){ return (p.streak||0)>=30; } },
   /* Stat milestones */
   { id:"ac_str25", name:"Iron Fist",         icon:"⚔", color:"#f53d3d",
     desc:"Strength reached 25.",        fameGain:20, check:function(p){ return (p.stats&&p.stats.Strength||0)>=25; } },
-  { id:"ac_agi25", name:"Swift",             icon:"➤", color:"#4db8ff",
+  { id:"ac_agi25", name:"Swift",             icon:"➤", color:"#6fd0ff",
     desc:"Agility reached 25.",         fameGain:20, check:function(p){ return (p.stats&&p.stats.Agility||0)>=25; } },
   { id:"ac_aura30",name:"Aura Awakened",     icon:"✸", color:MONARCH_PURP,
     desc:"Aura reached 30.",            fameGain:40, check:function(p){ return (p.stats&&p.stats.Aura||0)>=30; } },
@@ -7312,9 +7339,9 @@ const CINEMATIC_ACHIEVEMENTS = [
   { id:"ach_first_boss",    condition:"allBossesDefeated",   title:"INNER DEMONS DEFEATED",
     sub:"Everything that held you back has been subjugated.", color:"#f5b65d", icon:"⚔" },
   { id:"ach_streak_7",      condition:"streak_7",            title:"7-DAY SOVEREIGN",
-    sub:"Seven days of unbroken discipline. The pattern is now identity.", color:"#2ee88a", icon:"🔥" },
+    sub:"Seven days of unbroken discipline. The pattern is now identity.", color:"#3ef29a", icon:"🔥" },
   { id:"ach_dungeon_all",   condition:"allGatesCleared",     title:"GATE CONQUEROR",
-    sub:"Every registered gate has been cleared. The System has updated your profile.", color:"#4db8ff", icon:"❖" },
+    sub:"Every registered gate has been cleared. The System has updated your profile.", color:"#6fd0ff", icon:"❖" },
   { id:"ach_monarch",       condition:"monarchAwakened",     title:"SHADOW MONARCH",
     sub:"You have surpassed the limit of what the System was designed to measure.", color:MONARCH_PURP, icon:"✸" },
 ];
@@ -7323,7 +7350,7 @@ const CINEMATIC_ACHIEVEMENTS = [
    WORLD EVENTS — broader than random events, affect the whole session
 --------------------------------------------------------------------------- */
 const WORLD_EVENTS = [
-  { id:"we_double_xp",    name:"Double XP Event",         icon:"⬆", color:"#2ee88a",
+  { id:"we_double_xp",    name:"Double XP Event",         icon:"⬆", color:"#3ef29a",
     desc:"All XP gains doubled for this session.",       xpMod:2.0, dur:3600000 },
   { id:"we_corrupted",    name:"Corrupted Gate Alert",    icon:"⚠", color:GLITCH_RED,
     desc:"Gates are unstable. Dungeon modifiers are more severe.", xpMod:1.5, dur:1800000 },
@@ -7368,7 +7395,7 @@ const LIMITED_TIME_EVENTS = [
     id: "double_dungeon",
     name: "Double Dungeon Week",
     icon: "✦",
-    color: "#4db8ff",
+    color: "#6fd0ff",
     days: [2], /* Tuesday */
     desc: "Two dungeon instances are active simultaneously. Reward pool expanded.",
     bonus: "All Dungeon Drops ×2",
@@ -7438,7 +7465,7 @@ function LimitedEventBanner({ accentColor }) {
           <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 11, fontWeight: 700, color: event.color, letterSpacing: "0.1em" }}>
             {event.name.toUpperCase()}
           </span>
-          <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 9, color: "#5b7aa0", whiteSpace: "nowrap" }}>
+          <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 9, color: "#8fb7d9", whiteSpace: "nowrap" }}>
             TODAY ONLY
           </span>
         </div>
@@ -7557,20 +7584,20 @@ function RandomEventPopup({ event, onAccept, onDismiss }) {
           {/* Rarity + label */}
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom: 14 }}>
             <span style={{ fontFamily:"'Orbitron',sans-serif", fontSize:10, letterSpacing:"0.3em", color, padding:"3px 10px", border:"1px solid "+color+"66" }}>{event.label}</span>
-            <span style={{ fontFamily:"'Orbitron',sans-serif", fontSize:9, letterSpacing:"0.2em", color:"#5b7aa0" }}>{event.rarity}</span>
+            <span style={{ fontFamily:"'Orbitron',sans-serif", fontSize:9, letterSpacing:"0.2em", color:"#8fb7d9" }}>{event.rarity}</span>
           </div>
 
           {/* Title + flavor */}
-          <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:16, fontWeight:700, color:"#eaf2ff", marginBottom:10 }}>{event.title}</div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:16, fontWeight:700, color:"#e6f3ff", marginBottom:10 }}>{event.title}</div>
           <p style={{ fontSize:13, color:"#9fb8d8", lineHeight:1.7, marginBottom:16 }}>{event.flavor}</p>
 
           {/* Goals preview */}
           {hasQuest && (
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:10, letterSpacing:"0.2em", color:"#5b7aa0", marginBottom:8 }}>OBJECTIVES</div>
+              <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:10, letterSpacing:"0.2em", color:"#8fb7d9", marginBottom:8 }}>OBJECTIVES</div>
               {event.goals.map(function(g) {
                 return (
-                  <div key={g.id} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:"1px solid rgba(77,184,255,0.08)", fontSize:13 }}>
+                  <div key={g.id} style={{ display:"flex", justifyContent:"space-between", padding:"6px 0", borderBottom:"1px solid rgba(111,208,255,0.08)", fontSize:13 }}>
                     <span style={{ color:"#dbe6ff" }}>{g.name}</span>
                     <span style={{ color:"#9fb8d8" }}>{g.target}{g.unit}</span>
                   </div>
@@ -7663,10 +7690,10 @@ function rollMissionReward(mission, succeeded) {
 const SHADOW_LOYALTY_TITLES = [
   { min: 0,   label: "Newly Summoned",   color: "#8a8f98" },
   { min: 20,  label: "Bound",            color: "#6fae6f" },
-  { min: 40,  label: "Faithful",         color: "#4db8ff" },
+  { min: 40,  label: "Faithful",         color: "#6fd0ff" },
   { min: 60,  label: "Devoted",          color: "#a05df5" },
   { min: 80,  label: "Absolute Loyalty", color: "#f5b65d" },
-  { min: 100, label: "Soul-Bound",       color: "#2ee88a" },
+  { min: 100, label: "Soul-Bound",       color: "#3ef29a" },
 ];
 
 function getShadowLoyalty(loyalty) {
@@ -7759,7 +7786,7 @@ function DungeonCutscene({ gate, onEnter, onAbort }) {
     }
   }, [phase]);
 
-  const dangerColor = gate.survivalChance < 30 ? "#f53d3d" : gate.survivalChance < 60 ? "#f5b65d" : "#2ee88a";
+  const dangerColor = gate.survivalChance < 30 ? "#f53d3d" : gate.survivalChance < 60 ? "#f5b65d" : "#3ef29a";
 
   return (
     <div style={{ position:"fixed",inset:0,zIndex:8800,background:"rgba(0,0,0,0.97)",display:"flex",alignItems:"center",justifyContent:"center",padding:24 }}>
@@ -7773,14 +7800,14 @@ function DungeonCutscene({ gate, onEnter, onAbort }) {
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.5em",color:gate.color,marginBottom:16 }} className="dng-warn">
           ⚠ GATE DETECTED ⚠
         </div>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:26,fontWeight:900,color:"#eaf2ff",marginBottom:6,textShadow:"0 0 20px "+gate.color }}>{gate.name}</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:26,fontWeight:900,color:"#e6f3ff",marginBottom:6,textShadow:"0 0 20px "+gate.color }}>{gate.name}</div>
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,color:gate.color,marginBottom:24,letterSpacing:"0.2em" }}>{gate.rank}-RANK DUNGEON</div>
 
         {/* Animated system messages */}
         <div style={{ border:"1px solid "+gate.color+"44",background:"rgba(5,8,16,0.95)",padding:"16px 20px",marginBottom:20,textAlign:"left",minHeight:120 }}>
           {msgs.slice(0,phase+1).map(function(m,i) {
             return (
-              <div key={i} className="log-entry" style={{ fontFamily:"monospace",fontSize:12,color: i===msgs.length-1?gate.color:i>=msgs.length-3?dangerColor:"#5b7aa0",marginBottom:6,animationDelay:(i*50)+"ms" }}>
+              <div key={i} className="log-entry" style={{ fontFamily:"monospace",fontSize:12,color: i===msgs.length-1?gate.color:i>=msgs.length-3?dangerColor:"#8fb7d9",marginBottom:6,animationDelay:(i*50)+"ms" }}>
                 {">"} {m}
               </div>
             );
@@ -7792,7 +7819,7 @@ function DungeonCutscene({ gate, onEnter, onAbort }) {
         {phase >= 3 && (
           <div className="fade-in" style={{ marginBottom:20 }}>
             <div style={{ fontSize:48,fontWeight:900,fontFamily:"'Orbitron',sans-serif",color:dangerColor,textShadow:"0 0 20px "+dangerColor }}>{gate.survivalChance}%</div>
-            <div style={{ fontSize:11,color:"#5b7aa0" }}>Hunter survival probability</div>
+            <div style={{ fontSize:11,color:"#8fb7d9" }}>Hunter survival probability</div>
           </div>
         )}
 
@@ -7834,8 +7861,8 @@ function RewardChestModal({ rewards, onClaim, accentColor }) {
       <div style={{ maxWidth:520,width:"100%",textAlign:"center" }}>
         {/* Header */}
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.4em",color:accentColor,marginBottom:8 }}>QUEST CLEARED</div>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff",marginBottom:4 }}>Choose Your Reward</div>
-        <p style={{ fontSize:12,color:"#5b7aa0",marginBottom:24 }}>Select one chest. The others return to the void.</p>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff",marginBottom:4 }}>Choose Your Reward</div>
+        <p style={{ fontSize:12,color:"#8fb7d9",marginBottom:24 }}>Select one chest. The others return to the void.</p>
 
         {/* 3 chests */}
         <div style={{ display:"flex",gap:12,justifyContent:"center",marginBottom:24 }}>
@@ -7895,19 +7922,19 @@ function StatPointDistributor({ points, onConfirm, accentColor }) {
       <div style={{ maxWidth:440,width:"100%",border:"1px solid "+accentColor+"66",background:"linear-gradient(160deg,rgba(10,18,34,0.99),rgba(5,10,20,0.99))",padding:"28px 24px" }}>
         <div style={{ textAlign:"center",marginBottom:20 }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.4em",color:accentColor,marginBottom:8 }}>STAT ALLOCATION</div>
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:"#eaf2ff",marginBottom:4 }}>+{points} Points Available</div>
-          <div style={{ fontSize:12,color:"#5b7aa0" }}>Distribute into your chosen stats. Points not spent are lost.</div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:"#e6f3ff",marginBottom:4 }}>+{points} Points Available</div>
+          <div style={{ fontSize:12,color:"#8fb7d9" }}>Distribute into your chosen stats. Points not spent are lost.</div>
         </div>
 
         <div style={{ marginBottom:20 }}>
           {DISTRIBUTABLE.map(function(key) {
             return (
-              <div key={key} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(77,184,255,0.08)" }}>
+              <div key={key} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(111,208,255,0.08)" }}>
                 <span style={{ fontSize:14,color:"#dbe6ff" }}>{STAT_ICON[key]} {key}</span>
                 <div style={{ display:"flex",alignItems:"center",gap:10 }}>
                   <button onClick={function(){sub(key);}} style={{ width:28,height:28,background:"transparent",border:"1px solid "+accentColor+"44",color:accentColor,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center" }}>−</button>
-                  <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,fontWeight:700,color:dist[key]>0?accentColor:"#5b7aa0",minWidth:24,textAlign:"center" }}>{dist[key]>0?"+"+dist[key]:"0"}</span>
-                  <button onClick={function(){add(key);}} disabled={remaining<=0} style={{ width:28,height:28,background:remaining>0?accentColor:"#1a2438",border:"none",color:remaining>0?"#03050c":"#5b7aa0",cursor:remaining>0?"pointer":"not-allowed",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center" }}>+</button>
+                  <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,fontWeight:700,color:dist[key]>0?accentColor:"#8fb7d9",minWidth:24,textAlign:"center" }}>{dist[key]>0?"+"+dist[key]:"0"}</span>
+                  <button onClick={function(){add(key);}} disabled={remaining<=0} style={{ width:28,height:28,background:remaining>0?accentColor:"#1a2438",border:"none",color:remaining>0?"#03050c":"#8fb7d9",cursor:remaining>0?"pointer":"not-allowed",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center" }}>+</button>
                 </div>
               </div>
             );
@@ -7915,8 +7942,8 @@ function StatPointDistributor({ points, onConfirm, accentColor }) {
         </div>
 
         <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16 }}>
-          <span style={{ fontSize:12,color:"#5b7aa0" }}>Remaining: <strong style={{ color:remaining>0?accentColor:"#2ee88a" }}>{remaining}</strong></span>
-          <span style={{ fontSize:12,color:"#5b7aa0" }}>Spent: {used}/{points}</span>
+          <span style={{ fontSize:12,color:"#8fb7d9" }}>Remaining: <strong style={{ color:remaining>0?accentColor:"#3ef29a" }}>{remaining}</strong></span>
+          <span style={{ fontSize:12,color:"#8fb7d9" }}>Spent: {used}/{points}</span>
         </div>
 
         <button onClick={function(){onConfirm(dist);}} style={{ width:"100%",padding:"12px",background:accentColor,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,letterSpacing:"0.15em" }}>
@@ -7964,21 +7991,21 @@ function LegacyEnergyView({ energyState, onUpdate, accentColor }) {
   return (
     <div className="fade-in">
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Energy System</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Energy System</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
-        <p style={{ fontSize:12,color:"#5b7aa0",marginTop:6 }}>Log your recovery metrics. Energy affects quest XP and quest difficulty.</p>
+        <p style={{ fontSize:12,color:"#8fb7d9",marginTop:6 }}>Log your recovery metrics. Energy affects quest XP and quest difficulty.</p>
       </div>
 
       {/* Energy rating card */}
       <div className="energy-pulse" style={{ padding:"20px 24px",marginBottom:20,border:"2px solid "+energyLevel.color+"88",background:energyLevel.color+"0a",display:"flex",alignItems:"center",gap:20 }}>
         <div style={{ textAlign:"center",flexShrink:0 }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:36,fontWeight:900,color:energyLevel.color }}>{score}</div>
-          <div style={{ fontSize:9,color:"#5b7aa0",letterSpacing:"0.2em" }}>SCORE</div>
+          <div style={{ fontSize:9,color:"#8fb7d9",letterSpacing:"0.2em" }}>SCORE</div>
         </div>
         <div style={{ flex:1 }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,fontWeight:700,color:energyLevel.color,marginBottom:4 }}>{energyLevel.label}</div>
           <div style={{ fontSize:12,color:"#9fb8d8",lineHeight:1.6 }}>{energyLevel.desc}</div>
-          <div style={{ fontSize:11,color:"#5b7aa0",marginTop:4 }}>XP Modifier: <span style={{ color:energyLevel.color,fontWeight:700 }}>{Math.round(energyLevel.xpMod*100)}%</span></div>
+          <div style={{ fontSize:11,color:"#8fb7d9",marginTop:4 }}>XP Modifier: <span style={{ color:energyLevel.color,fontWeight:700 }}>{Math.round(energyLevel.xpMod*100)}%</span></div>
         </div>
       </div>
 
@@ -7995,7 +8022,7 @@ function LegacyEnergyView({ energyState, onUpdate, accentColor }) {
               <input type="range" min="0" max="10" step="1" value={val}
                 onChange={function(e){setMetric(m.id, parseInt(e.target.value));}}
                 style={{ width:"100%",accentColor:accentColor,cursor:"pointer" }} />
-              <div style={{ fontSize:10,color:"#5b7aa0",marginTop:2 }}>{m.hint}</div>
+              <div style={{ fontSize:10,color:"#8fb7d9",marginTop:2 }}>{m.hint}</div>
             </div>
           );
         })}
@@ -8048,7 +8075,7 @@ function DragMetricLane({ metric, value, onChange }) {
         </div>
         <div style={{ minWidth:72,textAlign:"right" }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:16,color:metric.color }}>{String(displayValue).padStart(2,"0")}</div>
-          <div style={{ fontSize:9,color:"#5b7aa0",letterSpacing:"0.18em" }}>{metric.short}</div>
+          <div style={{ fontSize:9,color:"#8fb7d9",letterSpacing:"0.18em" }}>{metric.short}</div>
         </div>
       </div>
       <div
@@ -8120,9 +8147,9 @@ function DisciplineView({ disciplineState, energyState, onUpdate, accentColor })
   return (
     <div className="fade-in">
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Discipline System</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Discipline System</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
-        <p style={{ fontSize:12,color:"#5b7aa0",marginTop:6 }}>Restore the willpower layer that keeps output stable when energy alone would collapse.</p>
+        <p style={{ fontSize:12,color:"#8fb7d9",marginTop:6 }}>Restore the willpower layer that keeps output stable when energy alone would collapse.</p>
       </div>
 
       <div className="system-energy-frame" style={{ marginBottom:18 }}>
@@ -8144,7 +8171,7 @@ function DisciplineView({ disciplineState, energyState, onUpdate, accentColor })
         <div className="system-energy-hero">
           <div>
             <div className="system-energy-label">DISCIPLINE SCORE</div>
-            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:40,fontWeight:900,color:diag.score >= 68 ? "#2ee88a" : diag.score >= 54 ? "#f5b65d" : "#ff6d6d" }}>{diag.score}</div>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:40,fontWeight:900,color:diag.score >= 68 ? "#3ef29a" : diag.score >= 54 ? "#f5b65d" : "#ff6d6d" }}>{diag.score}</div>
             <div style={{ fontSize:11,color:"#9fb8d8",letterSpacing:"0.18em" }}>{diag.label.toUpperCase()}</div>
           </div>
           <div className="system-energy-boosts">
@@ -8189,8 +8216,8 @@ function DisciplineView({ disciplineState, energyState, onUpdate, accentColor })
         <div style={{ padding:"16px 18px" }}>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.18em",color:"#8fdcff",marginBottom:8 }}>SYSTEM EFFECT</div>
           <div style={{ fontSize:13,color:"#cfe8ff",lineHeight:1.7 }}>
-            Current discipline modifies usable energy output by <span style={{ color:diag.readinessLift >= 0 ? "#2ee88a" : "#ff6d6d",fontWeight:700 }}>{diag.readinessLift >= 0 ? "+" : ""}{diag.readinessLift}</span>.
-            With your current energy pattern, the system estimates <span style={{ color:"#2ee88a",fontWeight:700 }}>{energyDiag.combatReadiness}</span> combat readiness and <span style={{ color:"#8fdcff",fontWeight:700 }}>{energyDiag.mentalClarity}</span> mental clarity.
+            Current discipline modifies usable energy output by <span style={{ color:diag.readinessLift >= 0 ? "#3ef29a" : "#ff6d6d",fontWeight:700 }}>{diag.readinessLift >= 0 ? "+" : ""}{diag.readinessLift}</span>.
+            With your current energy pattern, the system estimates <span style={{ color:"#3ef29a",fontWeight:700 }}>{energyDiag.combatReadiness}</span> combat readiness and <span style={{ color:"#8fdcff",fontWeight:700 }}>{energyDiag.mentalClarity}</span> mental clarity.
           </div>
         </div>
       </Win>
@@ -8218,9 +8245,9 @@ function EnergyView({ energyState, disciplineState, onUpdate, accentColor }) {
   return (
     <div className="fade-in">
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Energy System</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Energy System</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
-        <p style={{ fontSize:12,color:"#5b7aa0",marginTop:6 }}>Drag each channel until it matches how much reserve you really have. This system now tracks usable output, not just a basic fatigue slider.</p>
+        <p style={{ fontSize:12,color:"#8fb7d9",marginTop:6 }}>Drag each channel until it matches how much reserve you really have. This system now tracks usable output, not just a basic fatigue slider.</p>
       </div>
 
       <div className="system-energy-frame energy-pulse">
@@ -8269,7 +8296,7 @@ function EnergyView({ energyState, disciplineState, onUpdate, accentColor }) {
           ].map(function(item) {
             return (
               <div key={item.label} style={{ border:"1px solid rgba(110,190,255,0.18)",background:"rgba(3,12,24,0.62)",padding:"10px 12px" }}>
-                <div style={{ fontSize:9,letterSpacing:"0.2em",color:"#5b7aa0",marginBottom:4 }}>{item.label}</div>
+                <div style={{ fontSize:9,letterSpacing:"0.2em",color:"#8fb7d9",marginBottom:4 }}>{item.label}</div>
                 <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,color:"#dff5ff" }}>{item.value}</div>
               </div>
             );
@@ -8319,7 +8346,7 @@ function HunterIdentityView({ player, rank, isMonarch, fame, shadowArmy, bosses,
     { label:"AURA",        value:auraType.name, color:auraType.color },
     { label:"FAME",        value:safeFame+" pts · "+fameTier.name, color:fameTier.color },
     { label:"GUILD",       value:guild?guild.name:"Unaffiliated", color:guild?guild.color:null },
-    { label:"STREAK",      value:safeStreak+" days", color:safeStreak>=7?"#2ee88a":null },
+    { label:"STREAK",      value:safeStreak+" days", color:safeStreak>=7?"#3ef29a":null },
     { label:"SHADOWS",     value:shadowCount+" in army" },
     { label:"GATES",       value:gateCount+" cleared" },
     { label:"BOSSES",      value:bossCount+" defeated" },
@@ -8329,8 +8356,33 @@ function HunterIdentityView({ player, rank, isMonarch, fame, shadowArmy, bosses,
   return (
     <div className="fade-in">
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Hunter Profile</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Hunter Profile</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+c+",transparent)" }} />
+      </div>
+
+      {/* Avatar — hooded silhouette, single glowing eye. Aura intensifies with aura tier (level/stats). */}
+      <div style={{ display:"flex", gap:16, marginBottom:20 }}>
+        <div style={{ position:"relative", width:120, height:150, flexShrink:0, border:"1px solid "+auraType.color+"66", background:"radial-gradient(ellipse at 50% 38%, "+auraType.color+"33, rgba(5,10,20,0.94) 68%)", overflow:"hidden", display:"flex", alignItems:"flex-end", justifyContent:"center", boxShadow:"inset 0 0 40px "+auraType.color+"22" }}>
+          {/* ambient aura bloom behind silhouette — grows with tier */}
+          <div className={auraType.pulse||""} style={{ position:"absolute", left:"50%", top:"38%", width:120+(auraType.tier||0)*14, height:120+(auraType.tier||0)*14, transform:"translate(-50%,-50%)", background:"radial-gradient(circle, "+auraType.color+((auraType.tier||0)>=4?"80":"50")+", "+auraType.color+"00 62%)", filter:"blur(6px)" }} />
+          {/* hooded silhouette */}
+          <div style={{ width:56, height:88, position:"relative", background:"linear-gradient(180deg, #0b1626, #050a14)", clipPath:"polygon(50% 0, 68% 12%, 66% 34%, 88% 52%, 82% 100%, 18% 100%, 12% 52%, 34% 34%, 32% 12%)", boxShadow:"0 0 26px "+auraType.color+"55" }} />
+          {/* single glowing eye — hair-shadowed, bloom scales with tier */}
+          <div style={{ position:"absolute", top:30, left:"50%", transform:"translateX(-6px)" }}>
+            <div className={auraType.pulse||""} style={{ position:"absolute", left:"50%", top:"50%", width:24+(auraType.tier||0)*5, height:24+(auraType.tier||0)*5, transform:"translate(-50%,-50%)", background:"radial-gradient(circle, "+auraType.color+"d9, "+auraType.color+"40 45%, "+auraType.color+"00 72%)", filter:"blur(2px)" }} />
+            <span style={{ position:"relative", display:"block", width:6, height:3.5, background:"#eaf9ff", borderRadius:"50%", boxShadow:"0 0 "+(10+(auraType.tier||0)*3)+"px 3px "+auraType.color+", 0 0 "+(20+(auraType.tier||0)*4)+"px 8px "+auraType.color+"aa" }} />
+          </div>
+          {/* stray aura wisps — more of them at higher tiers */}
+          <div style={{ position:"absolute", left:"14%", top:"8%", width:2, height:"70%", background:"linear-gradient(180deg, "+auraType.color+"00, "+auraType.color+"55, "+auraType.color+"00)", filter:"blur(1px)" }} />
+          <div style={{ position:"absolute", right:"16%", top:"4%", width:2, height:"60%", background:"linear-gradient(180deg, "+auraType.color+"00, "+auraType.color+"50, "+auraType.color+"00)", filter:"blur(1px)" }} />
+          {(auraType.tier||0)>=3 && <div style={{ position:"absolute", left:"30%", bottom:"6%", width:2, height:"40%", background:"linear-gradient(0deg, "+auraType.color+"00, "+auraType.color+"45, "+auraType.color+"00)", filter:"blur(1px)" }} />}
+          {(auraType.tier||0)>=5 && <div style={{ position:"absolute", right:"30%", bottom:"10%", width:2, height:"35%", background:"linear-gradient(0deg, "+auraType.color+"00, "+auraType.color+"45, "+auraType.color+"00)", filter:"blur(1px)" }} />}
+        </div>
+        <div style={{ flex:1, display:"flex", flexDirection:"column", justifyContent:"center", gap:6 }}>
+          <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:9, letterSpacing:"0.3em", color:"#58c8ff" }}>HUNTER IDENTITY CONFIRMED</div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:18, fontWeight:700, color:"#e6f3ff" }}>{player.name||"Hunter"}</div>
+          <div style={{ fontSize:11, color:auraType.color }}>{auraType.name} · TIER {auraType.tier||0}</div>
+        </div>
       </div>
 
       {/* Aura badge — visual tier evolves by rank */}
@@ -8357,8 +8409,8 @@ function HunterIdentityView({ player, rank, isMonarch, fame, shadowArmy, bosses,
       <div style={{ border:"1px solid "+c+"33",background:"linear-gradient(160deg,rgba(8,14,26,0.97),rgba(4,8,16,0.99))",padding:"16px 20px",marginBottom:16 }}>
         {rows.map(function(row){
           return (
-            <div key={row.label} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid rgba(77,184,255,0.06)" }}>
-              <span style={{ fontSize:10,color:"#5b7aa0",letterSpacing:"0.15em" }}>{row.label}</span>
+            <div key={row.label} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 0",borderBottom:"1px solid rgba(111,208,255,0.06)" }}>
+              <span style={{ fontSize:10,color:"#8fb7d9",letterSpacing:"0.15em" }}>{row.label}</span>
               <span style={{ fontSize:row.big?15:12,fontFamily:row.big?"'Orbitron',sans-serif":"'Rajdhani',sans-serif",fontWeight:row.big?700:400,color:row.color||"#dbe6ff" }}>{row.value}</span>
             </div>
           );
@@ -8382,7 +8434,7 @@ function GuildRecruitmentPopup({ guild, onJoin, onDecline }) {
             <div style={{ width:44,height:44,border:"2px solid "+guild.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:guild.color,background:guild.color+"11",flexShrink:0,boxShadow:"0 0 16px "+guild.color+"44" }}>{guild.icon}</div>
             <div>
               <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:guild.color }}>{guild.name}</div>
-              <div style={{ fontSize:10,color:"#5b7aa0",fontStyle:"italic" }}>{guild.motto}</div>
+              <div style={{ fontSize:10,color:"#8fb7d9",fontStyle:"italic" }}>{guild.motto}</div>
             </div>
           </div>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.3em",color:guild.color,marginBottom:10 }}>GUILD RECRUITMENT</div>
@@ -8415,9 +8467,9 @@ function GuildView({ player, fame, guildId, guildQuestProgress, guildQuestDone, 
     return (
       <div className="fade-in">
         <div style={{ marginBottom:20 }}>
-          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Guild</div>
+          <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Guild</div>
           <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
-          <p style={{ fontSize:12,color:"#5b7aa0",marginTop:6 }}>You are not affiliated with any guild. Increase your fame to receive recruitment offers.</p>
+          <p style={{ fontSize:12,color:"#8fb7d9",marginTop:6 }}>You are not affiliated with any guild. Increase your fame to receive recruitment offers.</p>
         </div>
         <div style={{ padding:"12px 16px",border:"1px solid "+accentColor+"33",background:accentColor+"08",marginBottom:20,fontSize:12,color:accentColor }}>
           Current Fame: <strong>{safeFame}</strong> · {fameTier.name}
@@ -8428,7 +8480,7 @@ function GuildView({ player, fame, guildId, guildQuestProgress, guildQuestDone, 
           </div>
         ) : (
           <div style={{ display:"flex",flexDirection:"column",gap:12 }}>
-            <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:4 }}>Guilds available to join:</div>
+            <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:4 }}>Guilds available to join:</div>
             {available.map(function(g){
               return (
                 <div key={g.id} style={{ padding:"16px",border:"1px solid "+g.color+"44",background:g.color+"08",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12 }}>
@@ -8436,7 +8488,7 @@ function GuildView({ player, fame, guildId, guildQuestProgress, guildQuestDone, 
                     <span style={{ fontSize:20,color:g.color }}>{g.icon}</span>
                     <div>
                       <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:12,fontWeight:700,color:g.color }}>{g.name}</div>
-                      <div style={{ fontSize:10,color:"#5b7aa0",fontStyle:"italic" }}>{g.motto}</div>
+                      <div style={{ fontSize:10,color:"#8fb7d9",fontStyle:"italic" }}>{g.motto}</div>
                     </div>
                   </div>
                 </div>
@@ -8454,7 +8506,7 @@ function GuildView({ player, fame, guildId, guildQuestProgress, guildQuestDone, 
   return (
     <div className="fade-in">
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Guild</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Guild</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+joined.color+",transparent)" }} />
       </div>
 
@@ -8463,7 +8515,7 @@ function GuildView({ player, fame, guildId, guildQuestProgress, guildQuestDone, 
         <div style={{ width:48,height:48,border:"2px solid "+joined.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,color:joined.color,boxShadow:"0 0 14px "+joined.color+"44",flexShrink:0 }}>{joined.icon}</div>
         <div>
           <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:14,fontWeight:700,color:joined.color }}>{joined.name}</div>
-          <div style={{ fontSize:10,color:"#5b7aa0",fontStyle:"italic",marginTop:2 }}>{joined.motto}</div>
+          <div style={{ fontSize:10,color:"#8fb7d9",fontStyle:"italic",marginTop:2 }}>{joined.motto}</div>
         </div>
       </div>
 
@@ -8475,18 +8527,18 @@ function GuildView({ player, fame, guildId, guildQuestProgress, guildQuestDone, 
           {quest.goals.map(function(g){
             const cur=guildQuestProgress[g.id]||0; const done=cur>=g.target; const canTap=!done&&!guildQuestDone;
             return (
-              <div key={g.id} onClick={function(){if(canTap&&typeof onGoalTap==="function")onGoalTap(g.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid rgba(77,184,255,0.07)",cursor:canTap?"pointer":"default" }}>
+              <div key={g.id} onClick={function(){if(canTap&&typeof onGoalTap==="function")onGoalTap(g.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid rgba(111,208,255,0.07)",cursor:canTap?"pointer":"default" }}>
                 <span style={{ fontSize:13,color:done?"#5a7a5a":"#dbe6ff" }}>{g.name}</span>
                 <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                  <span style={{ fontSize:11,color:done?"#2ee88a":"#9fb8d8" }}>{cur}/{g.target}{g.unit}</span>
-                  <div style={{ width:16,height:16,border:"1.5px solid "+(done?"#2ee88a":joined.color+"66"),background:done?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#2ee88a" }}>{done?"✓":""}</div>
+                  <span style={{ fontSize:11,color:done?"#3ef29a":"#9fb8d8" }}>{cur}/{g.target}{g.unit}</span>
+                  <div style={{ width:16,height:16,border:"1.5px solid "+(done?"#3ef29a":joined.color+"66"),background:done?"#3ef29a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"#3ef29a" }}>{done?"✓":""}</div>
                 </div>
               </div>
             );
           })}
           <div style={{ marginTop:10,display:"flex",justifyContent:"space-between",fontSize:11 }}>
             <span style={{ color:joined.color }}>+{quest.xp} XP · +{quest.coins} coins · +{quest.fameGain} fame</span>
-            {guildQuestDone&&<span style={{ color:"#2ee88a",fontWeight:700 }}>CLEARED ✓</span>}
+            {guildQuestDone&&<span style={{ color:"#3ef29a",fontWeight:700 }}>CLEARED ✓</span>}
           </div>
         </div>
       </div>
@@ -8504,9 +8556,9 @@ function SpecializationView({ player, unlockedSpecs, onUnlock, accentColor }) {
   return (
     <div className="fade-in">
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Specialization</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Specialization</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
-        <p style={{ fontSize:12,color:"#5b7aa0",marginTop:6 }}>Unlock perks by reaching stat thresholds through training. Unlocking applies stat bonuses permanently.</p>
+        <p style={{ fontSize:12,color:"#8fb7d9",marginTop:6 }}>Unlock perks by reaching stat thresholds through training. Unlocking applies stat bonuses permanently.</p>
       </div>
 
       {/* Unlocked count */}
@@ -8538,13 +8590,13 @@ function SpecializationView({ player, unlockedSpecs, onUnlock, accentColor }) {
                     <div style={{ background:"linear-gradient(160deg,rgba(8,14,26,0.99),rgba(4,8,16,0.99))",border:"1px solid "+nc,padding:"12px 10px",textAlign:"center" }}>
                       <div style={{ fontSize:18,marginBottom:4 }}>{node.icon}</div>
                       <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,color:nc,marginBottom:4,letterSpacing:"0.1em" }}>{node.name}</div>
-                      <div style={{ fontSize:9,color:"#5b7aa0",marginBottom:6,lineHeight:1.4 }}>
+                      <div style={{ fontSize:9,color:"#8fb7d9",marginBottom:6,lineHeight:1.4 }}>
                         {node.req.stat} ≥ {node.req.val}
                         <br/>
-                        <span style={{ color: meetsReq?"#2ee88a":"#f53d3d" }}>(you: {statVal})</span>
+                        <span style={{ color: meetsReq?"#3ef29a":"#f53d3d" }}>(you: {statVal})</span>
                       </div>
                       {isUnlocked ? (
-                        <div style={{ fontSize:9,color:"#2ee88a",fontWeight:700 }}>✓ ACTIVE</div>
+                        <div style={{ fontSize:9,color:"#3ef29a",fontWeight:700 }}>✓ ACTIVE</div>
                       ) : isAvailable ? (
                         <button onClick={function(){ if(typeof onUnlock==="function") onUnlock(node); }} style={{ padding:"4px 8px",background:pathColor,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:8,fontWeight:700,width:"100%" }}>UNLOCK</button>
                       ) : (
@@ -8568,11 +8620,11 @@ function SecretBossesView({ player, clearedGates, streak, secretBosses, onAttack
   return (
     <div className="fade-in">
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:20, fontWeight:700, color:"#eaf2ff" }}>
+        <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:20, fontWeight:700, color:"#e6f3ff" }}>
           Secret Encounters
         </div>
         <div style={{ height:1, marginTop:6, background:"linear-gradient(90deg,"+MONARCH_PURP+",transparent)" }} />
-        <p style={{ fontSize:12, color:"#5b7aa0", marginTop:6 }}>
+        <p style={{ fontSize:12, color:"#8fb7d9", marginTop:6 }}>
           Hidden bosses with unknown unlock conditions. Some hunters never see this screen.
         </p>
       </div>
@@ -8604,24 +8656,24 @@ function SecretBossesView({ player, clearedGates, streak, secretBosses, onAttack
                 opacity: defeated ? 0.65 : 1,
               }}>
                 <div style={{ display:"flex", alignItems:"flex-start", gap:16, flexWrap:"wrap" }}>
-                  <div style={{ width:52, height:52, border:"2px solid "+(defeated?"#2ee88a":boss.color), display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:boss.color+"11", flexShrink:0, boxShadow:"0 0 16px "+boss.color+"44" }}>
+                  <div style={{ width:52, height:52, border:"2px solid "+(defeated?"#3ef29a":boss.color), display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, background:boss.color+"11", flexShrink:0, boxShadow:"0 0 16px "+boss.color+"44" }}>
                     {defeated ? "☠" : boss.icon}
                   </div>
                   <div style={{ flex:1 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
-                      <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:15, fontWeight:700, color:defeated?"#2ee88a":"#eaf2ff" }}>{boss.name}</div>
+                      <div style={{ fontFamily:"'Orbitron',sans-serif", fontSize:15, fontWeight:700, color:defeated?"#3ef29a":"#e6f3ff" }}>{boss.name}</div>
                       <span style={{ fontSize:9, padding:"2px 8px", border:"1px solid "+GLITCH_RED+"55", color:GLITCH_RED, fontFamily:"'Orbitron',sans-serif", letterSpacing:"0.15em" }}>SECRET</span>
                     </div>
-                    <div style={{ fontSize:11, color:"#5b7aa0", marginBottom:10 }}>{boss.title}</div>
+                    <div style={{ fontSize:11, color:"#8fb7d9", marginBottom:10 }}>{boss.title}</div>
 
                     {/* HP bar */}
                     <div style={{ marginBottom:12 }}>
-                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#5b7aa0", marginBottom:4 }}>
+                      <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:"#8fb7d9", marginBottom:4 }}>
                         <span>HP</span>
-                        <span style={{ color:defeated?"#2ee88a":boss.color }}>{bossState.currentHp}/{bossState.maxHp}</span>
+                        <span style={{ color:defeated?"#3ef29a":boss.color }}>{bossState.currentHp}/{bossState.maxHp}</span>
                       </div>
                       <div style={{ height:6, background:"rgba(255,255,255,0.06)", overflow:"hidden" }}>
-                        <div style={{ height:"100%", width:hpPct+"%", background:defeated?"#2ee88a":"linear-gradient(90deg,"+boss.color+",#fff8)", transition:"width 0.5s ease" }} />
+                        <div style={{ height:"100%", width:hpPct+"%", background:defeated?"#3ef29a":"linear-gradient(90deg,"+boss.color+",#fff8)", transition:"width 0.5s ease" }} />
                       </div>
                     </div>
 
@@ -8632,14 +8684,14 @@ function SecretBossesView({ player, clearedGates, streak, secretBosses, onAttack
                       </div>
                     )}
 
-                    <div style={{ fontSize:11, color:"#5b7aa0", marginBottom:12 }}>
-                      Survival probability: <span style={{ color:boss.survivalChance<20?GLITCH_RED:boss.survivalChance<50?"#f5b65d":"#2ee88a", fontWeight:700 }}>{boss.survivalChance}%</span>
+                    <div style={{ fontSize:11, color:"#8fb7d9", marginBottom:12 }}>
+                      Survival probability: <span style={{ color:boss.survivalChance<20?GLITCH_RED:boss.survivalChance<50?"#f5b65d":"#3ef29a", fontWeight:700 }}>{boss.survivalChance}%</span>
                     </div>
 
                     <button
                       disabled={defeated || questGoalsCleared < 1}
                       onClick={function(){ if(typeof onAttack==="function") onAttack(boss.id); }}
-                      style={{ padding:"10px 24px", background:defeated?"transparent":questGoalsCleared<1?"#0a1020":boss.color, color:defeated?"#2ee88a":questGoalsCleared<1?"#2a3a55":"#03050c", border:defeated?"1px solid #2ee88a44":questGoalsCleared<1?"1px solid #2a3a55":"none", cursor:(defeated||questGoalsCleared<1)?"not-allowed":"pointer", fontFamily:"'Orbitron',sans-serif", fontSize:11, fontWeight:700, letterSpacing:"0.15em" }}
+                      style={{ padding:"10px 24px", background:defeated?"transparent":questGoalsCleared<1?"#0a1020":boss.color, color:defeated?"#3ef29a":questGoalsCleared<1?"#2a3a55":"#03050c", border:defeated?"1px solid #3ef29a44":questGoalsCleared<1?"1px solid #2a3a55":"none", cursor:(defeated||questGoalsCleared<1)?"not-allowed":"pointer", fontFamily:"'Orbitron',sans-serif", fontSize:11, fontWeight:700, letterSpacing:"0.15em" }}
                     >
                       {defeated ? "☠ DEFEATED" : questGoalsCleared < 1 ? "COMPLETE QUESTS FIRST" : "CHALLENGE"}
                     </button>
@@ -8687,7 +8739,7 @@ function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoo
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e0f4ff" }}>Hunter Shop</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)",marginBottom:10 }} />
         <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center" }}>
-          <p style={{ fontSize:11,color:"#5b7aa0" }}>Earn coins by clearing quests and defeating bosses.</p>
+          <p style={{ fontSize:11,color:"#8fb7d9" }}>Earn coins by clearing quests and defeating bosses.</p>
           <div style={{ display:"flex",alignItems:"center",gap:6,padding:"4px 12px",border:"1px solid "+accentColor+"44",background:accentColor+"08" }}>
             <span style={{ fontSize:14 }}>🪙</span>
             <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:15,fontWeight:700,color:"#f5b65d" }}>{coins}</span>
@@ -8707,7 +8759,7 @@ function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoo
           const bm = cat.id === "blackmarket";
           return (
             <button key={cat.id} onClick={function(){setActiveCategory(cat.id);}}
-              style={{ padding:"5px 12px",background:active?(bm?MONARCH_PURP:accentColor):"transparent",border:"1px solid "+(bm?MONARCH_PURP+"66":accentColor+"33"),color:active?"#03050c":(bm?MONARCH_PURP:"#5b7aa0"),cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.12em",whiteSpace:"nowrap",fontWeight:active?700:400,flexShrink:0 }}>
+              style={{ padding:"5px 12px",background:active?(bm?MONARCH_PURP:accentColor):"transparent",border:"1px solid "+(bm?MONARCH_PURP+"66":accentColor+"33"),color:active?"#03050c":(bm?MONARCH_PURP:"#8fb7d9"),cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,letterSpacing:"0.12em",whiteSpace:"nowrap",fontWeight:active?700:400,flexShrink:0 }}>
               {cat.label}
             </button>
           );
@@ -8716,7 +8768,7 @@ function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoo
 
       {/* Black market warning */}
       {isBM && (
-        <div style={{ padding:"10px 14px",border:"1px solid "+MONARCH_PURP+"55",background:"rgba(155,48,255,0.06)",marginBottom:14,fontSize:11,color:MONARCH_PURP+"bb",lineHeight:1.7,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
+        <div style={{ padding:"10px 14px",border:"1px solid "+MONARCH_PURP+"55",background:"rgba(160,141,255,0.06)",marginBottom:14,fontSize:11,color:MONARCH_PURP+"bb",lineHeight:1.7,fontFamily:"'Rajdhani',sans-serif",fontWeight:500 }}>
           ⚠ Restricted market. Items here exist outside standard System authorization. Effects are real. Consequences are your own.
         </div>
       )}
@@ -8749,7 +8801,7 @@ function HunterShopView({ coins, inventory, onBuy, accentColor, isMonarch, xpBoo
                     <span style={{ fontFamily:"'Orbitron',sans-serif",fontSize:13,fontWeight:700,color:canAfford?"#f5b65d":"#f53d3d" }}>{item.cost}</span>
                   </div>
                   <button disabled={owned||!canAfford} onClick={function(){ if(typeof onBuy==="function") onBuy(item); }}
-                    style={{ padding:"6px 14px",background:owned?"transparent":canAfford?ic+"cc":"rgba(10,16,32,0.8)",color:owned?"#2ee88a":canAfford?"#03050c":"#2a3a55",border:owned?"1px solid #2ee88a33":"1px solid "+(canAfford?ic+"00":"#2a3a5544"),cursor:(owned||!canAfford)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.12em" }}>
+                    style={{ padding:"6px 14px",background:owned?"transparent":canAfford?ic+"cc":"rgba(10,16,32,0.8)",color:owned?"#3ef29a":canAfford?"#03050c":"#2a3a55",border:owned?"1px solid #3ef29a33":"1px solid "+(canAfford?ic+"00":"#2a3a5544"),cursor:(owned||!canAfford)?"not-allowed":"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.12em" }}>
                     {owned?"OWNED":canAfford?"BUY":"LOCKED"}
                   </button>
                 </div>
@@ -8798,7 +8850,7 @@ function SquadsPanel({ squads, shadowArmy, onAddToSquad, onFavorite, accentColor
         if (!sq) return null;
         return (
           <div style={{ border:"1px solid "+accentColor+"33",padding:"12px 14px",marginBottom:12 }}>
-            <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:8 }}>Assign shadows to {sq.name}:</div>
+            <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:8 }}>Assign shadows to {sq.name}:</div>
             {all.length===0 ? (
               <div style={{ fontSize:11,color:"#2a3a55",fontStyle:"italic" }}>No shadows available.</div>
             ) : (
@@ -8807,7 +8859,7 @@ function SquadsPanel({ squads, shadowArmy, onAddToSquad, onFavorite, accentColor
                   const inSquad = sq.shadowIds.includes(s.id);
                   const rc = RARITY_COLOR[s.rarity]||accentColor;
                   return (
-                    <div key={s.id} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(77,184,255,0.07)" }}>
+                    <div key={s.id} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid rgba(111,208,255,0.07)" }}>
                       <div style={{ display:"flex",alignItems:"center",gap:8 }}>
                         <span style={{ fontSize:14,color:rc }}>{s.icon||"◉"}</span>
                         <span style={{ fontSize:12,color:"#dbe6ff" }}>{s.name||s.displayName}</span>
@@ -8815,7 +8867,7 @@ function SquadsPanel({ squads, shadowArmy, onAddToSquad, onFavorite, accentColor
                       </div>
                       <div style={{ display:"flex",gap:6 }}>
                         <button onClick={function(){if(typeof onFavorite==="function")onFavorite(s.id);}}
-                          style={{ padding:"3px 8px",background:"transparent",border:"1px solid #f5b65d44",color:s.favorite?"#f5b65d":"#5b7aa0",cursor:"pointer",fontSize:10 }}>★</button>
+                          style={{ padding:"3px 8px",background:"transparent",border:"1px solid #f5b65d44",color:s.favorite?"#f5b65d":"#8fb7d9",cursor:"pointer",fontSize:10 }}>★</button>
                         <button onClick={function(){if(typeof onAddToSquad==="function")onAddToSquad(s.id,sq.id);}}
                           style={{ padding:"3px 10px",background:inSquad?rc:rc+"1a",color:inSquad?"#03050c":rc,border:"1px solid "+rc+"44",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:8,fontWeight:700 }}>
                           {inSquad?"REMOVE":"ADD"}
@@ -8862,20 +8914,20 @@ function ShadowMissionsPanel({ shadowArmy, activeMissions, onDispatch, onComplet
       {/* Active missions */}
       {activeMissions.length > 0 && (
         <div style={{ marginBottom:16 }}>
-          <div style={{ fontSize:10,color:"#5b7aa0",marginBottom:8 }}>IN PROGRESS</div>
+          <div style={{ fontSize:10,color:"#8fb7d9",marginBottom:8 }}>IN PROGRESS</div>
           {activeMissions.map(function(am,i) {
             const mission = SHADOW_MISSIONS.find(function(m){ return m.id===am.missionId; });
             const shadow  = allShadows.find(function(s){ return s.id===am.shadowId; });
             const remaining = am.endsAt - now;
             const isDone = remaining <= 0;
             return (
-              <div key={i} style={{ padding:"10px 14px",border:"1px solid "+(isDone?"#2ee88a44":accentColor+"33"),background:isDone?"rgba(46,232,138,0.05)":"rgba(5,10,20,0.8)",marginBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12 }}>
+              <div key={i} style={{ padding:"10px 14px",border:"1px solid "+(isDone?"#3ef29a44":accentColor+"33"),background:isDone?"rgba(62,242,154,0.05)":"rgba(5,10,20,0.8)",marginBottom:6,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12 }}>
                 <div style={{ flex:1,minWidth:0 }}>
                   <div style={{ fontSize:12,fontWeight:600,color:"#dbe6ff" }}>{mission?mission.name:"Unknown Mission"}</div>
-                  <div style={{ fontSize:10,color:"#5b7aa0" }}>{shadow?shadow.name||shadow.displayName:"Unknown Shadow"}</div>
+                  <div style={{ fontSize:10,color:"#8fb7d9" }}>{shadow?shadow.name||shadow.displayName:"Unknown Shadow"}</div>
                 </div>
                 {isDone ? (
-                  <button onClick={function(){ if(typeof onComplete==="function") onComplete(am); }} style={{ padding:"6px 14px",background:"#2ee88a",color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,whiteSpace:"nowrap" }}>COLLECT</button>
+                  <button onClick={function(){ if(typeof onComplete==="function") onComplete(am); }} style={{ padding:"6px 14px",background:"#3ef29a",color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,whiteSpace:"nowrap" }}>COLLECT</button>
                 ) : (
                   <span style={{ fontSize:11,color:accentColor,whiteSpace:"nowrap" }}>{fmtTime(remaining)}</span>
                 )}
@@ -8890,13 +8942,13 @@ function ShadowMissionsPanel({ shadowArmy, activeMissions, onDispatch, onComplet
         <div style={{ fontSize:11,color:"#2a3a55",fontStyle:"italic" }}>Extract shadows from bosses to unlock missions.</div>
       ) : (
         <div>
-          <div style={{ fontSize:10,color:"#5b7aa0",marginBottom:8 }}>DISPATCH NEW MISSION</div>
+          <div style={{ fontSize:10,color:"#8fb7d9",marginBottom:8 }}>DISPATCH NEW MISSION</div>
           {/* Shadow selector */}
           <div style={{ display:"flex",gap:6,flexWrap:"wrap",marginBottom:10 }}>
             {readyShadows.slice(0,6).map(function(s) {
               const sel = selectedShadow===s.id;
               const rc  = RARITY_COLOR[s.rarity]||accentColor;
-              return (<button key={s.id} onClick={function(){ setSelectedShadow(sel?null:s.id); }} style={{ padding:"4px 10px",border:"1px solid "+(sel?rc:rc+"44"),background:sel?rc+"1a":"transparent",color:sel?"#eaf2ff":"#9fb8d8",cursor:"pointer",fontSize:10 }}>{s.name||s.displayName}</button>);
+              return (<button key={s.id} onClick={function(){ setSelectedShadow(sel?null:s.id); }} style={{ padding:"4px 10px",border:"1px solid "+(sel?rc:rc+"44"),background:sel?rc+"1a":"transparent",color:sel?"#e6f3ff":"#9fb8d8",cursor:"pointer",fontSize:10 }}>{s.name||s.displayName}</button>);
             })}
           </div>
           {/* Mission list */}
@@ -8911,11 +8963,11 @@ function ShadowMissionsPanel({ shadowArmy, activeMissions, onDispatch, onComplet
                 return (
                   <div key={mission.id} style={{ padding:"10px 14px",border:"1px solid "+accentColor+(canDo?"33":"22"),background:"rgba(5,10,20,0.8)",opacity:canDo?1:0.4 }}>
                     <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4 }}>
-                      <span style={{ fontSize:12,fontWeight:600,color:canDo?"#dbe6ff":"#5b7aa0" }}>{mission.icon} {mission.name}</span>
-                      <span style={{ fontSize:10,color:chance>=70?"#2ee88a":chance>=50?"#f5b65d":"#f53d3d" }}>{chance}% success</span>
+                      <span style={{ fontSize:12,fontWeight:600,color:canDo?"#dbe6ff":"#8fb7d9" }}>{mission.icon} {mission.name}</span>
+                      <span style={{ fontSize:10,color:chance>=70?"#3ef29a":chance>=50?"#f5b65d":"#f53d3d" }}>{chance}% success</span>
                     </div>
-                    <div style={{ fontSize:10,color:"#5b7aa0",marginBottom:6 }}>{mission.desc} · {Math.round(mission.dur/60000)}m</div>
-                    <button disabled={!canDo} onClick={function(){ if(typeof onDispatch==="function"){ onDispatch(selectedShadow,mission.id); setSelectedShadow(null); }}} style={{ padding:"5px 12px",background:canDo?accentColor:"#1a2438",color:canDo?"#03050c":"#5b7aa0",border:"none",cursor:canDo?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700 }}>DISPATCH</button>
+                    <div style={{ fontSize:10,color:"#8fb7d9",marginBottom:6 }}>{mission.desc} · {Math.round(mission.dur/60000)}m</div>
+                    <button disabled={!canDo} onClick={function(){ if(typeof onDispatch==="function"){ onDispatch(selectedShadow,mission.id); setSelectedShadow(null); }}} style={{ padding:"5px 12px",background:canDo?accentColor:"#1a2438",color:canDo?"#03050c":"#8fb7d9",border:"none",cursor:canDo?"pointer":"not-allowed",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700 }}>DISPATCH</button>
                   </div>
                 );
               })}
@@ -8967,17 +9019,17 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
   return (
     <div className="fade-in">
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Shadow Army</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Shadow Army</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+MONARCH_PURP+",transparent)" }} />
-        <p style={{ fontSize:12,color:"#5b7aa0",marginTop:6 }}>{allShadows.length} shadow{allShadows.length!==1?"s":""} serve under your command.</p>
+        <p style={{ fontSize:12,color:"#8fb7d9",marginTop:6 }}>{allShadows.length} shadow{allShadows.length!==1?"s":""} serve under your command.</p>
       </div>
 
       {/* Army power summary */}
       <div style={{ display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20 }}>
         {SHADOW_RANKS.map(function(r) {
           return (
-            <div key={r} style={{ padding:"10px 12px",border:"1px solid "+(rankCounts[r]?MONARCH_PURP+"44":"#1a2438"),background:rankCounts[r]?"rgba(155,48,255,0.06)":"transparent",opacity:rankCounts[r]?1:0.4 }}>
-              <div style={{ fontSize:9,letterSpacing:"0.2em",color:"#5b7aa0",marginBottom:2 }}>{r.toUpperCase()}</div>
+            <div key={r} style={{ padding:"10px 12px",border:"1px solid "+(rankCounts[r]?MONARCH_PURP+"44":"#1a2438"),background:rankCounts[r]?"rgba(160,141,255,0.06)":"transparent",opacity:rankCounts[r]?1:0.4 }}>
+              <div style={{ fontSize:9,letterSpacing:"0.2em",color:"#8fb7d9",marginBottom:2 }}>{r.toUpperCase()}</div>
               <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:900,color:rankCounts[r]?MONARCH_PURP:"#2a3a55" }}>{rankCounts[r]||0}</div>
             </div>
           );
@@ -8995,7 +9047,7 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
       {allShadows.length === 0 ? (
         <div style={{ border:"1px solid #1a2438",background:"rgba(10,18,34,0.97)",padding:"48px 24px",textAlign:"center" }}>
           <div style={{ fontSize:40,marginBottom:12,opacity:0.2 }}>◉</div>
-          <p style={{ color:"#5b7aa0",fontSize:13 }}>No shadows serve you yet. Defeat bosses and complete ARISE challenges to extract your army.</p>
+          <p style={{ color:"#8fb7d9",fontSize:13 }}>No shadows serve you yet. Defeat bosses and complete ARISE challenges to extract your army.</p>
         </div>
       ) : (
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:14 }}>
@@ -9010,7 +9062,7 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
                   <div style={{ flex:1,minWidth:0 }}>
                     {isRenaming ? (
                       <div style={{ display:"flex",gap:6 }}>
-                        <input autoFocus value={renameVal} onChange={function(e){setRenameVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")submitRename(shadow);}} style={{ flex:1,background:"transparent",border:"none",borderBottom:"1px solid "+MONARCH_PURP,color:"#eaf2ff",fontSize:14,fontFamily:"'Orbitron',sans-serif",outline:"none",minWidth:0 }} />
+                        <input autoFocus value={renameVal} onChange={function(e){setRenameVal(e.target.value);}} onKeyDown={function(e){if(e.key==="Enter")submitRename(shadow);}} style={{ flex:1,background:"transparent",border:"none",borderBottom:"1px solid "+MONARCH_PURP,color:"#e6f3ff",fontSize:14,fontFamily:"'Orbitron',sans-serif",outline:"none",minWidth:0 }} />
                         <button onClick={function(){submitRename(shadow);}} style={{ background:MONARCH_PURP,border:"none",color:"#03050c",cursor:"pointer",padding:"2px 8px",fontSize:10,fontWeight:700 }}>✓</button>
                       </div>
                     ) : (
@@ -9022,15 +9074,15 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
                   </div>
                 </div>
                 <div style={{ fontSize:10,color:"#8a5ab0",marginBottom:6 }}>Specialty: <span style={{ color:MONARCH_PURP }}>{shadow.specialty}</span></div>
-                <div style={{ fontSize:11,color:"#5b7aa0",marginBottom:8,lineHeight:1.6,fontStyle:"italic" }}>"{shadow.lore}"</div>
-                <div style={{ padding:"6px 10px",border:"1px solid "+MONARCH_PURP+"33",background:"rgba(155,48,255,0.06)",fontSize:11,color:MONARCH_PURP,marginBottom:10 }}>Passive: {shadow.passive}</div>
+                <div style={{ fontSize:11,color:"#8fb7d9",marginBottom:8,lineHeight:1.6,fontStyle:"italic" }}>"{shadow.lore}"</div>
+                <div style={{ padding:"6px 10px",border:"1px solid "+MONARCH_PURP+"33",background:"rgba(160,141,255,0.06)",fontSize:11,color:MONARCH_PURP,marginBottom:10 }}>Passive: {shadow.passive}</div>
                 {/* Phase 3: Loyalty bar — only shown for shadows with loyalty field */}
                 {typeof shadow.loyalty === "number" && (function(){
                   const loyaltyData = getShadowLoyalty(shadow.loyalty);
                   return (
                     <div style={{ marginBottom:10 }}>
                       <div style={{ display:"flex",justifyContent:"space-between",fontSize:10,marginBottom:4 }}>
-                        <span style={{ color:"#5b7aa0",letterSpacing:"0.1em" }}>LOYALTY</span>
+                        <span style={{ color:"#8fb7d9",letterSpacing:"0.1em" }}>LOYALTY</span>
                         <span style={{ color:loyaltyData.color,fontWeight:700 }}>{loyaltyData.label}</span>
                       </div>
                       <div style={{ height:4,background:"rgba(255,255,255,0.06)",overflow:"hidden" }}>
@@ -9041,9 +9093,9 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
                 })()}
                 {/* Phase 3: Evolution level */}
                 {typeof shadow.evolutionLevel === "number" && (
-                  <div style={{ marginBottom:10,fontSize:10,color:"#5b7aa0" }}>
+                  <div style={{ marginBottom:10,fontSize:10,color:"#8fb7d9" }}>
                     Evolution: <span style={{ color:MONARCH_PURP }}>Level {shadow.evolutionLevel}</span>
-                    {shadow.evolutionTo && <span style={{ color:"#5b7aa0" }}> → {shadow.evolutionTo.replace("sh_","")}</span>}
+                    {shadow.evolutionTo && <span style={{ color:"#8fb7d9" }}> → {shadow.evolutionTo.replace("sh_","")}</span>}
                   </div>
                 )}
                 {/* Stat bonuses */}
@@ -9056,7 +9108,7 @@ function ShadowArmyView({ shadowArmy, bosses, bossData, accentColor, onRename, o
                 )}
                 {/* Evolution path */}
                 {shadow.evolutionTo && (
-                  <div style={{ marginTop:10,fontSize:10,color:"#5b7aa0" }}>Evolves → <span style={{ color:MONARCH_PURP }}>{shadow.evolutionTo.replace("sh_","").charAt(0).toUpperCase()+shadow.evolutionTo.replace("sh_","").slice(1)}</span></div>
+                  <div style={{ marginTop:10,fontSize:10,color:"#8fb7d9" }}>Evolves → <span style={{ color:MONARCH_PURP }}>{shadow.evolutionTo.replace("sh_","").charAt(0).toUpperCase()+shadow.evolutionTo.replace("sh_","").slice(1)}</span></div>
                 )}
               </div>
             );
@@ -9104,12 +9156,12 @@ function SetBonusPanel({ inventory, accentColor }) {
 
 function InventoryView({ inventory, keys, coins, onUseKey, accentColor }) {
   const ownedItems = SHOP_ITEMS.filter(function(i){return inventory.includes(i.id);});
-  const keyColors = { normal:"#4db8ff", elite:"#a05df5", red:"#f53d3d" };
+  const keyColors = { normal:"#6fd0ff", elite:"#a05df5", red:"#f53d3d" };
 
   return (
     <div className="fade-in">
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#eaf2ff" }}>Inventory</div>
+        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#e6f3ff" }}>Inventory</div>
         <div style={{ height:1,marginTop:6,background:"linear-gradient(90deg,"+accentColor+",transparent)" }} />
       </div>
 
@@ -9117,7 +9169,7 @@ function InventoryView({ inventory, keys, coins, onUseKey, accentColor }) {
       <div style={{ display:"flex",gap:12,marginBottom:20 }}>
         <div style={{ padding:"12px 18px",border:"1px solid #f5b65d44",background:"rgba(245,182,93,0.06)",display:"flex",alignItems:"center",gap:8 }}>
           <span style={{ fontSize:20 }}>🪙</span>
-          <div><div style={{ fontSize:9,color:"#5b7aa0",letterSpacing:"0.2em" }}>COINS</div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#f5b65d" }}>{coins}</div></div>
+          <div><div style={{ fontSize:9,color:"#8fb7d9",letterSpacing:"0.2em" }}>COINS</div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:20,fontWeight:700,color:"#f5b65d" }}>{coins}</div></div>
         </div>
       </div>
 
@@ -9138,7 +9190,7 @@ function InventoryView({ inventory, keys, coins, onUseKey, accentColor }) {
                     <span style={{ fontSize:20,color:item.color,flexShrink:0 }}>{item.icon}</span>
                     <div>
                       <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:item.color }}>{item.name}</div>
-                      <div style={{ fontSize:10,color:"#5b7aa0",marginTop:2 }}>{item.desc}</div>
+                      <div style={{ fontSize:10,color:"#8fb7d9",marginTop:2 }}>{item.desc}</div>
                       <div style={{ fontSize:9,color:item.color+"88",marginTop:2 }}>{item.effect}</div>
                     </div>
                   </div>
@@ -9161,7 +9213,7 @@ function InventoryView({ inventory, keys, coins, onUseKey, accentColor }) {
                   <span style={{ fontSize:18 }}>🗝</span>
                   <div>
                     <div style={{ fontSize:11,fontFamily:"'Orbitron',sans-serif",color:kc,fontWeight:700 }}>{key.label}</div>
-                    <div style={{ fontSize:10,color:"#5b7aa0" }}>{key.desc}</div>
+                    <div style={{ fontSize:10,color:"#8fb7d9" }}>{key.desc}</div>
                   </div>
                   <button onClick={function(){if(typeof onUseKey==="function")onUseKey(i);}} style={{ padding:"4px 10px",background:kc,color:"#03050c",border:"none",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:9,fontWeight:700,marginLeft:8 }}>USE</button>
                 </div>
@@ -9174,7 +9226,7 @@ function InventoryView({ inventory, keys, coins, onUseKey, accentColor }) {
       {/* Owned items */}
       <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.3em",color:accentColor,marginBottom:12 }}>EQUIPMENT & RELICS</div>
       {ownedItems.length === 0 ? (
-        <div style={{ border:"1px solid #1a2438",padding:"32px",textAlign:"center",color:"#5b7aa0",fontSize:13 }}>No items owned yet. Visit the Hunter Shop.</div>
+        <div style={{ border:"1px solid #1a2438",padding:"32px",textAlign:"center",color:"#8fb7d9",fontSize:13 }}>No items owned yet. Visit the Hunter Shop.</div>
       ) : (
         <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:10 }}>
           {ownedItems.map(function(item) {
@@ -9182,9 +9234,9 @@ function InventoryView({ inventory, keys, coins, onUseKey, accentColor }) {
               <div key={item.id} style={{ border:"1px solid "+item.color+"44",background:"linear-gradient(160deg,rgba(10,18,34,0.97),rgba(5,10,20,0.99))",padding:"14px" }}>
                 <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:8 }}>
                   <span style={{ fontSize:20,color:item.color }}>{item.icon}</span>
-                  <div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:"#eaf2ff" }}>{item.name}</div><div style={{ fontSize:10,color:item.color }}>{item.effect}</div></div>
+                  <div><div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,fontWeight:700,color:"#e6f3ff" }}>{item.name}</div><div style={{ fontSize:10,color:item.color }}>{item.effect}</div></div>
                 </div>
-                <div style={{ fontSize:10,color:"#5b7aa0" }}>{item.desc}</div>
+                <div style={{ fontSize:10,color:"#8fb7d9" }}>{item.desc}</div>
               </div>
             );
           })}
@@ -9215,7 +9267,7 @@ function CinematicAchievementOverlay({ achievement, onDone }) {
       <div className="fade-in-up" style={{ textAlign:"center",padding:"0 32px",position:"relative" }}>
         <div style={{ fontSize:52,marginBottom:16 }}>{achievement.icon}</div>
         <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:11,letterSpacing:"0.5em",color:achievement.color,marginBottom:12 }}>ACHIEVEMENT</div>
-        <div className="rank-text-surge" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:32,fontWeight:900,color:"#eaf2ff",marginBottom:10,textShadow:"0 0 30px "+achievement.color }}>{achievement.title}</div>
+        <div className="rank-text-surge" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:32,fontWeight:900,color:"#e6f3ff",marginBottom:10,textShadow:"0 0 30px "+achievement.color }}>{achievement.title}</div>
         <div style={{ fontSize:14,color:achievement.color+"cc",fontStyle:"italic",maxWidth:360,margin:"0 auto",lineHeight:1.7 }}>{achievement.sub}</div>
       </div>
     </div>
@@ -9247,7 +9299,7 @@ function BreakthroughModal({ quest, onComplete, onDismiss }) {
         <div style={{ padding:"28px 24px",position:"relative" }}>
           <div style={{ textAlign:"center",marginBottom:20 }}>
             <div className="dng-warn" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.4em",color:"#f5b65d",marginBottom:8 }}>⚠ BREAKTHROUGH QUEST</div>
-            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:"#eaf2ff",marginBottom:6 }}>{quest.title}</div>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:18,fontWeight:700,color:"#e6f3ff",marginBottom:6 }}>{quest.title}</div>
             <p style={{ fontSize:13,color:"#9fb8d8",lineHeight:1.6 }}>{quest.flavor}</p>
           </div>
           <div style={{ height:1,background:"linear-gradient(90deg,transparent,#f5b65d44,transparent)",marginBottom:16 }} />
@@ -9257,14 +9309,14 @@ function BreakthroughModal({ quest, onComplete, onDismiss }) {
               <div key={g.id} onClick={function(){tapGoal(g.id);}} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid rgba(245,182,93,0.08)",cursor:done?"default":"pointer" }}>
                 <span style={{ fontSize:13,color:done?"#5a6a3a":"#dbe6ff" }}>{g.name}</span>
                 <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-                  <span style={{ fontSize:11,color:done?"#2ee88a":"#9fb8d8" }}>{cur}/{g.target}{g.unit}</span>
-                  <div style={{ width:18,height:18,border:"1.5px solid "+(done?"#2ee88a":"#f5b65d55"),background:done?"#2ee88a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#2ee88a" }}>{done?"✓":""}</div>
+                  <span style={{ fontSize:11,color:done?"#3ef29a":"#9fb8d8" }}>{cur}/{g.target}{g.unit}</span>
+                  <div style={{ width:18,height:18,border:"1.5px solid "+(done?"#3ef29a":"#f5b65d55"),background:done?"#3ef29a22":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#3ef29a" }}>{done?"✓":""}</div>
                 </div>
               </div>
             );
           })}
           <div style={{ marginTop:16,padding:"8px 12px",border:"1px solid #f5b65d33",background:"rgba(245,182,93,0.06)",fontSize:11,color:"#f5b65d",fontWeight:700 }}>{quest.reward.label}</div>
-          {!allDone&&<button onClick={onDismiss} style={{ marginTop:12,width:"100%",padding:"10px",background:"transparent",border:"1px solid #5b7aa044",color:"#5b7aa0",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10 }}>Complete later (quest stays active)</button>}
+          {!allDone&&<button onClick={onDismiss} style={{ marginTop:12,width:"100%",padding:"10px",background:"transparent",border:"1px solid #8fb7d944",color:"#8fb7d9",cursor:"pointer",fontFamily:"'Orbitron',sans-serif",fontSize:10 }}>Complete later (quest stays active)</button>}
         </div>
       </div>
     </div>
@@ -11071,19 +11123,19 @@ function App() {
   const rankIdx         = rank ? (rank.minRankIndex || 0) : 0;
   const gridAlpha       = isMonarch ? "0.06" : (0.02 + rankIdx * 0.005).toFixed(3);
   const gridLineColor   = isMonarch
-    ? "rgba(155,48,255," + gridAlpha + ")"
+    ? "rgba(160,141,255," + gridAlpha + ")"
     : rankIdx >= 5 ? "rgba(245,182,93," + gridAlpha + ")"
     : rankIdx >= 4 ? "rgba(160,93,245," + gridAlpha + ")"
     : rankIdx >= 3 ? "rgba(93,124,245," + gridAlpha + ")"
-    : "rgba(77,184,255," + gridAlpha + ")";
+    : "rgba(111,208,255," + gridAlpha + ")";
   const particleDensity = isMonarch ? 120 : 40 + rankIdx * 10;
   const particleColor   = isMonarch
-    ? "rgba(155,48,255,0.75)"
+    ? "rgba(160,141,255,0.75)"
     : rankIdx >= 5 ? "rgba(245,182,93,0.6)"
     : rankIdx >= 4 ? "rgba(160,93,245,0.6)"
     : rankIdx >= 3 ? "rgba(93,124,245,0.55)"
-    : rankIdx >= 2 ? "rgba(77,184,255,0.5)"
-    : rank ? (rank.glow || "rgba(77,184,255,0.45)") : "rgba(77,184,255,0.45)";
+    : rankIdx >= 2 ? "rgba(111,208,255,0.5)"
+    : rank ? (rank.glow || "rgba(111,208,255,0.45)") : "rgba(111,208,255,0.45)";
   const bgGrad          = isMonarch
     ? "radial-gradient(ellipse at 50% 0%,#1a0030 0%," + MONARCH_DARK + " 55%,#000 100%)"
     : rankIdx >= 5
@@ -11098,15 +11150,15 @@ function App() {
 
   const envTheme = (function() {
     const safeEnergy = (typeof energyScore === "number" && isFinite(energyScore)) ? energyScore : 68;
-    if (isMonarch)              return { overlay:"rgba(155,48,255,0.06)", glow:MONARCH_PURP+"33" };
+    if (isMonarch)              return { overlay:"rgba(160,141,255,0.06)", glow:MONARCH_PURP+"33" };
     /* Wave 4: Monarch corruption overlay — gets more intense with interest */
-    if (corruptionLevel>0.7)    return { overlay:"rgba(155,48,255,0.05)", glow:MONARCH_PURP+"28" };
-    if (glitchIntensity>0.5)    return { overlay:"rgba(255,34,68,0.04)", glow:GLITCH_RED+"22" };
+    if (corruptionLevel>0.7)    return { overlay:"rgba(160,141,255,0.05)", glow:MONARCH_PURP+"28" };
+    if (glitchIntensity>0.5)    return { overlay:"rgba(255,89,100,0.04)", glow:GLITCH_RED+"22" };
     if (dungeonChainGate)       return { overlay:"rgba(245,61,61,0.03)", glow:"rgba(245,61,61,0.15)" };
-    if (awakeningDay)           return { overlay:"rgba(46,232,138,0.03)", glow:"rgba(46,232,138,0.10)" };
-    if (worldEvent && worldEvent.id==="we_corrupted") return { overlay:"rgba(255,34,68,0.03)", glow:GLITCH_RED+"18" };
-    if (worldEvent && worldEvent.id==="we_shadow_surge") return { overlay:"rgba(155,48,255,0.03)", glow:MONARCH_PURP+"18" };
-    if (worldEvent && worldEvent.id==="we_double_xp") return { overlay:"rgba(46,232,138,0.02)", glow:"rgba(46,232,138,0.08)" };
+    if (awakeningDay)           return { overlay:"rgba(62,242,154,0.03)", glow:"rgba(62,242,154,0.10)" };
+    if (worldEvent && worldEvent.id==="we_corrupted") return { overlay:"rgba(255,89,100,0.03)", glow:GLITCH_RED+"18" };
+    if (worldEvent && worldEvent.id==="we_shadow_surge") return { overlay:"rgba(160,141,255,0.03)", glow:MONARCH_PURP+"18" };
+    if (worldEvent && worldEvent.id==="we_double_xp") return { overlay:"rgba(62,242,154,0.02)", glow:"rgba(62,242,154,0.08)" };
     if (safeEnergy < 30)        return { overlay:"rgba(245,182,93,0.04)", glow:null };
     if (rankIdx >= 5)           return { overlay:"rgba(245,182,93,0.02)", glow:"rgba(245,182,93,0.08)" };
     if (rankIdx >= 4)           return { overlay:"rgba(160,93,245,0.02)", glow:null };
@@ -11122,7 +11174,7 @@ function App() {
   return (
     <div className="system-app-shell" style={{ minHeight:"100vh",background:bgGrad,color:"#c8e8ff",fontFamily:"'Oxanium','Rajdhani',sans-serif",position:"relative",transition:"background 2.5s ease" }}>
       <ParticleField color={particleColor} density={particleDensity} />
-      {isMonarch&&<div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:"radial-gradient(ellipse at center,transparent 40%,rgba(155,48,255,0.10) 100%)" }} />}
+      {isMonarch&&<div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:"radial-gradient(ellipse at center,transparent 40%,rgba(160,141,255,0.10) 100%)" }} />}
       {/* Circuit-board grid — tighter, more SL-like */}
       <div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",backgroundImage:"linear-gradient("+gridLineColor+" 1px,transparent 1px),linear-gradient(90deg,"+gridLineColor+" 1px,transparent 1px)",backgroundSize:"44px 44px" }} />
       {/* Environmental theme overlay */}
@@ -11170,14 +11222,14 @@ function App() {
         <div className="system-notification-stack" style={{ position:"fixed",bottom:12,right:12,zIndex:8000,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4 }}>
           {/* System 7: Notification history tray — last 3 */}
           {notifHistory.slice(0,3).map(function(n,i){
-            const nc = n.kind==="evolve"?"#2ee88a":n.kind==="ach"?"#a05df5":n.kind==="warning"?"#f5b65d":n.kind==="xp"?"#f5b65d":"#5b7aa0";
+            const nc = n.kind==="evolve"?"#3ef29a":n.kind==="ach"?"#a05df5":n.kind==="warning"?"#f5b65d":n.kind==="xp"?"#f5b65d":"#8fb7d9";
             return (
               <div key={i} style={{ fontSize:9,padding:"2px 8px",border:"1px solid "+nc+"33",background:"rgba(5,10,20,0.85)",color:nc+"88",maxWidth:180,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontFamily:"monospace",pointerEvents:"none",opacity:Math.max(0.2,1-i*0.3) }}>
                 {n.message}
               </div>
             );
           })}
-          <button onClick={function(){addMonarchInterest(10);maybeTriggerCryptic(monarchStage<1?1:monarchStage);}} style={{ background:"rgba(155,48,255,0.1)",border:"1px solid #9b30ff33",color:"#9b30ff55",fontSize:9,padding:"4px 8px",cursor:"pointer",fontFamily:"monospace" }} title="DEV: +interest">+mi</button>
+          <button onClick={function(){addMonarchInterest(10);maybeTriggerCryptic(monarchStage<1?1:monarchStage);}} style={{ background:"rgba(160,141,255,0.1)",border:"1px solid #a08dff33",color:"#a08dff55",fontSize:9,padding:"4px 8px",cursor:"pointer",fontFamily:"monospace" }} title="DEV: +interest">+mi</button>
         </div>
       </div>
 
