@@ -854,6 +854,53 @@ function HunterStatusPanel({ player, rank, shadowArmy, guildId, day }) {
   );
 }
 
+function ArcLogOverlay({ state, context, locked, onClose, onJump }) {
+  return (
+    <div className="story-arclog-overlay">
+      <div className="story-arclog-head">
+        <div>
+          <small>STORY MODE // CAMPAIGN RECORD</small>
+          <h2>ARC LOG</h2>
+        </div>
+        <button onClick={onClose}>✕ CLOSE</button>
+      </div>
+      <div className="story-arclog-list">
+        {CHAPTERS.map((chapter, index) => {
+          const chapterArc = ARCS.find((item) => item.id === chapter.arc) || ARCS[index] || {};
+          const status = getChapterStatus(chapter, index, state, context, locked);
+          const label = status === "complete" ? "CLEARED" : status === "ready" ? "ACTIVE" : status === "paused" ? "PAUSED" : "SEALED";
+          const sub = status === "complete" ? "REPLAY AVAILABLE" : status === "ready" ? "NOW PLAYING" : status === "paused" ? "COMPLETE RECOVERY QUEST" : "CLEAR THE PREVIOUS ARC";
+          const canJump = status === "ready" || status === "complete";
+          return (
+            <div key={chapter.id} className={"story-arclog-row status-" + status + (canJump ? " jumpable" : "")} onClick={() => canJump && onJump(chapter)}>
+              <div className="story-arclog-num">{pad(index + 1)}</div>
+              <div className="story-arclog-card">
+                <div className={"chapter-art art-" + chapter.scene} aria-hidden="true" />
+                <div className="story-arclog-copy">
+                  <small>{chapter.number} / {chapterArc.name || chapterArc.saga}</small>
+                  <h3>{chapter.title}</h3>
+                  <p>{chapter.tagline}</p>
+                  <div className="story-arclog-reward"><span>+{chapter.xp} XP</span><span>+{chapter.coins} GOLD</span></div>
+                </div>
+                <div className="story-arclog-reqs">
+                  {chapter.requirements.map((req) => {
+                    const met = requirementMet(req, context);
+                    return <div key={req.metric} className={met ? "met" : ""}><span>{met ? "OK" : "—"}</span><span>{req.note}</span></div>;
+                  })}
+                </div>
+                <div className={"story-arclog-status status-" + status}>
+                  <strong>{label}</strong>
+                  <small>{sub}</small>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function Typewriter({ text, speed = 10, onDone }) {
   const [count, setCount] = useState(0);
   const timer = useRef(null);
@@ -888,11 +935,12 @@ function PathChoices({ selected, onChoose }) {
   );
 }
 
-function ScenePlayer({ chapter, state, onState, onClose, onFinish, player, rank, shadowArmy, guildId, day }) {
+function ScenePlayer({ chapter, state, onState, onClose, onFinish, player, rank, shadowArmy, guildId, day, context, locked, onJumpToChapter }) {
   const [index, setIndex] = useState(0);
   const [typed, setTyped] = useState(false);
   const [response, setResponse] = useState("");
   const [resolved, setResolved] = useState(false);
+  const [arcLogOn, setArcLogOn] = useState(false);
   const scene = chapter.scenes[index];
   const speaker = SPEAKERS[scene.speaker] || SPEAKERS.system;
   const isLast = index >= chapter.scenes.length - 1;
@@ -928,9 +976,10 @@ function ScenePlayer({ chapter, state, onState, onClose, onFinish, player, rank,
   return (
     <div className={"story-player " + (scene.kind === "item" ? "item-reveal" : "")}>
       <StoryBackdrop scene={scene.scene || chapter.scene} />
-      <div className="story-stage-top"><button onClick={onClose}>EXIT</button><div><span>{chapter.number}</span><strong>{chapter.title}</strong></div><small>{pad(index + 1)} / {pad(chapter.scenes.length)}</small></div>
+      <div className="story-stage-top"><button onClick={onClose}>EXIT</button><div><span>{chapter.number}</span><strong>{chapter.title}</strong><button className="story-arclog-open" onClick={() => setArcLogOn(true)}>ARC LOG</button></div><small>{pad(index + 1)} / {pad(chapter.scenes.length)}</small></div>
       {scene.alert && <div className="story-top-alert"><b>!</b><span><small>SYSTEM NOTIFICATION</small><strong>{scene.alert}</strong></span></div>}
       {Boolean(scene.kind) && <HunterStatusPanel player={player} rank={rank} shadowArmy={shadowArmy} guildId={guildId} day={day} />}
+      {arcLogOn && <ArcLogOverlay state={state} context={context} locked={locked} onClose={() => setArcLogOn(false)} onJump={(nextChapter) => { setArcLogOn(false); onJumpToChapter(nextChapter); }} />}
       {scene.kind === "item" && <div className="item-materialization"><div className="item-core">V</div><span>ACQUISITION COMPLETE</span></div>}
       <div className={"story-dialogue " + (scene.kind === "system" || scene.kind === "path" ? "system-dialogue" : "")}>
         <div className={"speaker-portrait speaker-"+scene.speaker} style={{ "--speaker": speaker.color }}><span>{scene.speaker === "architect" ? ":)" : scene.speaker === "shadow" ? "S" : "!"}</span></div>
@@ -1125,7 +1174,7 @@ export default function StoryModeView({
     setNotice(true);
   }
 
-  if (playing) return <ScenePlayer chapter={playing} state={state} onState={setState} onClose={() => setPlaying(null)} onFinish={() => finishChapter(playing)} player={player} rank={rank} shadowArmy={shadowArmy} guildId={guildId} day={context.day} />;
+  if (playing) return <ScenePlayer key={playing.id} chapter={playing} state={state} onState={setState} onClose={() => setPlaying(null)} onFinish={() => finishChapter(playing)} player={player} rank={rank} shadowArmy={shadowArmy} guildId={guildId} day={context.day} context={context} locked={recoveryRequired || clockAnomaly} onJumpToChapter={(nextChapter) => setPlaying(nextChapter)} />;
   if (unlockReveal) return <UnlockReveal chapter={unlockReveal} onClose={() => setUnlockReveal(null)} />;
 
   return (
