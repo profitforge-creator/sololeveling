@@ -136,6 +136,7 @@ const GOAL_OPTIONS = [
   { id: "discipline",    name: "Discipline",       icon: "◈", statKey: "Discipline"   },
   { id: "endurance",     name: "Endurance",        icon: "❖", statKey: "Endurance"    },
   { id: "speed",         name: "Sprint Speed",     icon: "➤", statKey: "Agility"      },
+  { id: "track",         name: "Track & Field",    icon: "➤", statKey: "Agility"      },
   { id: "aesthetics",    name: "Muscle Growth",    icon: "✸", statKey: "Aura"         },
   { id: "confidence",    name: "Confidence",       icon: "✦", statKey: "Intelligence" },
   { id: "athleticism",   name: "Athleticism",      icon: "❖", statKey: "Endurance"    },
@@ -176,6 +177,12 @@ const GOAL_TRAINING_MAP = {
     running:  "sprint_acc",
     core:     CORE_4,
     label:    "Speed Protocol",
+  },
+  track: {
+    training: ["stride_drills"],
+    running:  "tempo_run",
+    core:     CORE_4,
+    label:    "Track & Field Protocol",
   },
   athleticism: {
     training: ["squats","lunges"],
@@ -258,6 +265,12 @@ const QUEST_TEMPLATES = {
   run:             (n) => ({ id:"run",              name:"Endurance Run",          target:n, unit:"km",  stat:"Endurance"    }),
   sprint_acc:      (n) => ({ id:"sprint_acc",       name:"60m Accelerations",      target:n, unit:"×",   stat:"Agility"      }),
   sprint_interval: (n) => ({ id:"sprint_interval",  name:"100m Intervals",         target:n, unit:"×",   stat:"Agility"      }),
+  /* Track & field — 3AK-style structured program: base-building + speed development */
+  stride_drills:   (n) => ({ id:"stride_drills",    name:"Stride & Form Drills",   target:n, unit:"×",   stat:"Agility"      }),
+  interval_400:    (n) => ({ id:"interval_400",     name:"400m Track Intervals",   target:n, unit:"×",   stat:"Agility"      }),
+  hill_sprints:    (n) => ({ id:"hill_sprints",     name:"Hill Sprints",           target:n, unit:"×",   stat:"Agility"      }),
+  tempo_run:       (n) => ({ id:"tempo_run",        name:"Tempo Run",              target:n, unit:"km",  stat:"Endurance"    }),
+  long_run:        (n) => ({ id:"long_run",         name:"Base-Building Long Run", target:n, unit:"km",  stat:"Endurance"    }),
   /* Dynamic core — primary for training days */
   v_ups:           (n) => ({ id:"v_ups",            name:"V-Ups",                  target:n, unit:"",    stat:"Discipline"   }),
   reverse_crunch:  (n) => ({ id:"reverse_crunch",   name:"Reverse Crunches",       target:n, unit:"",    stat:"Discipline"   }),
@@ -336,6 +349,12 @@ function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon, 
     run:              [1,  2,  3,  4,  5,  6,  8  ][tier],
     sprint_acc:       [3,  4,  5,  6,  7,  8,  10 ][tier],
     sprint_interval:  [3,  4,  5,  6,  7,  8,  10 ][tier],
+    /* Track & field — structured base/speed-development split */
+    stride_drills:    [4,  5,  6,  7,  8,  9,  12 ][tier],
+    interval_400:     [4,  5,  6,  7,  8,  9,  12 ][tier],
+    hill_sprints:     [4,  5,  6,  7,  8,  10, 14 ][tier],
+    tempo_run:        [2,  3,  4,  5,  6,  7,  9  ][tier],
+    long_run:         [3,  4,  5,  6,  8,  10, 14 ][tier],
     /* Dynamic core — scales by tier, realistic volume */
     v_ups:            [10, 15, 20, 25, 30, 35, 50 ][tier],
     reverse_crunch:   [10, 15, 20, 25, 30, 35, 50 ][tier],
@@ -367,7 +386,8 @@ function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon, 
   const repKeys    = ["pushups","pullups","situps","burpees","dips","squats","lunges",
                       "sprint_acc","sprint_interval","v_ups","reverse_crunch","bicycle_crunch",
                       "toe_touch","hollow_rocker","dead_bug","mountain_climber","hanging_knee",
-                      "hanging_leg","suitcase_crunch","leg_raise"];
+                      "hanging_leg","suitcase_crunch","leg_raise",
+                      "stride_drills","interval_400","hill_sprints"];
   const staticGoalKeys = ["cold_shower","hydration","sleep","clean_meals"];
 
   function scaled(key) {
@@ -434,12 +454,20 @@ function generateDailyQuest(hunterClass, goals, level, energyScore, innerDemon, 
   });
 
   /* 3. Pick running based on goals — only one sprint type ever appears */
+  const wantsTrack  = activeGoals.includes("track");
   const wantsSpeed  = activeGoals.includes("speed") || activeGoals.includes("athleticism");
   const wantsEndur  = activeGoals.includes("endurance") || activeGoals.includes("weight_loss");
   const alreadyHasSprint = seenIds["sprint_acc"] || seenIds["sprint_interval"];
-  const runKey      = wantsSpeed && !alreadyHasSprint ? (dow % 2 === 0 ? "sprint_acc" : "sprint_interval")
+  /* Track & field goal: structured weekly split across the 4 training days that reach
+     this point (Mon/Tue/Thu/Fri — Sun is full rest, Wed/Sat are active recovery),
+     mirroring a base-building → speed-development program: interval work, a tempo
+     run, hill sprints, then a base-building long run. */
+  const TRACK_ROTATION = { 1:"interval_400", 2:"tempo_run", 4:"hill_sprints", 5:"long_run" };
+  const runKey      = wantsTrack ? (TRACK_ROTATION[dow] || "tempo_run")
+                    : wantsSpeed && !alreadyHasSprint ? (dow % 2 === 0 ? "sprint_acc" : "sprint_interval")
                     : wantsEndur ? "run" : "jog";
-  const alreadyHasRun = seenIds["run"] || seenIds["jog"] || seenIds["sprint_acc"] || seenIds["sprint_interval"];
+  const alreadyHasRun = seenIds["run"] || seenIds["jog"] || seenIds["sprint_acc"] || seenIds["sprint_interval"]
+                      || seenIds["tempo_run"] || seenIds["long_run"] || seenIds["interval_400"] || seenIds["hill_sprints"];
   if (!alreadyHasRun) {
     const rg = makeGoal(runKey);
     if (rg) { mainList.push(rg); seenIds[runKey] = true; }
@@ -3236,6 +3264,8 @@ const GLOBAL_CSS = `
   @keyframes level-up-burst   { 0%{opacity:1;transform:scale(0)} 60%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(1.15)} }
   @keyframes level-up-ray     { 0%{opacity:1;transform:scaleY(0)} 60%{opacity:1;transform:scaleY(1)} 100%{opacity:0;transform:scaleY(1.1)} }
   @keyframes rank-flash       { 0%{opacity:0} 15%{opacity:1} 85%{opacity:1} 100%{opacity:0} }
+  @keyframes evo-beam         { 0%{transform:translateX(-50%) scaleY(0);opacity:0} 40%{opacity:1} 100%{transform:translateX(-50%) scaleY(1);opacity:.9} }
+  @keyframes evo-flash        { 0%{opacity:0} 40%{opacity:1} 100%{opacity:0} }
   @keyframes cinematic-in     { from{opacity:0;transform:scale(.87) translateY(18px)} to{opacity:1;transform:scale(1) translateY(0)} }
   @keyframes log-entry-in     { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
   @keyframes dialogue-in      { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
@@ -3744,33 +3774,54 @@ function LevelUpOverlay({ level, accent, onDone }) {
   );
 }
 
-function RankUpOverlay({ rank, onDone }) {
+function RankUpOverlay({ rank, prevRank, onDone }) {
   const t = useRef(null);
-  useEffect(function() { t.current = setTimeout(function() { if (typeof onDone==="function") onDone(); }, 4200); return function() { clearTimeout(t.current); }; }, []);
+  const [phase, setPhase] = useState("evolving"); /* evolving -> flash -> revealed */
+  useEffect(function() {
+    const t1 = setTimeout(function() { setPhase("flash"); }, 750);
+    const t2 = setTimeout(function() { setPhase("revealed"); }, 1000);
+    t.current = setTimeout(function() { if (typeof onDone==="function") onDone(); }, 4600);
+    return function() { clearTimeout(t1); clearTimeout(t2); clearTimeout(t.current); };
+  }, []);
   /* Safe: rank may be null before data loads */
   if (!rank) return null;
   const rankMsg = getSystemMessage(SYSTEM_DIALOGUE.rankUp, rank.minRankIndex || 0);
+  const from = prevRank || rank;
   return (
-    <div style={{ position:"fixed",inset:0,zIndex:7100,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",background:"radial-gradient(ellipse at center,"+rank.color+"33 0%,rgba(0,0,0,0.94) 70%)",animation:"rank-flash 4.2s ease forwards",pointerEvents:"none" }}>
+    <div style={{ position:"fixed",inset:0,zIndex:7100,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",background:"radial-gradient(ellipse at center,"+rank.color+"33 0%,rgba(0,0,0,0.94) 70%)",animation:"rank-flash 4.6s ease forwards",pointerEvents:"none",overflow:"hidden" }}>
+      <ParticleField color={rank.color+"cc"} density={70} />
+      {/* Evolution beam sweep */}
+      <div style={{ position:"absolute",left:"50%",top:0,bottom:0,width:2,background:"linear-gradient(180deg,transparent,"+rank.color+"cc,transparent)",transform:"translateX(-50%)",animation:"evo-beam 1s ease "+(phase==="evolving"?"0s":"0.05s")+" both",opacity:phase==="evolving"?1:0 }} />
       {/* Aura rings */}
       <div className="aura-surge" style={{ position:"absolute",width:440,height:440,borderRadius:"50%",border:"1px solid "+rank.color+"55" }} />
       <div style={{ position:"absolute",width:320,height:320,borderRadius:"50%",border:"2px solid "+rank.color+"88",animation:"aura-ring-2 2s ease 0.5s forwards" }} />
+      {/* Flash burst at the transformation instant */}
+      {phase==="flash"&&<div style={{ position:"absolute",inset:0,background:"radial-gradient(circle,#ffffff,"+rank.color+" 40%,transparent 72%)",animation:"evo-flash .32s ease forwards" }} />}
       {/* Text */}
       <div style={{ position:"relative",textAlign:"center",padding:"0 32px" }}>
-        <img src="/icons/system-s-transparent.png" alt="" style={{width:84,height:84,objectFit:"contain",filter:"drop-shadow(0 0 17px "+rank.color+")",marginBottom:8}} />
-        <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.5em",color:rank.color,marginBottom:16,animation:"fade-in 0.5s ease 0.1s both" }}>
-          RANK ASCENSION
-        </div>
-        <div className="rank-text-surge" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:52,fontWeight:900,color:rank.color,textShadow:"0 0 40px "+rank.color+",0 0 80px "+rank.color+"55",marginBottom:8 }}>
-          {rank.name}
-        </div>
-        <div style={{ fontSize:16,color:"#dbe6ff",marginBottom:20,animation:"fade-in 0.5s ease 0.6s both" }}>
-          {rank.title}
-        </div>
-        {/* System message about the rank */}
-        <div style={{ fontSize:12,color:rank.color+"aa",fontStyle:"italic",maxWidth:340,margin:"0 auto",animation:"fade-in 0.5s ease 1s both",lineHeight:1.6 }}>
-          {rankMsg}
-        </div>
+        {phase==="evolving" ? (
+          <div className="shake" style={{ display:"inline-block" }}>
+            <div style={{ width:64,height:64,margin:"0 auto 10px",display:"flex",alignItems:"center",justifyContent:"center",border:"1.5px solid "+from.color+"77",fontFamily:"'Orbitron',sans-serif",fontWeight:900,fontSize:28,color:from.color+"88",background:from.color+"0d",filter:"blur(0.4px)" }}>{from.name.charAt(0)}</div>
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.5em",color:from.color+"bb" }}>EVOLVING&hellip;</div>
+          </div>
+        ) : (
+          <div className="fade-in">
+            <img src="/icons/system-s-transparent.png" alt="" style={{width:84,height:84,objectFit:"contain",filter:"drop-shadow(0 0 17px "+rank.color+")",marginBottom:8}} />
+            <div style={{ fontFamily:"'Orbitron',sans-serif",fontSize:10,letterSpacing:"0.5em",color:rank.color,marginBottom:16,animation:"fade-in 0.5s ease 0.1s both" }}>
+              EVOLUTION COMPLETE
+            </div>
+            <div className="rank-text-surge" style={{ fontFamily:"'Orbitron',sans-serif",fontSize:52,fontWeight:900,color:rank.color,textShadow:"0 0 40px "+rank.color+",0 0 80px "+rank.color+"55",marginBottom:8 }}>
+              {rank.name}
+            </div>
+            <div style={{ fontSize:16,color:"#dbe6ff",marginBottom:20,animation:"fade-in 0.5s ease 0.6s both" }}>
+              {rank.title}
+            </div>
+            {/* System message about the rank */}
+            <div style={{ fontSize:12,color:rank.color+"aa",fontStyle:"italic",maxWidth:340,margin:"0 auto",animation:"fade-in 0.5s ease 1s both",lineHeight:1.6 }}>
+              {rankMsg}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -10538,8 +10589,8 @@ function App() {
         setTimeout(function(){
           sfx.sfxRankUp();
           if(rnkTimerRef.current)clearTimeout(rnkTimerRef.current);
-          setRankUpFx({rank:newRank,id:Date.now()});
-          rnkTimerRef.current=setTimeout(function(){setRankUpFx(null);},3800);
+          setRankUpFx({rank:newRank,prevRank:prevRank,id:Date.now()});
+          rnkTimerRef.current=setTimeout(function(){setRankUpFx(null);},4600);
         },delay);
         addLog("Rank ascension: "+newRank.name+" — "+newRank.title+".","evolve");
       }
@@ -11181,7 +11232,7 @@ function App() {
       {envTheme&&<div style={{ position:"fixed",inset:0,zIndex:0,pointerEvents:"none",background:envTheme.overlay,boxShadow:envTheme.glow?"inset 0 0 120px "+envTheme.glow:"none",transition:"background 2s ease,box-shadow 2s ease" }} />}
       <GlitchOverlay intensity={glitchIntensity} />
       {levelUpFx&&<LevelUpOverlay key={levelUpFx.id} level={levelUpFx.level} accent={accentColor} onDone={function(){setLevelUpFx(null);}} />}
-      {rankUpFx&&<RankUpOverlay key={rankUpFx.id} rank={rankUpFx.rank} onDone={function(){setRankUpFx(null);}} />}
+      {rankUpFx&&<RankUpOverlay key={rankUpFx.id} rank={rankUpFx.rank} prevRank={rankUpFx.prevRank} onDone={function(){setRankUpFx(null);}} />}
 
       <div style={{ position:"relative",zIndex:1 }}>
         <TopHud player={player} rank={rank} onMenuToggle={function(){setMenuOpen(function(m){return !m;});}} menuOpen={menuOpen} isMonarch={isMonarch} />

@@ -450,7 +450,7 @@ body {
 .story-lightning i:nth-child(2){left:34%;transform:rotate(-24deg);height:62%;animation-delay:.18s}.story-lightning i:nth-child(3){left:66%;transform:rotate(27deg);height:67%;animation-delay:.34s}.story-lightning i:nth-child(4){left:52%;top:25%;transform:rotate(150deg);height:52%;animation-delay:.48s}
 @keyframes lightning-dance { 0%,18%,28%,100%{opacity:0}20%,25%{opacity:1} }
 
-.story-stage-top { position:absolute; z-index:6; top:0; left:0; right:0; display:grid; grid-template-columns:100px 1fr 100px; align-items:center; padding:18px 24px; background:linear-gradient(#01040be8,transparent); }
+.story-stage-top { position:absolute; z-index:6; top:0; left:0; right:0; display:grid; grid-template-columns:100px 1fr 100px; align-items:center; padding:max(18px,env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) 18px max(24px,env(safe-area-inset-left)); background:linear-gradient(#01040be8,transparent); }
 .story-stage-top > button { justify-self:start; padding:7px 12px; border:1px solid rgba(87,217,255,.35); background:rgba(2,10,22,.72); color:#6e8daa; font:700 8px 'Orbitron',sans-serif; letter-spacing:.15em; cursor:pointer; }
 .story-stage-top > div { text-align:center; display:grid; gap:4px; }
 .story-stage-top span { color:#57d9ff; font:700 8px 'Orbitron',sans-serif; letter-spacing:.35em; }
@@ -463,25 +463,27 @@ body {
 .item-materialization > span { font:700 9px 'Orbitron'; color:#75e8ff; letter-spacing:.34em; text-shadow:0 0 9px #168cff; }
 @keyframes item-arrive { from{opacity:0;transform:translate(-50%,-35%) scale(.5);filter:blur(8px)}to{opacity:1;transform:translate(-50%,-50%) scale(1);filter:blur(0)} }
 
-.story-dialogue { position:absolute; z-index:7; left:clamp(16px,5vw,76px); right:clamp(16px,5vw,76px); bottom:clamp(16px,4vw,48px); display:grid; grid-template-columns:92px 1fr; max-height:58vh; }
+.story-dialogue { position:absolute; z-index:7; left:max(clamp(16px,5vw,76px),env(safe-area-inset-left)); right:max(clamp(16px,5vw,76px),env(safe-area-inset-right)); bottom:max(clamp(16px,4vw,48px),env(safe-area-inset-bottom)); display:grid; grid-template-columns:92px 1fr; max-height:58vh; }
 .speaker-portrait { position:relative; z-index:2; align-self:end; height:112px; display:grid; place-items:center; border:1px solid color-mix(in srgb,var(--speaker) 75%,transparent); background:radial-gradient(circle at 50% 32%,color-mix(in srgb,var(--speaker) 28%,#02050c),#01040a 68%); clip-path:polygon(0 14px,14px 0,100% 0,100% 100%,0 100%); box-shadow:0 0 24px color-mix(in srgb,var(--speaker) 25%,transparent); }
 .speaker-portrait span { font:900 22px 'Orbitron',sans-serif; color:var(--speaker); text-shadow:0 0 12px var(--speaker); }
 .speaker-architect { background:linear-gradient(rgba(1,9,16,.12),rgba(1,3,8,.6)),url('/story/architect-reveal.png') center/cover no-repeat; }.speaker-shadow,.speaker-commander { background:linear-gradient(rgba(3,5,18,.2),rgba(1,2,8,.68)),url('/story/shadow-presence.png') 24% center/cover no-repeat; }.speaker-architect span,.speaker-shadow span,.speaker-commander span { opacity:0; }
-.dialogue-copy { position:relative; align-self:end; min-height:150px; padding:20px 24px 18px; overflow:auto; border:1px solid rgba(87,217,255,.46); background:linear-gradient(145deg,rgba(2,13,29,.95),rgba(1,5,13,.98)); box-shadow:0 0 42px rgba(0,0,0,.6),inset 0 0 28px rgba(87,217,255,.035); clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px)); }
+.dialogue-copy { position:relative; align-self:end; min-height:150px; max-height:58vh; padding:20px 24px 18px; display:flex; flex-direction:column; border:1px solid rgba(87,217,255,.46); background:linear-gradient(145deg,rgba(2,13,29,.95),rgba(1,5,13,.98)); box-shadow:0 0 42px rgba(0,0,0,.6),inset 0 0 28px rgba(87,217,255,.035); clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px)); }
 .dialogue-copy::before { content:""; position:absolute; inset:0; pointer-events:none; background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(87,217,255,.025) 3px 4px); }
+/* Text scrolls independently so choice/continue buttons below it always stay on-screen and pressable, however long the dialogue runs. */
+.dialogue-scroll { flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .speaker-name { position:relative; font:700 10px 'Orbitron',sans-serif; letter-spacing:.25em; margin-bottom:10px; }
-.dialogue-copy > p { position:relative; color:#d7e9f5; font-size:clamp(14px,1.6vw,18px); line-height:1.65; min-height:48px; }
+.dialogue-copy p { position:relative; color:#d7e9f5; font-size:clamp(14px,1.6vw,18px); line-height:1.65; min-height:48px; }
 .story-cursor { color:#57d9ff; animation:story-cursor 750ms step-end infinite; }
 @keyframes story-cursor { 50%{opacity:0} }
-.story-continue { float:right; margin-top:14px; padding:8px 14px; border:0; background:transparent; color:#57d9ff; font:700 9px 'Orbitron',sans-serif; letter-spacing:.16em; cursor:pointer; }
+.story-continue { flex:none; align-self:flex-end; margin-top:14px; padding:8px 14px; border:0; background:transparent; color:#57d9ff; font:700 9px 'Orbitron',sans-serif; letter-spacing:.16em; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .story-continue span { margin-left:10px; }
 
-.story-choices { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:16px; }
-.story-choices button { padding:11px 12px; border:1px solid rgba(87,217,255,.42); background:rgba(87,217,255,.045); color:#a9c7dd; font:700 9px 'Orbitron',sans-serif; line-height:1.5; cursor:pointer; clip-path:polygon(0 7px,7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%); }
+.story-choices { flex:none; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:16px; }
+.story-choices button { padding:11px 12px; min-height:44px; border:1px solid rgba(87,217,255,.42); background:rgba(87,217,255,.045); color:#a9c7dd; font:700 9px 'Orbitron',sans-serif; line-height:1.5; cursor:pointer; clip-path:polygon(0 7px,7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%); -webkit-tap-highlight-color:transparent; }
 .story-choices button:hover { color:#effbff; background:rgba(87,217,255,.12); box-shadow:0 0 17px rgba(22,124,255,.2); }
-.choice-response { clear:both; margin-top:12px; padding:9px 12px; border-left:2px solid #57d9ff; background:rgba(87,217,255,.055); color:#86b8d7; font-size:12px; }
+.choice-response { flex:none; margin-top:12px; padding:9px 12px; border-left:2px solid #57d9ff; background:rgba(87,217,255,.055); color:#86b8d7; font-size:12px; }
 
-.path-choice-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:16px; }
+.path-choice-grid { flex:none; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin-top:16px; }
 .path-choice-grid button { position:relative; min-height:72px; display:grid; grid-template-columns:42px 1fr; gap:10px; align-items:center; padding:10px 12px; text-align:left; border:1px solid rgba(87,217,255,.35); background:rgba(4,20,42,.72); color:#92b3ca; cursor:pointer; clip-path:polygon(0 8px,8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%); }
 .path-choice-grid button.selected { border-color:#61e5a0; background:rgba(97,229,160,.08); box-shadow:0 0 18px rgba(97,229,160,.15); }
 .path-choice-grid button:disabled { opacity:.38; cursor:not-allowed; }
@@ -758,9 +760,9 @@ body {
   .chapter-status small { text-align:left; }
   .chapter-art > span { left:25px; }.chapter-art > i { left:43px; }.chapter-art > b { left:56px; }
   .chapter-copy { padding:16px; }
-  .story-stage-top { grid-template-columns:65px 1fr 65px; padding:12px; }
+  .story-stage-top { grid-template-columns:65px 1fr 65px; padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) 12px max(12px,env(safe-area-inset-left)); }
   .story-stage-top strong { font-size:9px; }
-  .story-dialogue { left:10px;right:10px;bottom:10px;grid-template-columns:54px 1fr;max-height:67vh; }
+  .story-dialogue { left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));grid-template-columns:54px 1fr;max-height:67vh; }
   .speaker-portrait { height:80px; }.dialogue-copy { padding:15px;min-height:136px; }
   .story-choices { grid-template-columns:1fr; }
   .path-choice-grid { grid-template-columns:1fr; }

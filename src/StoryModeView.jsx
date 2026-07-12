@@ -904,20 +904,24 @@ function ArcLogOverlay({ state, context, locked, onClose, onJump }) {
 function Typewriter({ text, speed = 10, onDone }) {
   const [count, setCount] = useState(0);
   const timer = useRef(null);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
   useEffect(() => {
     setCount(0);
     timer.current = setInterval(() => {
-      setCount((value) => {
-        if (value >= text.length) {
-          clearInterval(timer.current);
-          if (typeof onDone === "function") onDone();
-          return value;
-        }
-        return Math.min(text.length, value + 2);
-      });
+      setCount((value) => Math.min(text.length, value + 2));
     }, speed);
     return () => clearInterval(timer.current);
-  }, [text, speed, onDone]);
+  }, [text, speed]);
+  /* Fire onDone from its own effect, not from inside the setCount updater —
+     calling a parent's setState while React is still processing this
+     component's state update trips "Cannot update a component while
+     rendering a different component." */
+  useEffect(() => {
+    if (count < text.length) return;
+    clearInterval(timer.current);
+    if (typeof onDoneRef.current === "function") onDoneRef.current();
+  }, [count, text.length]);
   return <>{text.slice(0, count)}{count < text.length && <span className="story-cursor">|</span>}</>;
 }
 
@@ -984,8 +988,10 @@ function ScenePlayer({ chapter, state, onState, onClose, onFinish, player, rank,
       <div className={"story-dialogue " + (scene.kind === "system" || scene.kind === "path" ? "system-dialogue" : "")}>
         <div className={"speaker-portrait speaker-"+scene.speaker} style={{ "--speaker": speaker.color }}><span>{scene.speaker === "architect" ? ":)" : scene.speaker === "shadow" ? "S" : "!"}</span></div>
         <div className="dialogue-copy">
-          <div className="speaker-name" style={{ color: speaker.color }}>{speaker.name}</div>
-          <p><Typewriter key={index} text={scene.text} onDone={() => setTyped(true)} /></p>
+          <div className="dialogue-scroll">
+            <div className="speaker-name" style={{ color: speaker.color }}>{speaker.name}</div>
+            <p><Typewriter key={index} text={scene.text} onDone={() => setTyped(true)} /></p>
+          </div>
           {typed && scene.choice && <div className="story-choices">{scene.choice.map((option) => <button key={option.id} onClick={() => choose(option)}>{option.label}</button>)}</div>}
           {typed && scene.kind === "path" && <PathChoices selected={state.path} onChoose={choosePath} />}
           {response && <div className="choice-response">{response}</div>}
